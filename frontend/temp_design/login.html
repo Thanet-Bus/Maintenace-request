@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html lang="th"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ระบบแจ้งซ่อมบำรุง (Maintenance Request System) - Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#f09a01",
+                        "outline-variant": "#bbcbb8",
+                        "surface-container-low": "#eff4ff",
+                        "on-background": "#0b1c30",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#004395",
+                        "inverse-primary": "#3ee26c",
+                        "surface-container-high": "#dce9ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-variant": "#d3e4fe",
+                        "on-surface-variant": "#3c4a3c",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container": "#e5eeff",
+                        "inverse-surface": "#213145",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#00531f",
+                        "surface": "#f8f9ff",
+                        "secondary-fixed": "#d8e2ff",
+                        "background": "#f8f9ff",
+                        "on-secondary-fixed": "#001a42",
+                        "on-tertiary-container": "#5d3900",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-primary-fixed": "#002108",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#004c1b",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "primary-container": "#06c755",
+                        "on-surface": "#0b1c30",
+                        "secondary-container": "#2170e4",
+                        "primary-fixed": "#69ff89",
+                        "secondary": "#0058be",
+                        "surface-bright": "#f8f9ff",
+                        "outline": "#6c7b6b",
+                        "primary": "#006e2b",
+                        "primary-fixed-dim": "#3ee26c",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-tint": "#006e2b",
+                        "tertiary": "#855300",
+                        "on-tertiary-fixed": "#2a1700",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-padding-desktop": "32px",
+                        "card-gap": "20px",
+                        "container-padding-mobile": "16px",
+                        "base": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "headline-md": ["22px", { "lineHeight": "30px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #f8f9ff; /* background color */
+        }
+        .line-button {
+            background-color: #06c755; /* primary-container representing LINE green */
+            color: #ffffff;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex items-center justify-center p-container-padding-mobile md:p-container-padding-desktop">
+<main class="w-full max-w-md">
+<!-- Login Card -->
+<div class="bg-surface rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.08)] p-8 md:p-10 flex flex-col items-center text-center">
+<!-- Icon/Logo Area -->
+<div class="w-20 h-20 bg-surface-container-low rounded-full flex items-center justify-center mb-6 shadow-sm">
+<span class="material-symbols-outlined text-primary text-[40px]" data-icon="build_circle">build_circle</span>
+</div>
+<!-- App Name -->
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">
+                ระบบแจ้งซ่อมบำรุง<br/>
+<span class="font-headline-md text-headline-md text-on-surface-variant font-normal">(Maintenance Request System)</span>
+</h1>
+<!-- Description -->
+<p class="font-body-md text-body-md text-on-surface-variant mb-8 px-4">
+                เข้าสู่ระบบด้วย LINE เพื่อแจ้งซ่อมและติดตามสถานะงานของคุณ
+            </p>
+<!-- Login Button -->
+<button class="w-full h-12 flex items-center justify-center gap-3 rounded-full line-button hover:bg-[#05b34c] transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#06c755]">
+<!-- Assuming standard LINE logo usage, replacing with a generic chat icon for demo if exact SVG isn't provided, but trying to simulate the instruction -->
+<svg aria-hidden="true" class="w-6 h-6 fill-current" viewbox="0 0 24 24">
+<path d="M24 10.304c0-5.369-5.383-9.738-12-9.738-6.616 0-12 4.369-12 9.738 0 4.814 3.96 8.91 9.385 9.605.367.078.868.243.996.559.116.287.075.738.035.952-.05.27-1.127 3.328-1.343 4.02-.239.771 1.258.552 1.636.377.925-.436 4.966-2.923 6.815-5.029C21.688 17.653 24 14.28 24 10.304z"></path>
+</svg>
+<span class="font-label-md text-label-md text-white">เข้าสู่ระบบด้วย LINE</span>
+</button>
+</div>
+<!-- Footer Note -->
+<div class="mt-6 text-center">
+<p class="font-label-sm text-label-sm text-outline px-4">
+<span class="material-symbols-outlined align-middle text-[14px] mr-1" data-icon="lock" data-weight="fill" style="font-variation-settings: 'FILL' 1;">lock</span>
+                เราใช้ข้อมูลโปรไฟล์ LINE ของคุณเพื่อระบุตัวตนในการแจ้งซ่อมเท่านั้น
+            </p>
+</div>
+</main>
+</body></html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html lang="th"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin Request Management - Maintenance Pro</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error-container": "#ffdad6",
+                    "tertiary-container": "#f09a01",
+                    "outline-variant": "#bbcbb8",
+                    "surface-container-low": "#eff4ff",
+                    "on-background": "#0b1c30",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed-variant": "#004395",
+                    "inverse-primary": "#3ee26c",
+                    "surface-container-high": "#dce9ff",
+                    "inverse-on-surface": "#eaf1ff",
+                    "surface-variant": "#d3e4fe",
+                    "on-surface-variant": "#3c4a3c",
+                    "surface-dim": "#cbdbf5",
+                    "surface-container": "#e5eeff",
+                    "inverse-surface": "#213145",
+                    "on-error": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#00531f",
+                    "surface": "#f8f9ff",
+                    "secondary-fixed": "#d8e2ff",
+                    "background": "#f8f9ff",
+                    "on-secondary-fixed": "#001a42",
+                    "on-tertiary-container": "#5d3900",
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "on-secondary-container": "#fefcff",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-primary-fixed": "#002108",
+                    "tertiary-fixed": "#ffddb8",
+                    "on-secondary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary-container": "#004c1b",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "primary-container": "#06c755",
+                    "on-surface": "#0b1c30",
+                    "secondary-container": "#2170e4",
+                    "primary-fixed": "#69ff89",
+                    "secondary": "#0058be",
+                    "surface-bright": "#f8f9ff",
+                    "outline": "#6c7b6b",
+                    "primary": "#006e2b",
+                    "primary-fixed-dim": "#3ee26c",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "surface-tint": "#006e2b",
+                    "tertiary": "#855300",
+                    "on-tertiary-fixed": "#2a1700",
+                    "error": "#ba1a1a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-padding-desktop": "32px",
+                    "card-gap": "20px",
+                    "container-padding-mobile": "16px",
+                    "base": "8px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "display-lg": [
+                            "Hanken Grotesk"
+                    ],
+                    "label-sm": [
+                            "Inter"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "headline-lg": [
+                            "Hanken Grotesk"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "label-md": [
+                            "Inter"
+                    ],
+                    "headline-md": [
+                            "Hanken Grotesk"
+                    ]
+            },
+            "fontSize": {
+                    "display-lg": [
+                            "36px",
+                            {
+                                    "lineHeight": "44px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-lg": [
+                            "28px",
+                            {
+                                    "lineHeight": "36px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0.01em",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "headline-md": [
+                            "22px",
+                            {
+                                    "lineHeight": "30px",
+                                    "fontWeight": "600"
+                            }
+                    ]
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-background text-on-surface h-screen w-full flex overflow-hidden font-body-md text-body-md antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- NavigationDrawer (Shared Component) -->
+<nav class="hidden md:flex flex-col py-6 gap-2 h-screen w-80 flex-shrink-0 bg-surface shadow-md relative z-20 border-r border-outline-variant/30">
+<!-- Header Profile -->
+<div class="px-6 pb-6 border-b border-outline-variant/20 mb-2 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-high border-2 border-primary-container shrink-0">
+<img alt="Admin Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a confident male executive in his 40s wearing a modern, tailored navy blue suit and crisp white shirt. The lighting is soft and flattering, creating a bright, optimistic light-mode aesthetic. The background is a slightly blurred, generic modern office setting in subtle cool gray tones, emphasizing a corporate, reliable SaaS environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFOlrMCaAPL36ugz7hNsMB3rsQ_HCDOgr8cvPNchIVuOsTN4IhxMa-A8VvSKPOJ-c5jHCSM8QYXR7BTk1xoD7PqfmUOaLBk9SVjbLRWJEXJdgMYajyRLgW2UEZ4nKtCiXxTX9yfN9aTxJRL2TXLL-LFh36rOedT2EKVVuEqVLkMreGV1UC-Yy_oSKW_jPvOzaLSPfQRW5r4zc0pth9B5wPn4iCFqNDNTmdLeShWzsA9uOHGqVfptib57-07VLOkb8RcGdxtwbHjFmf"/>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-primary tracking-tight">Admin Console</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Facility Management</span>
+</div>
+</div>
+<!-- Navigation Items -->
+<div class="flex-1 overflow-y-auto px-2 flex flex-col gap-1">
+<!-- Inactive Item -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high mx-2 font-label-md text-label-md transition-all group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">dashboard</span>
+                Dashboard
+            </a>
+<!-- Active Item (Matches "การจัดการใบแจ้งซ่อม" context) -->
+<a class="flex items-center gap-3 px-4 py-3 bg-secondary-container text-on-secondary-container font-semibold rounded-lg mx-2 font-label-md text-label-md transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">list_alt</span>
+                All Requests
+            </a>
+<!-- Inactive Item -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high mx-2 font-label-md text-label-md transition-all group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">group</span>
+                Technicians
+            </a>
+<!-- Inactive Item -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high mx-2 font-label-md text-label-md transition-all group" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">analytics</span>
+                Reports
+            </a>
+<!-- Inactive Item -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high mx-2 font-label-md text-label-md transition-all group mt-auto" href="#">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">settings</span>
+                Settings
+            </a>
+</div>
+</nav>
+<!-- Main Workspace -->
+<div class="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10 bg-background">
+<!-- TopAppBar (Shared Component) -->
+<header class="flex justify-between items-center px-container-padding-mobile md:px-container-padding-desktop h-16 w-full bg-surface shadow-sm shrink-0 border-b border-outline-variant/20 z-10">
+<div class="flex items-center gap-3">
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Maintenance Pro</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error ring-2 ring-surface"></span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content Canvas -->
+<main class="flex-1 overflow-y-auto p-container-padding-desktop flex flex-col gap-8">
+<!-- Page Header & Global Search -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight mb-1">การจัดการใบแจ้งซ่อม</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Manage, assign, and track maintenance requests efficiently.</p>
+</div>
+<div class="relative w-full lg:w-96 shrink-0">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant">search</span>
+<input class="w-full pl-10 pr-4 py-3 bg-surface-container-lowest border border-outline-variant/60 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md text-body-md text-on-surface placeholder:text-outline-variant shadow-sm" placeholder="ค้นหา รหัส, หัวข้อ, สถานที่..." type="text"/>
+</div>
+</div>
+<!-- Filter Bar (Glassmorphic Hint) -->
+<div class="bg-surface-container-lowest/80 backdrop-blur-md rounded-xl p-4 border border-outline-variant/40 shadow-sm flex flex-wrap gap-4 items-center z-0 relative">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md mr-2">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+                    ตัวกรอง:
+                </div>
+<select class="bg-surface border border-outline-variant/50 rounded-lg px-4 py-2 font-body-md text-body-md text-on-surface focus:ring-2 focus:ring-primary-container focus:border-primary cursor-pointer hover:bg-surface-container-low transition-colors appearance-none pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236c7b6b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] bg-[length:1.2em_1.2em]">
+<option value="">สถานะทั้งหมด</option>
+<option value="pending">รอดำเนินการ</option>
+<option value="active">กำลังดำเนินการ</option>
+<option value="completed">เสร็จสิ้น</option>
+</select>
+<select class="bg-surface border border-outline-variant/50 rounded-lg px-4 py-2 font-body-md text-body-md text-on-surface focus:ring-2 focus:ring-primary-container focus:border-primary cursor-pointer hover:bg-surface-container-low transition-colors appearance-none pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236c7b6b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] bg-[length:1.2em_1.2em]">
+<option value="">ความเร่งด่วน</option>
+<option value="high">เร่งด่วน</option>
+<option value="normal">ปกติ</option>
+</select>
+<select class="bg-surface border border-outline-variant/50 rounded-lg px-4 py-2 font-body-md text-body-md text-on-surface focus:ring-2 focus:ring-primary-container focus:border-primary cursor-pointer hover:bg-surface-container-low transition-colors appearance-none pr-10 relative bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%236c7b6b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center] bg-[length:1.2em_1.2em]">
+<option value="">หมวดหมู่</option>
+<option value="ac">แอร์</option>
+<option value="electric">ไฟฟ้า</option>
+<option value="plumbing">ประปา</option>
+</select>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px] pointer-events-none">calendar_month</span>
+<input class="bg-surface border border-outline-variant/50 rounded-lg pl-10 pr-4 py-2 font-body-md text-body-md text-on-surface focus:ring-2 focus:ring-primary-container focus:border-primary hover:bg-surface-container-low transition-colors w-48 placeholder:text-outline" placeholder="ช่วงวันที่" type="text"/>
+</div>
+<button class="ml-auto text-primary font-label-md text-label-md hover:bg-primary-container/20 px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">restart_alt</span>
+                    รีเซ็ต
+                </button>
+</div>
+<!-- Data Table Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0_2px_4px_rgba(0,0,0,0.02)] border border-outline-variant/30 overflow-hidden flex flex-col">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse whitespace-nowrap">
+<thead class="bg-surface-container-low/50 border-b border-outline-variant/40">
+<tr class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+<th class="px-6 py-4 font-medium">ID</th>
+<th class="px-6 py-4 font-medium">หัวข้อ / สถานที่</th>
+<th class="px-6 py-4 font-medium">ผู้แจ้ง</th>
+<th class="px-6 py-4 font-medium">หมวดหมู่</th>
+<th class="px-6 py-4 font-medium">สถานะ</th>
+<th class="px-6 py-4 font-medium">วันที่สร้าง</th>
+<th class="px-6 py-4 font-medium text-right">จัดการ</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface divide-y divide-outline-variant/20 bg-surface-container-lowest">
+<!-- Sample Row 1 -->
+<tr class="hover:bg-surface-container-low/30 transition-colors group">
+<td class="px-6 py-5">
+<span class="font-label-md text-label-md text-primary font-semibold bg-primary-container/10 px-2 py-1 rounded-md">#REQ-1002</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col gap-1">
+<span class="font-medium text-on-surface">แอร์ไม่เย็น มีน้ำหยด</span>
+<div class="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+                                            ห้องประชุม 1 (ชั้น 3)
+                                        </div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden shrink-0 border border-outline-variant/50">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="A bright, cheerful headshot portrait of an Asian woman in her 30s. She has a warm smile and is wearing a crisp white blouse. The background is a clean, out-of-focus soft pastel gradient, ideal for a professional SaaS application user avatar. The lighting is even, high-key, and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPBIE0UYcHKHiKI_BRex_kBaEeRNvw8auHoh0ZeH_0n748bdkjuMo8koKJsSzYslT9WoqbKsDi3GiDjCRLlGyKgS1643NhccsKIDP6Fp9Zd8D4Wi3HlGiab2K410KCV-DbhbI5Ap9FO7BrjOVvl7Q1hMVGe4-tg6QEDmfVxhTjFoz92CjxizyiE95QZZvGQ0o51My1A0PYev-9IEjNvJ4uzeOa3SoKx8WkIha7b6dyNvI4ZvAqII0xf3D9C1ANlCWYuADy8410ckYD"/>
+</div>
+<span class="text-on-surface">คุณวิภาดา</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-[18px]">ac_unit</span>
+                                        แอร์
+                                    </div>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col gap-2 items-start">
+<!-- Urgency Badge -->
+<div class="flex items-center gap-1 text-error font-label-sm text-label-sm bg-error-container/20 px-2 py-0.5 rounded border border-error-container/50">
+<span class="material-symbols-outlined text-[14px] font-bold">warning</span>
+                                            เร่งด่วน
+                                        </div>
+<!-- Status Badge -->
+<span class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-tertiary-container/10 text-tertiary font-label-sm text-label-sm border border-tertiary-container/20 whitespace-nowrap">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary mr-2"></span>
+                                            รอดำเนินการ
+                                        </span>
+</div>
+</td>
+<td class="px-6 py-5 text-on-surface-variant">
+                                    12/05/2024<br/>
+<span class="font-label-sm text-label-sm text-outline">10:30 AM</span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="w-9 h-9 flex items-center justify-center rounded-lg text-outline hover:text-primary hover:bg-primary-container/20 transition-colors" title="แก้ไข">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-4 py-2 rounded-lg shadow-sm hover:bg-primary/90 hover:shadow-md transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+                                            มอบหมายงาน
+                                        </button>
+</div>
+</td>
+</tr>
+<!-- Sample Row 2 (To show contrast) -->
+<tr class="hover:bg-surface-container-low/30 transition-colors group">
+<td class="px-6 py-5">
+<span class="font-label-md text-label-md text-outline font-medium">#REQ-1001</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col gap-1">
+<span class="font-medium text-on-surface">หลอดไฟทางเดินขาด 2 ดวง</span>
+<div class="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+                                            โถงทางเดิน ชั้น 2
+                                        </div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden shrink-0 border border-outline-variant/50 flex items-center justify-center text-primary font-label-md">
+                                            ส
+                                        </div>
+<span class="text-on-surface">สมชาย</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-[18px]">lightbulb</span>
+                                        ไฟฟ้า
+                                    </div>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col gap-2 items-start">
+<div class="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm px-2 py-0.5">
+                                            ปกติ
+                                        </div>
+<span class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm whitespace-nowrap">
+<span class="w-1.5 h-1.5 rounded-full bg-outline mr-2"></span>
+                                            มอบหมายแล้ว
+                                        </span>
+</div>
+</td>
+<td class="px-6 py-5 text-on-surface-variant">
+                                    11/05/2024<br/>
+<span class="font-label-sm text-label-sm text-outline">14:15 PM</span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="w-9 h-9 flex items-center justify-center rounded-lg text-outline hover:text-primary hover:bg-primary-container/20 transition-colors" title="แก้ไข">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="border border-outline-variant bg-transparent text-on-surface font-label-md text-label-md px-4 py-2 rounded-lg hover:bg-surface-container-low transition-colors flex items-center gap-2">
+                                            ดูรายละเอียด
+                                        </button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="bg-surface-container-lowest border-t border-outline-variant/30 px-6 py-4 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">แสดง 1 ถึง 10 จาก 45 รายการ</span>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded-md flex items-center justify-center text-outline hover:bg-surface-container-low transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-md flex items-center justify-center bg-primary-container/20 text-primary font-label-md">1</button>
+<button class="w-8 h-8 rounded-md flex items-center justify-center text-on-surface hover:bg-surface-container-low font-label-md transition-colors">2</button>
+<button class="w-8 h-8 rounded-md flex items-center justify-center text-on-surface hover:bg-surface-container-low font-label-md transition-colors">3</button>
+<button class="w-8 h-8 rounded-md flex items-center justify-center text-outline hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom spacing for scroll -->
+<div class="h-8 shrink-0"></div>
+</main>
+</div>
+</body></html>

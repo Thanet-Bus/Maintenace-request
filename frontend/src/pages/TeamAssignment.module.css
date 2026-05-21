@@ -1,0 +1,447 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.backButton {
+  background-color: #ffffff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-on-surface-variant);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.backButton:hover {
+  background-color: var(--color-surface-container-low);
+}
+
+.pageTitle {
+  font-family: var(--font-headline);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.headerBadge {
+  background-color: rgba(240, 154, 1, 0.1);
+  color: var(--color-tertiary-container);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .mainGrid {
+    grid-template-cols: repeat(12, 1fr);
+  }
+}
+
+.detailsPane {
+  grid-column: span 12;
+}
+
+@media (min-width: 1024px) {
+  .detailsPane {
+    grid-column: span 5;
+  }
+}
+
+.formPane {
+  grid-column: span 12;
+}
+
+@media (min-width: 1024px) {
+  .formPane {
+    grid-column: span 7;
+  }
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(187, 203, 184, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.accentCard {
+  position: relative;
+  overflow: hidden;
+  padding: 2rem;
+}
+
+.accentBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background-color: var(--color-primary);
+}
+
+.cardTitle {
+  font-family: var(--font-headline);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0 0 1.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.detailsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.infoBox {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--color-surface-container-low);
+  border-radius: 8px;
+  border: 1px solid rgba(187, 203, 184, 0.2);
+}
+
+.infoIcon {
+  width: 40px;
+  height: 40px;
+  background-color: var(--color-surface-container);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-on-surface);
+  flex-shrink: 0;
+}
+
+.infoLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-on-surface-variant);
+  margin: 0 0 0.25rem 0;
+}
+
+.infoValue {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.infoSubValue {
+  font-size: 14px;
+  color: var(--color-on-surface-variant);
+  margin: 0.25rem 0 0 0;
+}
+
+.problemSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.problemTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.descriptionBox {
+  padding: 1rem;
+  background-color: var(--color-surface-container-low);
+  border-radius: 8px;
+  border: 1px solid rgba(187, 203, 184, 0.2);
+  font-size: 16px;
+  color: var(--color-on-surface-variant);
+  line-height: 1.5;
+}
+
+.photoGrid {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.thumbnail {
+  width: 96px;
+  height: 96px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(187, 203, 184, 0.4);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.thumbnail:hover {
+  transform: scale(1.05);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.fieldLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+
+.required {
+  color: var(--color-status-cancelled);
+}
+
+.inputGrid {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .inputGrid {
+    grid-template-cols: 1fr 1fr;
+  }
+}
+
+.inputWithIcon {
+  position: relative;
+}
+
+.prefixIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-on-surface-variant);
+  font-size: 20px;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  background-color: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 8px;
+  font-size: 16px;
+  color: var(--color-on-surface);
+  outline: none;
+}
+
+.fieldHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.countInfo {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+}
+
+.techList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background-color: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 8px;
+  padding: 0.75rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.techItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(187, 203, 184, 0.3);
+  transition: all 0.2s;
+}
+
+@media (min-width: 640px) {
+  .techItem {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.techItemSelected {
+  border: 2px solid var(--color-primary);
+  background-color: var(--color-surface-container-low);
+}
+
+.techMainInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.techAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.initialAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-surface-container-high);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-on-surface-variant);
+  font-weight: 600;
+}
+
+.techName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.techDesc {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+.techDescBusy {
+  font-size: 12px;
+  color: var(--color-tertiary-container);
+  margin: 0;
+}
+
+.techItemDisabled {
+  opacity: 0.6;
+}
+
+.roleAssignment {
+  display: flex;
+  gap: 1rem;
+  background-color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid rgba(187, 203, 184, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.roleLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 12px;
+  color: var(--color-on-surface);
+  cursor: pointer;
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 8px;
+  font-size: 16px;
+  resize: none;
+  outline: none;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(187, 203, 184, 0.2);
+}
+
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-outline-variant);
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  cursor: pointer;
+  min-width: 120px;
+  transition: background-color 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: var(--color-surface-container-low);
+}
+
+.confirmButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  min-width: 160px;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0, 110, 43, 0.2);
+  transition: background-color 0.2s;
+}
+
+.confirmButton:hover {
+  background-color: #00531f;
+}

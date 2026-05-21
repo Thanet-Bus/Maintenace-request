@@ -1,0 +1,9 @@
+fastapi==0.136.1
+uvicorn[standard]==0.47.0
+pydantic==2.13.4    #data validation
+sqlalchemy==2.0.49  #ORM
+alembic==1.18.4     #database migration 
+psycopg[binary]==3.3.4
+pydantic-settings==2.14.1 #for config settings like env with pydantic
+httpx==0.28.1             #for calling external API
+python-multipart==0.0.29  #for take uploaded images

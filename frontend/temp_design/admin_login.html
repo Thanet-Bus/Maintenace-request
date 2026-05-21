@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html lang="th"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin Login - Maintenance Pro</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#d8e2ff",
+                    "inverse-surface": "#213145",
+                    "surface-container-high": "#dce9ff",
+                    "on-error": "#ffffff",
+                    "surface": "#f8f9ff",
+                    "on-secondary-container": "#fefcff",
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "surface-dim": "#cbdbf5",
+                    "secondary-fixed-dim": "#adc6ff",
+                    "on-surface": "#0b1c30",
+                    "tertiary-fixed": "#ffddb8",
+                    "primary-container": "#06c755",
+                    "inverse-on-surface": "#eaf1ff",
+                    "outline": "#6c7b6b",
+                    "secondary": "#0058be",
+                    "on-primary-fixed": "#002108",
+                    "error-container": "#ffdad6",
+                    "surface-bright": "#f8f9ff",
+                    "surface-container-highest": "#d3e4fe",
+                    "outline-variant": "#bbcbb8",
+                    "background": "#f8f9ff",
+                    "tertiary-container": "#f09a01",
+                    "inverse-primary": "#3ee26c",
+                    "on-primary-container": "#004c1b",
+                    "on-primary-fixed-variant": "#00531f",
+                    "on-background": "#0b1c30",
+                    "tertiary": "#855300",
+                    "on-surface-variant": "#3c4a3c",
+                    "on-tertiary-fixed": "#2a1700",
+                    "surface-tint": "#006e2b",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "on-primary": "#ffffff",
+                    "primary-fixed-dim": "#3ee26c",
+                    "on-error-container": "#93000a",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed-variant": "#004395",
+                    "primary-fixed": "#69ff89",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-container": "#5d3900",
+                    "surface-container-low": "#eff4ff",
+                    "surface-container": "#e5eeff",
+                    "surface-variant": "#d3e4fe",
+                    "on-secondary-fixed": "#001a42",
+                    "primary": "#006e2b",
+                    "secondary-container": "#2170e4"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "card-gap": "20px",
+                    "container-padding-desktop": "32px",
+                    "base": "8px",
+                    "container-padding-mobile": "16px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Inter"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["22px", {"lineHeight": "30px", "fontWeight": "600"}],
+                    "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-surface-container-low to-surface-variant min-h-screen flex items-center justify-center p-4">
+<!-- Login Card Container -->
+<main class="w-full max-w-[440px] bg-surface rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.12)] p-8 sm:p-10 relative overflow-hidden flex flex-col gap-8">
+<!-- Header Section -->
+<header class="flex flex-col items-center text-center gap-4">
+<div class="w-16 h-16 bg-primary-container rounded-full flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-on-primary-container text-4xl" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+</div>
+<div class="flex flex-col gap-1">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">เข้าสู่ระบบสำหรับผู้ดูแลระบบ</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Maintenance Pro - Facility Management</p>
+</div>
+</header>
+<!-- Form Section -->
+<form class="flex flex-col gap-6">
+<!-- Username Input Group -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface" for="username">ชื่อผู้ใช้งาน</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant">person</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-3 pl-10 pr-4 font-body-md text-body-md text-on-surface focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors outline-none shadow-sm" id="username" name="username" placeholder="กรอกชื่อผู้ใช้งาน" required="" type="text"/>
+</div>
+</div>
+<!-- Password Input Group -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-label-md text-on-surface" for="password">รหัสผ่าน</label>
+<a class="font-label-sm text-label-sm text-secondary hover:text-secondary-container transition-colors" href="#">ลืมรหัสผ่าน?</a>
+</div>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant">lock</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-3 pl-10 pr-10 font-body-md text-body-md text-on-surface focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors outline-none shadow-sm" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+<button class="absolute right-3 text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none flex items-center justify-center" type="button">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="w-full bg-primary-container text-on-primary-container rounded-lg py-3 px-4 font-label-md text-label-md font-bold mt-2 hover:bg-primary hover:text-on-primary active:scale-[0.98] transition-all shadow-[0_4px_10px_rgba(6,199,85,0.2)]" type="submit">
+                เข้าสู่ระบบ
+            </button>
+</form>
+<!-- Optional Footer / Helper -->
+<footer class="text-center pt-2">
+<p class="font-label-sm text-label-sm text-on-surface-variant">
+                พบปัญหาในการเข้าใช้งาน? <a class="text-primary hover:underline" href="#">ติดต่อฝ่ายสนับสนุน</a>
+</p>
+</footer>
+</main>
+</body></html>

@@ -1,0 +1,185 @@
+.pageWrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--color-surface-container-low), var(--color-surface-variant));
+}
+
+.loginCard {
+  width: 100%;
+  max-width: 440px;
+  background-color: #ffffff;
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+}
+
+.iconContainer {
+  width: 64px;
+  height: 64px;
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.title {
+  font-family: var(--font-headline);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-on-surface);
+}
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.forgotLink {
+  font-size: 12px;
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+
+.forgotLink:hover {
+  color: var(--color-secondary-container);
+}
+
+.inputWithIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.prefixIcon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--color-on-surface-variant);
+  font-size: 20px;
+}
+
+.input {
+  width: 100%;
+  background-color: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--color-on-surface);
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-primary-container);
+  box-shadow: 0 0 0 1px var(--color-primary-container);
+}
+
+.visibilityButton {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.visibilityButton:hover {
+  color: var(--color-on-surface);
+}
+
+.submitButton {
+  width: 100%;
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(6, 199, 85, 0.2);
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.submitButton:hover {
+  background-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.submitButton:active {
+  transform: scale(0.98);
+}
+
+.footer {
+  text-align: center;
+  padding-top: 0.5rem;
+}
+
+.footerText {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+.supportLink {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.supportLink:hover {
+  text-decoration: underline;
+}

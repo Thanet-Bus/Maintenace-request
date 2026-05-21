@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html lang="th"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>มอบหมายทีมช่าง (#REQ-1002)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#f09a01",
+                        "outline-variant": "#bbcbb8",
+                        "surface-container-low": "#eff4ff",
+                        "on-background": "#0b1c30",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#004395",
+                        "inverse-primary": "#3ee26c",
+                        "surface-container-high": "#dce9ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-variant": "#d3e4fe",
+                        "on-surface-variant": "#3c4a3c",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container": "#e5eeff",
+                        "inverse-surface": "#213145",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#00531f",
+                        "surface": "#f8f9ff",
+                        "secondary-fixed": "#d8e2ff",
+                        "background": "#f8f9ff",
+                        "on-secondary-fixed": "#001a42",
+                        "on-tertiary-container": "#5d3900",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-primary-fixed": "#002108",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#004c1b",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "primary-container": "#06c755",
+                        "on-surface": "#0b1c30",
+                        "secondary-container": "#2170e4",
+                        "primary-fixed": "#69ff89",
+                        "secondary": "#0058be",
+                        "surface-bright": "#f8f9ff",
+                        "outline": "#6c7b6b",
+                        "primary": "#006e2b",
+                        "primary-fixed-dim": "#3ee26c",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-tint": "#006e2b",
+                        "tertiary": "#855300",
+                        "on-tertiary-fixed": "#2a1700",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-padding-desktop": "32px",
+                        "card-gap": "20px",
+                        "container-padding-mobile": "16px",
+                        "base": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "headline-md": ["22px", {"lineHeight": "30px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex font-body-md text-body-md antialiased">
+<!-- NavigationDrawer (Shared Component) -->
+<aside class="hidden md:flex flex-col py-6 gap-2 bg-surface dark:bg-on-background shadow-md h-screen w-80 docked left-0 flex-shrink-0 z-40">
+<div class="px-6 mb-8 flex items-center gap-4">
+<img alt="Admin Avatar" class="w-12 h-12 rounded-full object-cover shadow-sm" data-alt="A professional headshot of a mature male admin, warmly smiling. The background is a clean, modern corporate office setting with soft, diffused light mode lighting. Subtle greenery hints at a calm, organized work environment. The color palette leans towards neutral whites, grays, and soft blues, conveying reliability and expertise." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTuj9Gq8S5fsRh-NuzWeqWAJ_dwM49BHHBgIpQutnx0Z72Blg7CjgMe0rDnWlUlHP96NSJM2B7k3Qel3Jh2Yht2R87AGfNy44oZraJCeagYlAfOLpBh1ZKs5fKj3uR1dG1smj2baq0UzT0_TkDOamIpnlfdXSrrR30nZf9c9dvapIX9yoj4jWMY8hagjSUbiW25syeeETJhUh4svoIhYaSUmozUkWtCha_XfvtyEwBqV93XX8-QTGMMi6J7Jl5Qhl7E5jYpa7JTxnh"/>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-primary dark:text-primary-fixed">Admin Console</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Facility Management</span>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high mx-2 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[24px]">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 bg-secondary-container text-on-secondary-container font-semibold rounded-lg mx-2 transition-all translate-x-1 duration-200 shadow-[0_2px_4px_rgba(0,0,0,0.05)]" href="#">
+<span class="material-symbols-outlined text-[24px]">list_alt</span>
+<span class="font-label-md text-label-md">All Requests</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high mx-2 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[24px]">group</span>
+<span class="font-label-md text-label-md">Technicians</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high mx-2 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[24px]">analytics</span>
+<span class="font-label-md text-label-md">Reports</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 text-on-surface-variant hover:bg-surface-container-high mx-2 rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+</aside>
+<main class="flex-1 flex flex-col max-h-screen overflow-hidden">
+<!-- TopAppBar (Shared Component) -->
+<header class="bg-surface dark:bg-on-background flex justify-between items-center px-container-padding-mobile md:px-container-padding-desktop h-16 w-full shadow-sm dark:shadow-none docked full-width top-0 z-30">
+<div class="flex items-center gap-3">
+<button class="md:hidden text-on-surface-variant hover:bg-surface-container-low transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined text-[24px]">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">Maintenance Pro</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:bg-surface-container-low transition-colors p-2 rounded-full relative">
+<span class="material-symbols-outlined text-[24px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<img alt="Technician profile photo" class="w-8 h-8 rounded-full border border-surface-container-highest cursor-pointer hover:scale-95 duration-150 transition-transform" data-alt="A professional headshot of a confident female facility manager in modern business casual attire. Set against a blurred, bright corporate hallway background. Lighting is soft and bright, emphasizing a clean, modern aesthetic with subtle cool tones and crisp details. The overall mood is approachable and efficient." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfBQmMtLO3gmoHzxEevaYh3HdlS_h2mSrHm26wQmvHxLZK2DwoddMTeSiDECM2QNUPgKgO7AYmkWwbKTIlcVjLIXzMqn9L29OX7Bo064ag43sYd4Xd1BOg8YxuIsDVsqwDe-X9gufDR0w5dlYZutgmDA67XqxJCo2-__7mYwZSD04BepBel6k1-_shfAWwT_hpPpyYB1jiAZGiyz8vWMRPkFz3b4uM_JVAEBSloWkEOQ5QLjG7sh_DtvkFmQ7nFaysNWnNq5Ux_gVe"/>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<div class="flex-1 overflow-y-auto bg-surface-bright p-container-padding-mobile md:p-container-padding-desktop relative">
+<div class="max-w-[1440px] mx-auto flex flex-col gap-6">
+<!-- Page Title -->
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-3">
+<button class="text-on-surface-variant hover:bg-surface-container-low p-2 rounded-full transition-colors flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.05)] bg-surface">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">มอบหมายทีมช่าง (#REQ-1002)</h2>
+</div>
+<span class="bg-tertiary-container/10 text-tertiary-container font-label-md text-label-md px-3 py-1 rounded-full">รอการมอบหมาย</span>
+</div>
+<!-- Main Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-card-gap items-start">
+<!-- Left Pane: Request Details -->
+<div class="lg:col-span-5 flex flex-col gap-card-gap">
+<div class="bg-surface rounded-xl p-6 shadow-[0_2px_4px_rgba(0,0,0,0.05)] border border-surface-container-highest">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">info</span>
+                                รายละเอียดคำร้อง
+                            </h3>
+<div class="flex flex-col gap-5">
+<!-- Requester Info -->
+<div class="flex items-start gap-4 p-4 bg-surface-container-lowest rounded-lg border border-surface-container">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface flex-shrink-0">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-1">ผู้แจ้งซ่อม</p>
+<p class="font-body-md text-body-md text-on-surface font-medium">คุณสมชาย ใจดี (แผนกบุคคล)</p>
+<p class="font-body-sm text-[14px] text-on-surface-variant mt-1">อาคาร A, ชั้น 3, ห้อง 302</p>
+<p class="font-body-sm text-[14px] text-on-surface-variant">081-234-5678</p>
+</div>
+</div>
+<!-- Problem Description -->
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-2">หัวข้อปัญหา</p>
+<p class="font-body-lg text-body-lg text-on-surface font-semibold mb-2">แอร์ไม่เย็น มีน้ำหยด</p>
+<p class="font-body-md text-body-md text-on-surface-variant bg-surface-container-lowest p-4 rounded-lg border border-surface-container">
+                                        เครื่องปรับอากาศหมายเลข AC-302-1 เปิดแล้วไม่เย็น มีแต่ลมออก และมีน้ำหยดลงมาที่พื้นบริเวณใต้เครื่อง ขอให้ช่างเข้ามาตรวจสอบด่วน
+                                    </p>
+</div>
+<!-- Before Photos -->
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant mb-3">รูปภาพประกอบ (2)</p>
+<div class="flex gap-3 overflow-x-auto pb-2">
+<img alt="Air conditioner leaking" class="w-24 h-24 object-cover rounded-lg border border-surface-container shadow-sm cursor-pointer hover:shadow-md transition-shadow" data-alt="A close-up shot of a ceiling-mounted commercial air conditioning unit in a modern office space. The unit appears slightly dusty with visible water droplets forming on the lower vents, indicating a leak or condensation issue. The lighting is bright fluorescent, typical of an office setting. The overall mood is sterile and slightly worn, reflecting a need for maintenance." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiAuNTvxwcPJ5KCvaTIm9by8oqN_Nlv0Sw6GVOMRBKBuNt5CXKAiIiis1Pfr6V3jYQxUIyBx9z_jHZRPuf8wmKX8s925jN8XdZzAJAzdk90yz2FMRBnrZMqQz1YDy1yODE_vnq63OB9Z1t0JZBBwdtP1CC4gdYmdKcsaRzEYBAXIA1X3PW7H1lCQB7JCeMmAaNviaU2LRX_0Vgs_AKEbmoMjLmFpxUTrz9Rxe1HO9MXgVvPTZP2pQwbA4k_SrzEsBuI3_ZO78n8oOY"/>
+<img alt="Water puddle on office floor" class="w-24 h-24 object-cover rounded-lg border border-surface-container shadow-sm cursor-pointer hover:shadow-md transition-shadow" data-alt="A downward-facing shot of a light gray carpeted office floor. There is a noticeable dark, damp patch indicating a water leak from above. The lighting is somewhat dim, emphasizing the contrast between the dry and wet carpet. A blurred edge of a white desk can be seen in the periphery. The mood is slightly disruptive, highlighting a facility issue." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQb5cXa4xSiSrvuAEul00EcCzLinGj9P4SX9yeYnHcz2S5aAwauyn-i4uA5TIh2JmyFt-vRado8_Di4vCDKKs4LFDLxYsW-hqx2sHSIEkV459d5f17YIEye0fX1yQduHydRRnAYbSqRd9tWs22Nv-IvXOhVMarvFtnNnilNk5xTcOp4y6ef1KfTQPaIj0V3OLy10t624hImCQ_X49ST-jJq8GAhDpPxnDYUvY8uljQfdy1EMu5x0t0jmp18o0sPRFxFKbZoj96eXe9"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Pane: Assignment Form -->
+<div class="lg:col-span-7">
+<div class="bg-surface rounded-xl p-8 shadow-[0_2px_4px_rgba(0,0,0,0.05)] border border-surface-container-highest relative overflow-hidden">
+<!-- Decorative accent -->
+<div class="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">engineering</span>
+                                ฟอร์มการมอบหมาย
+                            </h3>
+<form class="flex flex-col gap-6">
+<!-- Date/Time Picker -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface font-semibold">กำหนดวันเวลาเข้าซ่อม <span class="text-error">*</span></label>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant">calendar_today</span>
+</div>
+<input class="w-full pl-10 pr-3 py-3 border border-outline-variant rounded-lg text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm bg-surface-container-lowest" type="date" value="2023-10-25"/>
+</div>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant">schedule</span>
+</div>
+<input class="w-full pl-10 pr-3 py-3 border border-outline-variant rounded-lg text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm bg-surface-container-lowest" type="time" value="14:00"/>
+</div>
+</div>
+</div>
+<!-- Technician Selection -->
+<div class="flex flex-col gap-3">
+<label class="font-label-md text-label-md text-on-surface font-semibold flex justify-between items-end">
+<span>เลือกช่างเทคนิค <span class="text-error">*</span></span>
+<span class="font-body-sm text-[12px] font-normal text-on-surface-variant">เลือกแล้ว 2 คน</span>
+</label>
+<div class="flex flex-col gap-3 bg-surface-container-lowest border border-outline-variant rounded-lg p-3 max-h-[300px] overflow-y-auto shadow-inner">
+<!-- Tech 1 (Selected) -->
+<div class="flex items-center justify-between p-3 rounded-lg border-2 border-primary bg-surface-container-low transition-colors">
+<div class="flex items-center gap-3">
+<input checked="" class="w-5 h-5 text-primary border-outline-variant rounded focus:ring-primary focus:ring-2" type="checkbox"/>
+<img alt="Tech profile" class="w-10 h-10 rounded-full object-cover border border-surface-container-highest" data-alt="Headshot of a male technician in his 30s. He has short dark hair and a neat beard, wearing a gray polo shirt with a subtle logo. The background is a brightly lit, clean white wall, suggesting a professional indoor environment. The lighting is even and flat, emphasizing clarity and approachability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdocRMNiYMRfLRqjl3ZxK9WPt3que3VN6X-p-CcGPStbZnTjxVGopmPoxv6uNiIQkinKtGd6NyTCmSKayMGLU0XamIKzY_K29BgAfsitsaF_toE92ivOvrxT1aO6iXgim8MIGD0YvsSf7S0wtgNG2WtpWBzyS8ypDP0b_TaTUaivtkKW23LTlwO0GQU6iya2PUhw3ivJOPyeVnUrQSfCUrl4fD5PMpsevvpR1YZe4uSu56sXwppz8ulfqm2QwIQGxUA_0Wot72MA_0"/>
+<div>
+<p class="font-label-md text-label-md text-on-surface font-semibold">กฤษณะ แอร์เย็น</p>
+<p class="font-body-sm text-[12px] text-on-surface-variant">ผู้เชี่ยวชาญระบบปรับอากาศ (คิวว่าง)</p>
+</div>
+</div>
+<!-- Role Assignment -->
+<div class="flex items-center gap-4 bg-surface p-2 rounded-md border border-surface-container shadow-sm">
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="text-primary focus:ring-primary" name="role_kritsana" type="radio" value="lead"/>
+<span class="font-label-sm text-label-sm text-on-surface">หัวหน้าช่าง (Lead)</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="text-primary focus:ring-primary" name="role_kritsana" type="radio" value="assist"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ผู้ช่วย (Assist)</span>
+</label>
+</div>
+</div>
+<!-- Tech 2 (Selected) -->
+<div class="flex items-center justify-between p-3 rounded-lg border border-surface-container hover:bg-surface-container-low transition-colors bg-surface">
+<div class="flex items-center gap-3">
+<input checked="" class="w-5 h-5 text-primary border-outline-variant rounded focus:ring-primary focus:ring-2" type="checkbox"/>
+<img alt="Tech profile" class="w-10 h-10 rounded-full object-cover border border-surface-container-highest" data-alt="A portrait of a young male technician looking directly at the camera with a neutral, professional expression. He is wearing a dark blue uniform shirt. The background is slightly out of focus, showing parts of a bright, modern workshop or equipment room. The light mode aesthetic is maintained with soft, natural lighting coming from a nearby window." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgwnHzvs1oTP0YPWYcu99Q9j4GWAwiVa4I0Xaspw7XP-I6BBp_Xcm30ybKNvnFd7HW-Aa_Ft1c6D4g8W6HCiGONub1srwTB7KKLTqkM3LrO78cEmjCVXhOSoa111V8xJ6nb5qPPhY1JUrYAl9Z2qP7avSpm3z2avNnnL-hjKIOz6RzVjnj0mlZKATGiZiDqbGO2Q8Qiqz-Ci7DIBfVRS1ao4YqPTFJv35_pvfWRx40OCmhKfVzotgXHht_vPbw3lFFgaNXaBU2iuK3"/>
+<div>
+<p class="font-label-md text-label-md text-on-surface font-semibold">วิชาญ งานไว</p>
+<p class="font-body-sm text-[12px] text-on-surface-variant">ช่างทั่วไป (คิวว่าง)</p>
+</div>
+</div>
+<!-- Role Assignment -->
+<div class="flex items-center gap-4 bg-surface-container-lowest p-2 rounded-md border border-surface-container">
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="text-primary focus:ring-primary" name="role_wichan" type="radio" value="lead"/>
+<span class="font-label-sm text-label-sm text-on-surface-variant">หัวหน้าช่าง (Lead)</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="text-primary focus:ring-primary" name="role_wichan" type="radio" value="assist"/>
+<span class="font-label-sm text-label-sm text-on-surface">ผู้ช่วย (Assist)</span>
+</label>
+</div>
+</div>
+<!-- Tech 3 (Unselected) -->
+<div class="flex items-center justify-between p-3 rounded-lg border border-surface-container hover:bg-surface-container-low transition-colors bg-surface opacity-70">
+<div class="flex items-center gap-3">
+<input class="w-5 h-5 text-primary border-outline-variant rounded focus:ring-primary focus:ring-2" type="checkbox"/>
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-semibold">
+                                                    ท
+                                                </div>
+<div>
+<p class="font-label-md text-label-md text-on-surface font-semibold">ทวีศักดิ์ ไฟฟ้า</p>
+<p class="font-body-sm text-[12px] text-tertiary-container">ติดงานซ่อมอาคาร B (ถึง 15:00)</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Note Textarea -->
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface font-semibold">บันทึกจากผู้ดูแลระบบ</label>
+<textarea class="w-full p-3 border border-outline-variant rounded-lg text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm bg-surface-container-lowest resize-none" placeholder="เพิ่มรายละเอียดเพิ่มเติมหรือข้อควรระวังสำหรับช่าง..." rows="3"></textarea>
+</div>
+<!-- Bottom Action -->
+<div class="mt-4 flex justify-end gap-3 pt-6 border-t border-surface-container">
+<button class="px-6 py-3 rounded-lg font-label-md text-label-md font-semibold border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors min-w-[120px]" type="button">
+                                        ยกเลิก
+                                    </button>
+<button class="px-6 py-3 rounded-lg font-label-md text-label-md font-semibold bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-[0_4px_6px_rgba(0,110,43,0.2)] flex items-center gap-2 min-w-[160px] justify-center" type="button">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+                                        ยืนยันการมอบหมาย
+                                    </button>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Warning Modal Preview (Demonstration of Level 3 Elevation) -->
+<!-- Note: Normally hidden, displayed here to fulfill prompt requirements -->
+<div class="fixed inset-0 bg-on-background/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+<div class="bg-surface rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.12)] max-w-md w-full overflow-hidden transform transition-all">
+<div class="p-6">
+<div class="w-12 h-12 rounded-full bg-error-container text-on-error-container flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-[28px]">warning</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-2">ยืนยันการมอบหมายงาน?</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">เมื่อยืนยันทีมช่างแล้ว จะไม่สามารถแก้ไขรายชื่อช่างในใบงานนี้ได้ ต้องการดำเนินการต่อหรือไม่?</p>
+</div>
+<div class="bg-surface-container-lowest px-6 py-4 flex justify-end gap-3 border-t border-surface-container">
+<button class="px-5 py-2.5 rounded-lg font-label-md text-label-md font-semibold text-on-surface-variant hover:bg-surface-container-low transition-colors">
+                    ยกเลิก
+                </button>
+<button class="px-5 py-2.5 rounded-lg font-label-md text-label-md font-semibold bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-sm">
+                    ยืนยัน
+                </button>
+</div>
+</div>
+</div>
+</body></html>

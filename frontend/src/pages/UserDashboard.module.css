@@ -1,0 +1,259 @@
+.container {
+  padding: 1.5rem var(--spacing-container-mobile);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profileCard {
+  background-color: var(--color-surface-container-low);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid var(--color-surface-variant);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.profileImage {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary);
+  object-fit: cover;
+}
+
+.userName {
+  font-family: var(--font-headline);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: var(--color-on-background);
+}
+
+.userId {
+  font-size: 16px;
+  color: var(--color-on-surface-variant);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.newRequestButton {
+  width: 100%;
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: var(--radius-xl);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.newRequestButton:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-cols: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.summaryCard {
+  background-color: #ffffff;
+  border-radius: var(--radius-xl);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-surface-variant);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.summaryCount {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.summaryLabel {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  margin-top: 0.25rem;
+  font-weight: 600;
+}
+
+.sectionTitle {
+  font-family: var(--font-headline);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--color-on-background);
+}
+
+.jobCard {
+  background-color: #ffffff;
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  border: 1px solid var(--color-surface-variant);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s;
+}
+
+.jobCard:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+.jobHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.jobId {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  background-color: var(--color-surface-container-high);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.statusBadge {
+  font-size: 12px;
+  color: var(--color-tertiary-container);
+  background-color: rgba(240, 154, 1, 0.1);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.jobTitle {
+  font-family: var(--font-headline);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--color-on-background);
+}
+
+.jobDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 16px;
+  color: var(--color-on-surface-variant);
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.appointmentBox {
+  background-color: var(--color-surface-container-low);
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.appointmentLabel {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+.appointmentTime {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-on-background);
+  margin: 0;
+}
+
+.trackingContainer {
+  position: relative;
+  padding-top: 1.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.trackingLine {
+  position: absolute;
+  top: 2rem;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: var(--color-surface-variant);
+  border-radius: 9999px;
+  z-index: 1;
+}
+
+.trackingProgress {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: 9999px;
+}
+
+.trackingSteps {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 33.33%;
+}
+
+.stepDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--color-surface-variant);
+  border: 4px solid #ffffff;
+}
+
+.stepActive {
+  background-color: var(--color-primary);
+}
+
+.stepCurrent {
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.stepLabel {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 2rem var(--spacing-container-desktop);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+}
