@@ -35,6 +35,16 @@ def get_repair_request_by_id(
         RepairRequests.id == id
     ).first()
 
+def get_repair_requests_by_requester_id(
+    db: Session,
+    requester_id: int,
+) -> list[RepairRequests]:
+    return db.query(RepairRequests).filter(
+        RepairRequests.requester_id == requester_id
+    ).order_by(
+        RepairRequests.created_at.desc()
+    ).all()
+
 def update_repair_request(
     db: Session,
     repair_request: RepairRequests,

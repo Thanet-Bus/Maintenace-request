@@ -6,6 +6,7 @@ from app.crud.repair_request import (
     create_repair_request,
     get_repair_requests,
     get_repair_request_by_id,
+    get_repair_requests_by_requester_id,
     update_repair_request,
 )
 from app.schemas.repair_requests import (
@@ -27,6 +28,14 @@ def create_request(
 @router.get("", response_model=list[RepairRequestResponse])
 def list_requests(db: Session = Depends(get_db)):
     return get_repair_requests(db)
+
+
+@router.get("/requester/{requester_id}", response_model=list[RepairRequestResponse])
+def get_requests_by_requester(
+    requester_id: int,
+    db: Session = Depends(get_db),
+):
+    return get_repair_requests_by_requester_id(db, requester_id)
 
 
 @router.get("/{repair_request_id}", response_model=RepairRequestResponse)
