@@ -1,14 +1,16 @@
 from datetime import datetime
 from pydantic import BaseModel
 
+class TechnicianAssignment(BaseModel):
+    technician_id: int
+    is_leader: bool = False
+
 class AssignmentCreate(BaseModel):
     repair_request_id: int
-    technician_id: int
-    is_leader: bool
+    technicians: list[TechnicianAssignment]
 
-class AssignmentResponse(BaseModel):
+class TechnicianAssignmentDetail(BaseModel):
     id: int
-    repair_request_id: int
     technician_id: int
     is_leader: bool
     assigned_at: datetime
@@ -16,3 +18,10 @@ class AssignmentResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+class AssignmentResponse(BaseModel):
+    repair_request_id: int
+    technicians: list[TechnicianAssignmentDetail]
+
+class AssignmentLeaderUpdate(BaseModel):
+    is_leader: bool
