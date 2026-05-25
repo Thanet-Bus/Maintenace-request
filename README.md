@@ -41,14 +41,6 @@ ASSIGNED → IN_PROGRESS
 Technician changed:
 IN_PROGRESS → COMPLETED
 
-repair_logs
-- id PK
-- repair_request_id FK -> repair_requests.id
-- changed_by FK -> users.id
-- status_from
-- status_to
-- note
-- created_at
 
 repair_images
 - id PK
