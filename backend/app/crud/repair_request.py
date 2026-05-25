@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.model.repair_requests import RepairRequests
-from app.schemas.repair_requests import RepairRequestCreate, RepairStatus
+from app.schemas.repair_requests import RepairRequestCreate, RepairStatus, RepairRequestUpdate
 
 def create_repair_request(
     db: Session,
@@ -13,7 +13,7 @@ def create_repair_request(
         title=data.title,
         description=data.description,
         location=data.location,
-        appointment_date=data.date,
+        # appointment_date=data.date,
         status=RepairStatus.PENDING,
     )
 
@@ -36,12 +36,23 @@ def get_repair_request_by_id(
         RepairRequests.id == id
     ).first()
 
-def update_repair_request_status(
+def update_repair_request(
     db: Session,
     repair_request: RepairRequests,
-    status: RepairStatus,
+    data: RepairRequestUpdate,
 ) -> RepairRequests:
-    repair_request.status = status
+    update_data = data.model_dump(exclude_unset=True)
+    allowed_fields = {
+        "title",
+        "description",
+        "location",
+        "date",
+        "status",
+    }
+
+    for field, value in update_data.items():
+        if field in allowed_fields:
+            setattr(repair_request, field, value)
 
     db.commit()
     db.refresh(repair_request)

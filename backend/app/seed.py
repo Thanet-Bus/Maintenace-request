@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.api.database import SessionLocal
+from app.core.database import SessionLocal
 from app.model.users import User, UserRole
 
 def seed_users(db: Session) -> None:

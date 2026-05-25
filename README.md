@@ -32,6 +32,15 @@ User sees result
 7. then LINE Login
 8. then roles/permissions properly
 
+Admin changed:
+PENDING → ASSIGNED
+
+Technician changed:
+ASSIGNED → IN_PROGRESS
+
+Technician changed:
+IN_PROGRESS → COMPLETED
+
 repair_logs
 - id PK
 - repair_request_id FK -> repair_requests.id
@@ -57,3 +66,9 @@ repair_reviews
 - rating
 - comment
 - created_at
+
+assigned -> admin dated and tech assigned
+in progress -> tech acknowledge request
+on hold -> change date, tech on hold 
+cancelled -> admin cancelled
+complete -> tech submit request/ admin can complete too

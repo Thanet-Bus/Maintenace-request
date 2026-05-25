@@ -1,21 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api.database import get_db
+from app.core.database import get_db
 from app.crud.repair_request import (
     create_repair_request,
     get_repair_requests,
     get_repair_request_by_id,
-    update_repair_request_status,
+    update_repair_request,
 )
 from app.schemas.repair_requests import (
     RepairRequestCreate,
-    RepairRequestUpdateStatus,
+    RepairRequestUpdate,
     RepairRequestResponse,
 )
 
 router = APIRouter(prefix="/repair-requests", tags=["repair requests"])
-
 
 @router.post("", response_model=RepairRequestResponse)
 def create_request(
@@ -45,13 +44,13 @@ def get_request_by_id(
 
 
 @router.patch(
-    "/{repair_request_id}/status",
+    "/{repair_request_id}",
     response_model=RepairRequestResponse,
     status_code=status.HTTP_200_OK,
 )
-def update_status(
+def update_request(
     repair_request_id: int,
-    data: RepairRequestUpdateStatus,
+    data: RepairRequestUpdate,
     db: Session = Depends(get_db),
 ):
     request = get_repair_request_by_id(db, repair_request_id)
@@ -60,4 +59,4 @@ def update_status(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Repair request not found",
         )
-    return update_repair_request_status(db, request, data.status)
+    return update_repair_request(db, request, data)
