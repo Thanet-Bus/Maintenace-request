@@ -13,7 +13,6 @@ def create_repair_request(
         title=data.title,
         description=data.description,
         location=data.location,
-        # appointment_date=data.date,
         status=RepairStatus.PENDING,
     )
 
@@ -42,16 +41,9 @@ def update_repair_request(
     data: RepairRequestUpdate,
 ) -> RepairRequests:
     update_data = data.model_dump(exclude_unset=True)
-    allowed_fields = {
-        "title",
-        "description",
-        "location",
-        "date",
-        "status",
-    }
 
     for field, value in update_data.items():
-        if field in allowed_fields:
+        if hasattr(repair_request, field):
             setattr(repair_request, field, value)
 
     db.commit()
