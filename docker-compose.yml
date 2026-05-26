@@ -30,6 +30,9 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    environment:
+      VITE_API_BASE_URL: ${API}
+      CHOKIDAR_USEPOLLING: "true"
 
 volumes:
   postgres_data:

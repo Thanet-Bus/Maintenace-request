@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -8,6 +9,15 @@ from app.api.assignments import router as assignments_router
 from app.api.logs import router as logs_router
 
 app = FastAPI()
+
+# Add CORS Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Allows the React frontend to communicate with this backend
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods (GET, POST, PATCH, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 
 app.include_router(repair_requests_router)
 app.include_router(assignments_router)

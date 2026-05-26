@@ -34,7 +34,9 @@ const UserDashboard: React.FC = () => {
 
   useEffect(() => {
     // Fetch requests for user 1 as a mockup
-    fetch('http://localhost:8000/repair-requests/requester/1')
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    
+    fetch(`${API_BASE_URL}/repair-requests/requester/1`)
       .then((res) => {
         if (!res.ok) throw new Error("API failed");
         return res.json();
@@ -165,11 +167,6 @@ const UserDashboard: React.FC = () => {
                     <div className={styles.detailItem}>
                       <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>location_on</span>
                       <span>{request.location}</span>
-                    </div>
-                    {/* Assuming default priority high for mock since it wasn't in schema */}
-                    <div className={styles.detailItem}>
-                      <span className="material-symbols-outlined">priority_high</span>
-                      <span>ความสำคัญ: ปกติ</span>
                     </div>
                     <div className={styles.detailItem}>
                       <span className="material-symbols-outlined">event</span>
