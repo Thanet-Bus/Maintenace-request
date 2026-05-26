@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.model.assignments import Assignment
 from app.schemas.assignments import AssignmentCreate
@@ -7,6 +8,10 @@ def create_assignments(
     db: Session,
     data: AssignmentCreate,
 ) -> list[Assignment]:
+     # Prevent more than one leader
+    leader_count = sum(1 for tech in data.technicians if tech.is_leader)
+    if leader_count > 1:
+        raise ValueError("Cannot assign more than one leader to a repair request.")
     # Clear existing assignments to prevent duplicates when updating the team
     db.query(Assignment).filter(
         Assignment.repair_request_id == data.repair_request_id
@@ -22,7 +27,11 @@ def create_assignments(
     ]
 
     db.add_all(assignments)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise ValueError("Cannot assign duplicate technician.")
     
     for a in assignments:
         db.refresh(a)

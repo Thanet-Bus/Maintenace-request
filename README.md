@@ -20,14 +20,17 @@ docker compose exec db psql -U username -d maintenance_db -c "SELECT * FROM user
 - downgrade
     docker compose exec backend alembic downgrade -1
   
-User creates repair request
-Admin sees request
-Admin assigns technician
 Technician updates status
 User sees result
 
-4. list/detail request API
-5. update request status API
+CRUD/service:
+  catches database/business errors
+  raises your own app error with message/code
+
+Router/API:
+  catches your app error
+  converts it to HTTPException for frontend
+
 6. frontend request form + request list
 7. then LINE Login
 8. then roles/permissions properly

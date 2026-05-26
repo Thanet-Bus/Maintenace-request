@@ -20,11 +20,14 @@ def assign_multiple_technicians(
     data: AssignmentCreate,
     db: Session = Depends(get_db),
 ):
-    assignments = create_assignments(db, data)
-    return AssignmentResponse(
-        repair_request_id=data.repair_request_id,
-        technicians=assignments
-    )
+    try:
+        assignments = create_assignments(db, data)
+        return AssignmentResponse(
+            repair_request_id=data.repair_request_id,
+            technicians=assignments
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("", response_model=list[AssignmentResponse])
@@ -50,6 +53,11 @@ def list_assignments_by_repair_request(
     db: Session = Depends(get_db),
 ):
     assignments = get_assignments_by_repair_request(db, repair_request_id)
+    if assignments is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not found for this repair request",
+        )
     return AssignmentResponse(
         repair_request_id=repair_request_id,
         technicians=assignments
@@ -65,6 +73,11 @@ def list_assignments_by_technician(
     db: Session = Depends(get_db),
 ):
     assignments = get_assignments_by_technician(db, technician_id)
+    if assignments is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not found for this technician",
+        )
     
     grouped = defaultdict(list)
     for a in assignments:
