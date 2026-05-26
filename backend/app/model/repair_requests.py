@@ -4,7 +4,6 @@ from sqlalchemy import String, Text, DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column
 from app.model.status import RepairStatus, repair_status_enum
 
-
 class RepairRequests(Base):
     __tablename__ = "repair_requests"
 

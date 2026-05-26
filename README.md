@@ -64,6 +64,12 @@ repair_reviews
 
 assigned -> admin dated and tech assigned
 in progress -> tech acknowledge request
-on hold -> change date, tech on hold 
+on hold -> change date, tech on hold
 cancelled -> admin cancelled
 complete -> tech submit request/ admin can complete too
+
+id =  repair_request_id
+changed_by = user
+status_to = str
+note = text (on hold)
+timestamp = time now

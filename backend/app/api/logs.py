@@ -26,7 +26,7 @@ def list_logs_by_request(
     db: Session = Depends(get_db)
 ):
     request = get_repair_request_by_id(db, repair_request_id)
-    if not request:
+    if request is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Repair request not found"
@@ -40,7 +40,7 @@ def create_new_log(
     db: Session = Depends(get_db)
 ):
     request = get_repair_request_by_id(db, log.repair_request_id)
-    if not request:
+    if request is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Repair request not found"

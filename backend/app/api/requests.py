@@ -35,7 +35,13 @@ def get_requests_by_requester(
     requester_id: int,
     db: Session = Depends(get_db),
 ):
-    return get_repair_requests_by_requester_id(db, requester_id)
+    request = get_repair_requests_by_requester_id(db, requester_id)
+    if request is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Requester not found",
+        )
+    return request
 
 
 @router.get("/{repair_request_id}", response_model=RepairRequestResponse)
