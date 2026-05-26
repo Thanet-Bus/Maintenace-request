@@ -15,6 +15,15 @@ interface RepairRequest {
   updated_at: string;
 }
 
+interface RepairLog {
+  id: number;
+  repair_request_id: number;
+  changed_by: number;
+  status_to: string;
+  note: string | null;
+  created_at: string;
+}
+
 const mockRequest: RepairRequest = {
   id: 1002,
   requester_id: 1,
@@ -27,15 +36,45 @@ const mockRequest: RepairRequest = {
   updated_at: "2024-05-12T08:00:00Z",
 };
 
+const mockLogs: RepairLog[] = [
+  {
+    id: 1,
+    repair_request_id: 1002,
+    changed_by: 1,
+    status_to: "IN_PROGRESS",
+    note: "กำลังดำเนินการเปลี่ยนก๊อกน้ำตัวใหม่",
+    created_at: "2024-05-13T10:00:00Z",
+  },
+  {
+    id: 2,
+    repair_request_id: 1002,
+    changed_by: 1,
+    status_to: "ASSIGNED",
+    note: "มอบหมายให้ช่างวิชาญดำเนินการ",
+    created_at: "2024-05-12T14:00:00Z",
+  },
+  {
+    id: 3,
+    repair_request_id: 1002,
+    changed_by: 1,
+    status_to: "PENDING",
+    note: "รับเรื่องแจ้งซ่อมเรียบร้อยแล้ว",
+    created_at: "2024-05-12T08:00:00Z",
+  }
+];
+
 const UserDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<RepairRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedRequestId, setExpandedRequestId] = useState<number | null>(null);
+  const [requestLogs, setRequestLogs] = useState<{ [key: number]: RepairLog[] }>({});
+  const [logsLoading, setLogsLoading] = useState<{ [key: number]: boolean }>({});
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     // Fetch requests for user 1 as a mockup
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-    
     fetch(`${API_BASE_URL}/repair-requests/requester/1`)
       .then((res) => {
         if (!res.ok) throw new Error("API failed");
@@ -50,7 +89,32 @@ const UserDashboard: React.FC = () => {
         setRequests([mockRequest]);
         setLoading(false);
       });
-  }, []);
+  }, [API_BASE_URL]);
+
+  const toggleLogs = async (requestId: number) => {
+    if (expandedRequestId === requestId) {
+      setExpandedRequestId(null);
+      return;
+    }
+
+    setExpandedRequestId(requestId);
+
+    // Only fetch if not already loaded
+    if (!requestLogs[requestId]) {
+      setLogsLoading(prev => ({ ...prev, [requestId]: true }));
+      try {
+        const response = await fetch(`${API_BASE_URL}/logs/request/${requestId}`);
+        if (!response.ok) throw new Error('Failed to fetch logs');
+        const data = await response.json();
+        setRequestLogs(prev => ({ ...prev, [requestId]: data }));
+      } catch (err) {
+        console.error("Failed to fetch logs, using mock data", err);
+        setRequestLogs(prev => ({ ...prev, [requestId]: mockLogs }));
+      } finally {
+        setLogsLoading(prev => ({ ...prev, [requestId]: false }));
+      }
+    }
+  };
 
   const totalCount = requests.length;
   const pendingCount = requests.filter(r => r.status === 'PENDING' || r.status === 'ON_HOLD').length;
@@ -140,73 +204,131 @@ const UserDashboard: React.FC = () => {
 
         {/* Request List Section */}
         <section className={styles.requestSection}>
-          <h3 className={styles.sectionTitle}>รายการแจ้งซ่อมของคุณ</h3>
+          <h3 className={styles.sectionTitle}>รายการแจ้งซ่อมล่าสุด</h3>
           
           {loading ? (
             <p style={{textAlign: 'center', marginTop: '20px'}}>กำลังโหลดข้อมูล...</p>
           ) : requests.length === 0 ? (
             <p style={{textAlign: 'center', marginTop: '20px'}}>ยังไม่มีรายการแจ้งซ่อม</p>
           ) : (
-            requests.map((request) => {
-              const badge = getStatusBadge(request.status);
-              const progressPercentage = request.status === 'COMPLETED' ? '100%' : (request.status === 'IN_PROGRESS' || request.status === 'ASSIGNED' ? '50%' : '0%');
+            <>
+              {requests.slice(0, 3).map((request) => {
+                const badge = getStatusBadge(request.status);
+                const progressPercentage = request.status === 'COMPLETED' ? '100%' : (request.status === 'IN_PROGRESS' || request.status === 'ASSIGNED' ? '50%' : '0%');
+                const isExpanded = expandedRequestId === request.id;
+                const logs = requestLogs[request.id] || [];
+                const isLoadingLogs = logsLoading[request.id];
 
-              return (
-                <div key={request.id} className={styles.jobCard}>
-                  <div className={styles.jobHeader}>
-                    <span className={styles.jobId}>#REQ-{request.id.toString().padStart(4, '0')}</span>
-                    <span className={styles.statusBadge} style={{ color: badge.color, backgroundColor: `color-mix(in srgb, ${badge.color} 10%, transparent)` }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{badge.icon}</span>
-                      {badge.label}
-                    </span>
-                  </div>
-                  
-                  <h4 className={styles.jobTitle}>{request.title}</h4>
-                  
-                  <div className={styles.jobDetails}>
-                    <div className={styles.detailItem}>
-                      <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>location_on</span>
-                      <span>{request.location}</span>
+                return (
+                  <div 
+                    key={request.id} 
+                    className={styles.jobCard} 
+                    onClick={() => toggleLogs(request.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className={styles.jobHeader}>
+                      <span className={styles.jobId}>#REQ-{request.id.toString().padStart(4, '0')}</span>
+                      <span className={styles.statusBadge} style={{ color: badge.color, backgroundColor: `color-mix(in srgb, ${badge.color} 10%, transparent)` }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>{badge.icon}</span>
+                        {badge.label}
+                      </span>
                     </div>
-                    <div className={styles.detailItem}>
-                      <span className="material-symbols-outlined">event</span>
-                      <span>แจ้งเมื่อ: {formatDate(request.created_at)}</span>
+                    
+                    <h4 className={styles.jobTitle}>{request.title}</h4>
+                    
+                    <div className={styles.jobDetails}>
+                      <div className={styles.detailItem}>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--color-primary)' }}>location_on</span>
+                        <span>{request.location}</span>
+                      </div>
+                      <div className={styles.detailItem}>
+                        <span className="material-symbols-outlined">event</span>
+                        <span>แจ้งเมื่อ: {formatDate(request.created_at)}</span>
+                      </div>
                     </div>
-                  </div>
 
-                  {request.appointment_date && (
-                    <div className={styles.appointmentBox}>
-                      <span className="material-symbols-outlined" style={{ color: 'var(--color-secondary)' }}>calendar_clock</span>
-                      <div>
-                        <p className={styles.appointmentLabel}>เวลานัดหมายเข้าซ่อม</p>
-                        <p className={styles.appointmentTime}>{formatDateTime(request.appointment_date)}</p>
+                    {request.appointment_date && (
+                      <div className={styles.appointmentBox}>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--color-secondary)' }}>calendar_clock</span>
+                        <div>
+                          <p className={styles.appointmentLabel}>เวลานัดหมายเข้าซ่อม</p>
+                          <p className={styles.appointmentTime}>{formatDateTime(request.appointment_date)}</p>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Real-time Status Tracking Bar */}
-                  <div className={styles.trackingContainer}>
-                    <div className={styles.trackingLine}>
-                      <div className={styles.trackingProgress} style={{ width: progressPercentage }}></div>
+                    {/* Real-time Status Tracking Bar */}
+                    <div className={styles.trackingContainer}>
+                      <div className={styles.trackingLine}>
+                        <div className={styles.trackingProgress} style={{ width: progressPercentage }}></div>
+                      </div>
+                      <div className={styles.trackingSteps}>
+                        <div className={styles.step}>
+                          <div className={`${styles.stepDot} ${styles.stepActive}`}></div>
+                          <span className={styles.stepLabel} style={{ color: 'var(--color-primary)' }}>รับเรื่อง</span>
+                        </div>
+                        <div className={styles.step}>
+                          <div className={`${styles.stepDot} ${progressPercentage !== '0%' ? styles.stepActive : ''} ${progressPercentage === '50%' ? styles.stepCurrent : ''}`}></div>
+                          <span className={styles.stepLabel} style={{ color: progressPercentage !== '0%' ? 'var(--color-primary)' : 'inherit', fontWeight: progressPercentage === '50%' ? 'bold' : 'normal' }}>กำลังซ่อม</span>
+                        </div>
+                        <div className={styles.step}>
+                          <div className={`${styles.stepDot} ${progressPercentage === '100%' ? styles.stepActive : ''}`}></div>
+                          <span className={styles.stepLabel} style={{ color: progressPercentage === '100%' ? 'var(--color-primary)' : 'inherit' }}>เสร็จสิ้น</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className={styles.trackingSteps}>
-                      <div className={styles.step}>
-                        <div className={`${styles.stepDot} ${styles.stepActive}`}></div>
-                        <span className={styles.stepLabel} style={{ color: 'var(--color-primary)' }}>รับเรื่อง</span>
-                      </div>
-                      <div className={styles.step}>
-                        <div className={`${styles.stepDot} ${progressPercentage !== '0%' ? styles.stepActive : ''} ${progressPercentage === '50%' ? styles.stepCurrent : ''}`}></div>
-                        <span className={styles.stepLabel} style={{ color: progressPercentage !== '0%' ? 'var(--color-primary)' : 'inherit', fontWeight: progressPercentage === '50%' ? 'bold' : 'normal' }}>กำลังซ่อม</span>
-                      </div>
-                      <div className={styles.step}>
-                        <div className={`${styles.stepDot} ${progressPercentage === '100%' ? styles.stepActive : ''}`}></div>
-                        <span className={styles.stepLabel} style={{ color: progressPercentage === '100%' ? 'var(--color-primary)' : 'inherit' }}>เสร็จสิ้น</span>
-                      </div>
+
+                    {/* Logs Dropdown Toggle */}
+                    <div className={styles.logsToggle}>
+                      <span>{isExpanded ? 'ปิดรายละเอียด' : 'ดูรายละเอียดการซ่อม'}</span>
+                      <span className="material-symbols-outlined">
+                        {isExpanded ? 'expand_less' : 'expand_more'}
+                      </span>
                     </div>
+
+                    {/* Expanded Logs Section */}
+                    {isExpanded && (
+                      <div className={styles.logsContainer} onClick={(e) => e.stopPropagation()}>
+                        {isLoadingLogs ? (
+                          <p style={{ textAlign: 'center', fontSize: '14px' }}>กำลังโหลดรายละเอียด...</p>
+                        ) : logs.length === 0 ? (
+                          <p style={{ textAlign: 'center', fontSize: '14px' }}>ไม่พบประวัติการดำเนินการ</p>
+                        ) : (
+                          logs.map((log) => (
+                            <div key={log.id} className={styles.logItem}>
+                              <div className={styles.logTimeline}>
+                                <div className={styles.logDot}></div>
+                                <div className={styles.logLine}></div>
+                              </div>
+                              <div className={styles.logContent}>
+                                <div className={styles.logHeader}>
+                                  <span className={styles.logStatus}>
+                                    {getStatusBadge(log.status_to).label}
+                                  </span>
+                                  <span className={styles.logTime}>{formatDateTime(log.created_at)}</span>
+                                </div>
+                                {log.note && (
+                                  <div className={styles.logNote}>{log.note}</div>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
-              );
-            })
+                );
+              })}
+              {requests.length > 3 && (
+                <button 
+                  className={styles.seeAllButton}
+                  onClick={() => navigate('/history')}
+                >
+                  ดูประวัติการแจ้งซ่อมทั้งหมด
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </button>
+              )}
+            </>
           )}
         </section>
       </div>
