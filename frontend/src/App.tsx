@@ -18,7 +18,7 @@ function App() {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/create-request" element={<CreateRequest />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>
   );

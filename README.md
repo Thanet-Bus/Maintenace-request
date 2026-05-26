@@ -20,9 +20,6 @@ docker compose exec db psql -U username -d maintenance_db -c "SELECT * FROM user
 - downgrade
     docker compose exec backend alembic downgrade -1
   
-Technician updates status
-User sees result
-
 CRUD/service:
   catches database/business errors
   raises your own app error with message/code

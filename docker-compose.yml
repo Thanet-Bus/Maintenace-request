@@ -22,14 +22,14 @@ services:
     volumes:
       - ./backend:/app
 
-  # frontend:
-  #   build: ./frontend
-  #   container_name: maintenance_frontend
-  #   ports:
-  #     - "5173:5173"
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
+  frontend:
+    build: ./frontend
+    container_name: maintenance_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
 volumes:
   postgres_data:
