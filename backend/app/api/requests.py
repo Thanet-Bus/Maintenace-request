@@ -74,4 +74,4 @@ def update_request(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Repair request not found",
         )
-    return update_repair_request(db, request, data)
+    return update_repair_request(db, request, data, user_id=2)

@@ -2,12 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.crud.log import (
-    create_log,
     get_logs,
     get_logs_by_request_id,
 )
 from app.crud.repair_request import get_repair_request_by_id
-from app.schemas.logs import RepairLogCreate, RepairLogResponse
+from app.schemas.logs import RepairLogResponse
 
 router = APIRouter(prefix="/logs", tags=["logs"])
 
@@ -32,17 +31,3 @@ def list_logs_by_request(
             detail="Repair request not found"
         )
     return get_logs_by_request_id(db, repair_request_id)
-
-
-@router.post("", response_model=RepairLogResponse, status_code=status.HTTP_201_CREATED)
-def create_new_log(
-    log: RepairLogCreate,
-    db: Session = Depends(get_db)
-):
-    request = get_repair_request_by_id(db, log.repair_request_id)
-    if request is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Repair request not found"
-        )
-    return create_log(db, log)

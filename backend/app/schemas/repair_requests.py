@@ -15,6 +15,7 @@ class RepairRequestUpdate(BaseModel):
     location: Optional[str] = Field(default=None, min_length=1,max_length=255)
     appointment_date: Optional[datetime] = Field(default=None)
     status: Optional[RepairStatus] = Field(default=None)
+    note: Optional[str] = Field(default=None)
 
     @field_validator("appointment_date", mode="before")
     @classmethod
