@@ -263,8 +263,13 @@ const JobDetail: React.FC = () => {
             ) : (
               logs.map((log) => (
                 <div key={log.id} style={{ display: 'flex', gap: '0.75rem', fontSize: '14px' }}>
-                  <div style={{ minWidth: '80px', color: 'var(--color-on-surface-variant)' }}>
-                    {new Date(log.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+                  <div style={{ minWidth: '100px', color: 'var(--color-on-surface-variant)', display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: '500' }}>
+                      {new Date(log.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                    </span>
+                    <span style={{ fontSize: '12px' }}>
+                      {new Date(log.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
+                    </span>
                   </div>
                   <div style={{ flex: 1 }}>
                     <span style={{ fontWeight: '600' }}>{getStatusBadge(log.status_to).label}</span>
