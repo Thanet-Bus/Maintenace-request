@@ -224,7 +224,7 @@ const UserDashboard: React.FC = () => {
                     key={request.id} 
                     className={styles.jobCard} 
                     onClick={() => toggleLogs(request.id)}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer' , marginBottom: '1rem'}}
                   >
                     <div className={styles.jobHeader}>
                       <span className={styles.jobId}>#REQ-{request.id.toString().padStart(4, '0')}</span>
