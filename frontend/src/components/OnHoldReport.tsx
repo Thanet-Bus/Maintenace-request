@@ -13,22 +13,18 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({ isOpen, onClose, jobId, job
   const [reason, setReason] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true);
-      document.body.style.overflow = 'hidden';
-    } else {
-      const timer = setTimeout(() => setIsVisible(false), 300);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+
+    return () => {
       document.body.style.overflow = '';
-      return () => clearTimeout(timer);
-    }
+    };
   }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reason) return;
+    if (!reason || isSubmitting) return;
     
     setIsSubmitting(true);
     try {
@@ -36,23 +32,22 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({ isOpen, onClose, jobId, job
       onClose();
     } catch (error) {
       console.error('Failed to submit on hold report:', error);
-    } finally {
       setIsSubmitting(false);
     }
+    // Note: We don't setIsSubmitting(false) on success because onClose() 
+    // will likely unmount this component.
   };
 
-  if (!isVisible && !isOpen) return null;
-
   return (
-    <div className={`${styles.overlay} ${isOpen ? styles.overlayVisible : ''}`} onClick={onClose}>
+    <div 
+      className={`${styles.overlay} ${isOpen ? styles.overlayVisible : ''}`} 
+      onClick={isSubmitting ? undefined : onClose}
+    >
       <div 
         className={`${styles.sheet} ${isOpen ? styles.sheetVisible : ''}`} 
         onClick={(e) => e.stopPropagation()}
       >
         <header className={styles.header}>
-          <button className={styles.backButton} onClick={onClose} aria-label="Back">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
           <h1 className={styles.title}>แจ้งพักงาน</h1>
         </header>
 
@@ -85,6 +80,7 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({ isOpen, onClose, jobId, job
                     onChange={(e) => setReason(e.target.value)}
                     className={styles.radioInput}
                     required
+                    disabled={isSubmitting}
                   />
                   <span className={styles.radioText}>{item.label}</span>
                 </label>
@@ -102,13 +98,18 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({ isOpen, onClose, jobId, job
                 rows={4}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                disabled={isSubmitting}
               ></textarea>
             </section>
           </form>
         </main>
 
         <div className={styles.bottomActions}>
-          <button className={styles.cancelButton} onClick={onClose}>
+          <button 
+            className={styles.cancelButton} 
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
             ยกเลิก
           </button>
           <button 

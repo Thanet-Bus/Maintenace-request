@@ -75,7 +75,6 @@
   color: var(--color-on-surface);
   flex: 1;
   text-align: center;
-  margin-right: 2.5rem; /* Offset for the back button to center title */
 }
 
 .content {
