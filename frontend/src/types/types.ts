@@ -1,0 +1,39 @@
+export interface RepairRequest {
+  id: number;
+  requester_id: number;
+  title: string;
+  description: string;
+  location: string;
+  status: string;
+  appointment_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RepairLog {
+  id: number;
+  repair_request_id: number;
+  changed_by: number;
+  status_to: string;
+  note: string | null;
+  created_at: string;
+}
+
+export interface Technician {
+  id: number;
+  username: string;
+  full_name: string | null;
+  role: string;
+}
+
+export interface AssignmentDetail {
+  technician_id: number;
+  is_leader: boolean;
+  assigned_at: string;
+  technician_name?: string; // Optional if we fetch it separately or join
+}
+
+export interface AssignmentResponse {
+  repair_request_id: number;
+  technicians: AssignmentDetail[];
+}

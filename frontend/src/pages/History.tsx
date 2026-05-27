@@ -1,27 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
+import type { RepairRequest, RepairLog } from '../types/types';
 import styles from './UserDashboard.module.css'; // Reusing dashboard styles for consistency
-
-interface RepairRequest {
-  id: number;
-  requester_id: number;
-  title: string;
-  description: string;
-  location: string;
-  status: string;
-  appointment_date: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface RepairLog {
-  id: number;
-  repair_request_id: number;
-  changed_by: number;
-  status_to: string;
-  note: string | null;
-  created_at: string;
-}
 
 const History: React.FC = () => {
   const [requests, setRequests] = useState<RepairRequest[]>([]);

@@ -4,7 +4,8 @@ import Login from './pages/Login';
 import UserDashboard from './pages/UserDashboard';
 import History from './pages/History';
 import CreateRequest from './pages/CreateRequest';
-// import JobDetail from './pages/JobDetail';
+import Tasks from './pages/Tasks';
+import JobDetail from './pages/JobDetail';
 import AdminLogin from './pages/AdminLogin';
 // import AdminRequests from './pages/AdminRequests';
 // import TeamAssignment from './pages/TeamAssignment';
@@ -19,8 +20,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/dashboard" element={<UserDashboard />} />
+        <Route path="/tasks" element={<Tasks />} />
         <Route path="/history" element={<History />} />
-        {/* <Route path="/request/:id" element={<JobDetail />} /> */}
+        <Route path="/request/:id" element={<JobDetail />} />
         <Route path="/create-request" element={<CreateRequest />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>

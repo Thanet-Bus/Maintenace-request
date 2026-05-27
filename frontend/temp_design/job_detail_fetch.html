@@ -1,0 +1,213 @@
+<!DOCTYPE html><html lang="th"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Maintenance Pro - Job Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#f09a01",
+                        "outline-variant": "#bbcbb8",
+                        "surface-container-low": "#eff4ff",
+                        "on-background": "#0b1c30",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#004395",
+                        "inverse-primary": "#3ee26c",
+                        "surface-container-high": "#dce9ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-variant": "#d3e4fe",
+                        "on-surface-variant": "#3c4a3c",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container": "#e5eeff",
+                        "inverse-surface": "#213145",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#00531f",
+                        "surface": "#f8f9ff",
+                        "secondary-fixed": "#d8e2ff",
+                        "background": "#f8f9ff",
+                        "on-secondary-fixed": "#001a42",
+                        "on-tertiary-container": "#5d3900",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-primary-fixed": "#002108",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#004c1b",
+                        "secondary-fixed-dim": "#adc6ff",
+                        "primary-container": "#06c755",
+                        "on-surface": "#0b1c30",
+                        "secondary-container": "#2170e4",
+                        "primary-fixed": "#69ff89",
+                        "secondary": "#0058be",
+                        "surface-bright": "#f8f9ff",
+                        "outline": "#6c7b6b",
+                        "primary": "#006e2b",
+                        "primary-fixed-dim": "#3ee26c",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-tint": "#006e2b",
+                        "tertiary": "#855300",
+                        "on-tertiary-fixed": "#2a1700",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-padding-desktop": "32px",
+                        "card-gap": "20px",
+                        "container-padding-mobile": "16px",
+                        "base": "8px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+                        "headline-md": ["22px", { "lineHeight": "30px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  <style data-stitch-cursor="">*{cursor:crosshair!important}[contenteditable="true"]:focus,.cursor-text:focus{cursor:text!important}</style><style data-stitch-scroll-lock="">html,body{overflow:hidden!important}</style></head>
+<body class="antialiased pb-24 md:pb-0">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-on-background shadow-sm dark:shadow-none docked full-width top-0 z-50 sticky">
+<div class="flex justify-between items-center px-container-padding-mobile md:px-container-padding-desktop h-16 w-full">
+<div class="flex items-center gap-3">
+<button aria-label="Back" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">arrow_back</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container overflow-hidden">
+<img alt="Technician profile photo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhLxmKdd1uwffncZt-eVm5yEd3Xu0jsPnzmmZBoQ1-hrkXa1Tm5s2RuK0-betEXqFnLDwd0IJwwwj3t2Mx36Ltt4y5xCwEPY3o4PF8c1ka8md-6cZbVK50Olh5o6y1jFt8Qfs41-JsHzfKDAZBbFSGiw5izwTlhpkO0Ir2_efIMQlqY-4UwGpH_M46v1GJyIZv7vv8BiA2G5_YLf3xwhIKVjdOnNZYznKByHIdKfGqmZMnQ4mL1gM5Z1uda2q9iTdwCIC7ObddTa4s">
+</div>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">Maintenance Pro</h1>
+<button aria-label="Notifications" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors text-primary dark:text-primary-fixed">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">notifications</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="px-container-padding-mobile pt-6 flex flex-col gap-card-gap max-w-lg mx-auto">
+<!-- Job Header & Status -->
+<section class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_2px_4px_rgba(0,0,0,0.05)] flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">#REQ-1002</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">แอร์ไม่เย็น</h2>
+</div>
+<div class="bg-tertiary-container/10 px-3 py-1 rounded-full border border-tertiary-container/20">
+<span class="font-label-sm text-label-sm text-tertiary-container">Assigned</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg flex flex-col gap-3">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-outline" style="font-variation-settings: &quot;FILL&quot; 0;">location_on</span>
+<span class="font-body-md text-body-md text-on-surface">สถานที่: ห้องประชุม 1</span>
+</div>
+<div class="h-px bg-outline-variant/30 w-full"></div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="LINE Profile pic" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9X0kH8DY9cT8ZRH8rm0kww-0Fkj10u_ytZaEhfg_xy-PdO3yeSirWrUUG_p5W-PsIiQPn4zIw3QSLmVIYebRrq0wIq-SYZfIpiUo3LFLwB0e7sZgFERGbGXNWIw_2QuA5gTiklg52v_cTpyuqBhGRqwD8KqLBOIvRD1zP2edEuDxI4MWRloIdWDgUR_LD6srgXKtcZ71SfZh4smalvP7HfNBUqlflCtSf-ZnSCrN_uFpLj9Ax3VCyzEzy7bQPeBid8CDL9dDaeROv">
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">ผู้แจ้ง (Requester)</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">คุณวิภาดา</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Problem Photos -->
+<section class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_2px_4px_rgba(0,0,0,0.05)] flex flex-col gap-4">
+<h3 class="font-headline-lg text-headline-lg text-on-surface text-lg">รูปภาพก่อนซ่อม (Problem Photos)</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="aspect-square rounded-lg bg-surface-container overflow-hidden relative group">
+<img alt="Broken AC unit" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="A close-up shot of a modern, white wall-mounted air conditioning unit that appears to be malfunctioning. The unit is slightly open, revealing some internal filters. The lighting is bright, mimicking a well-lit office conference room. The overall aesthetic is clean and professional, using a light-mode color palette with subtle shadows to emphasize the equipment's details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtdHn5H-xTgXlx8rRrzNkMcLG3-aJmOaaxydteshhAIwFM0W7uqDQ5sb5TfsWGW_4iPmBRblwSScOOO43mh_aqd3rmq1TSIgxVJNhdH-d9UcVTRdJLaomKHhtYUFIR6nUzH3pr4RU-wSK_rSSmhx8E5hTVQbCakaQkV6AHrVvAvjddjRq8KdN3ssY6z2_wL_k8MQ5HIv2c9nzWDZFGT7HrzF05dk3gVqL4_aYF5EGKubvQwDFqHjaVlt7HpLKpFL1jX5st-vd1RkkA">
+</div>
+<div class="aspect-square rounded-lg bg-surface-container overflow-hidden relative group flex items-center justify-center border border-dashed border-outline-variant hover:bg-surface-container-low cursor-pointer transition-colors">
+<div class="flex flex-col items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: &quot;FILL&quot; 0;">add_photo_alternate</span>
+<span class="font-label-sm text-label-sm">เพิ่มรูปภาพ</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Assigned Team -->
+<section class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_2px_4px_rgba(0,0,0,0.05)] flex flex-col gap-4">
+<h3 class="font-headline-lg text-headline-lg text-on-surface text-lg">ทีมช่างที่ได้รับมอบหมาย (Assigned Team)</h3>
+<ul class="flex flex-col gap-3">
+<li class="flex items-center gap-4 p-3 rounded-lg bg-surface-container-low border-l-4 border-primary">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-primary-container flex-shrink-0">
+<img alt="Lead Technician Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDUZ7iULgAMP6dKL_DqVDPds7OJ50FFD5IctlX8TWg6j1hb3VQ1vJch6F4a5Fi-MjdEDYZLU8NVSxs9SS_4KPQe8KE0WQsUykE5v-DrJnDuHgmt166WbFCfknyPiZSfsCIy-STkqR47fxUDhx9bD9y9Zfv0vIE8oDJa4z4yUTVeOC0PYdZvb_kzmYTQGRAfunQOL6KVnZityhTkgbOmdIzE-aTGkVv3D0HjvVLLfCpi8ftaSXMFLENCqoYwoCNIbArGbJAWwXunlwj0">
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-semibold">คุณเก่ง กาจ</span>
+<span class="font-label-sm text-label-sm text-primary">หัวหน้าชุดช่าง (Lead Technician)</span>
+</div>
+</li>
+<li class="flex items-center gap-4 p-3 rounded-lg bg-surface">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container flex-shrink-0">
+<img alt="Technician Avatar" class="w-full h-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDv_yiorjYzWFH3zNQvWbU-zz-bc6Eo0cnrnayY2fCXWJWMQo7au5MVEHAHD9XnZ78u_i_-l_x3fGggWfJzUsFDAwe1rYZe5dNmtKCWyY2BCqbpWEn4LEOjYwDCySWxg7kJurYEJjxbF8PysPjeKQJVHEP5ZQ45VU1NAQwDax4hPnWOn-fYHAJ-clGLMWvIFtOacJRVm5XlJtxVAkF_H0Byez-2_MFBbcP8bVCD9-QluqvmLldN2PPtC2dJzRE4PCOZNdZOevn0g78-">
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface text-sm">คุณสมชาย</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ช่างเทคนิค (Technician)</span>
+</div>
+</li>
+</ul>
+</section>
+<!-- Spacer for bottom actions -->
+<div class="h-24"></div>
+</main>
+<!-- Bottom Action Bar (Contextual FAB Replacement for Details Page) -->
+<div class="fixed bottom-0 left-0 w-full bg-surface-container-lowest shadow-[0_-10px_40px_rgba(0,0,0,0.08)] px-container-padding-mobile py-4 pb-safe flex flex-col gap-3 z-40 md:hidden">
+<button class="w-full h-12 bg-primary text-on-primary rounded-lg font-label-md text-label-md flex items-center justify-center gap-2 shadow-md hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">play_arrow</span>รับงาน (Accept Work)
+        </button>
+<button class="w-full h-12 bg-surface text-on-surface border border-outline-variant rounded-lg font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">pause_circle</span>
+            แจ้งปัญหา/หยุดงานชั่วคราว (On Hold)
+        </button>
+</div>
+
+
+</body></html>
