@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import styles from './OnHoldReport.module.css';
+import React, { useState, useEffect } from "react";
+import styles from "./OnHoldReport.module.css";
+import type { SubmitEvent } from "react";
 
 interface OnHoldReportProps {
   isOpen: boolean;
@@ -9,42 +10,47 @@ interface OnHoldReportProps {
   onConfirm: (reason: string, notes: string) => Promise<void>;
 }
 
-const OnHoldReport: React.FC<OnHoldReportProps> = ({ isOpen, onClose, jobId, jobTitle, onConfirm }) => {
-  const [reason, setReason] = useState<string>('');
-  const [notes, setNotes] = useState<string>('');
+const OnHoldReport: React.FC<OnHoldReportProps> = ({
+  isOpen,
+  onClose,
+  jobId,
+  jobTitle,
+  onConfirm,
+}) => {
+  const [reason, setReason] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : '';
+    document.body.style.overflow = isOpen ? "hidden" : "";
 
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!reason || isSubmitting) return;
-    
+
     setIsSubmitting(true);
     try {
       await onConfirm(reason, notes);
       onClose();
     } catch (error) {
-      console.error('Failed to submit on hold report:', error);
+      console.error("Failed to submit on hold report:", error);
+    } finally {
       setIsSubmitting(false);
     }
-    // Note: We don't setIsSubmitting(false) on success because onClose() 
-    // will likely unmount this component.
   };
 
   return (
-    <div 
-      className={`${styles.overlay} ${isOpen ? styles.overlayVisible : ''}`} 
+    <div
+      className={`${styles.overlay} ${isOpen ? styles.overlayVisible : ""}`}
       onClick={isSubmitting ? undefined : onClose}
     >
-      <div 
-        className={`${styles.sheet} ${isOpen ? styles.sheetVisible : ''}`} 
+      <div
+        className={`${styles.sheet} ${isOpen ? styles.sheetVisible : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
         <header className={styles.header}>
@@ -56,20 +62,31 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({ isOpen, onClose, jobId, job
           <section className={styles.jobInfoCard}>
             <div className={styles.jobInfoLabel}>
               <span className={styles.jobIdLabel}>Job ID</span>
-              <span className={styles.jobIdValue}>#REQ-{jobId.toString().padStart(4, '0')}</span>
+              <span className={styles.jobIdValue}>
+                #REQ-{jobId.toString().padStart(4, "0")}
+              </span>
             </div>
             <h2 className={styles.jobTitle}>{jobTitle}</h2>
           </section>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className={styles.formSection}>
-            <h3 className={styles.sectionLabel}>ระบุเหตุผลที่พักงาน (Select Reason)</h3>
+          <form
+            onSubmit={handleSubmit}
+            id="onHoldForm"
+            className={styles.formSection}
+          >
+            <h3 className={styles.sectionLabel}>
+              ระบุเหตุผลที่พักงาน (Select Reason)
+            </h3>
             <div className={styles.radioGroup}>
               {[
-                { value: 'parts', label: 'รออะไหล่ (Waiting for Parts)' },
-                { value: 'tools', label: 'ต้องใช้เครื่องมือพิเศษ (Special Tools Needed)' },
-                { value: 'site', label: 'หน้างานไม่พร้อม (Site Not Ready)' },
-                { value: 'other', label: 'อื่น ๆ (Other)' },
+                { value: "parts", label: "รออะไหล่ (Waiting for Parts)" },
+                {
+                  value: "tools",
+                  label: "ต้องใช้เครื่องมือพิเศษ (Special Tools Needed)",
+                },
+                { value: "site", label: "หน้างานไม่พร้อม (Site Not Ready)" },
+                { value: "other", label: "อื่น ๆ (Other)" },
               ].map((item) => (
                 <label key={item.value} className={styles.radioLabel}>
                   <input
@@ -87,7 +104,10 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({ isOpen, onClose, jobId, job
               ))}
             </div>
 
-            <section className={styles.formSection} style={{ marginTop: '1rem' }}>
+            <section
+              className={styles.formSection}
+              style={{ marginTop: "1rem" }}
+            >
               <label className={styles.sectionLabel} htmlFor="notes">
                 รายละเอียดเพิ่มเติม (Additional Notes)
               </label>
@@ -105,19 +125,20 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({ isOpen, onClose, jobId, job
         </main>
 
         <div className={styles.bottomActions}>
-          <button 
-            className={styles.cancelButton} 
+          <button
+            className={styles.cancelButton}
             onClick={onClose}
             disabled={isSubmitting}
           >
             ยกเลิก
           </button>
-          <button 
-            className={styles.confirmButton} 
-            onClick={handleSubmit}
+          <button
+            type="submit"
+            form="onHoldForm"
+            className={styles.confirmButton}
             disabled={!reason || isSubmitting}
           >
-            {isSubmitting ? 'กำลังบันทึก...' : 'ยืนยันการพักงาน'}
+            {isSubmitting ? "กำลังบันทึก..." : "ยืนยันการพักงาน"}
           </button>
         </div>
       </div>

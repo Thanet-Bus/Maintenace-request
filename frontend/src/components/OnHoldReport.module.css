@@ -207,6 +207,7 @@
   resize: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 .textarea:focus {
@@ -258,10 +259,6 @@
   height: 3rem;
   cursor: pointer;
   transition: background-color 0.2s;
-}
-
-.confirmButton:hover {
-  background-color: var(--color-surface-tint);
 }
 
 .confirmButton:disabled {
