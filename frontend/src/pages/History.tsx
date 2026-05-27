@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import type { RepairRequest, RepairLog } from '../types/types';
 import styles from './UserDashboard.module.css'; // Reusing dashboard styles for consistency
+import { API_BASE_URL } from "../config";
 
 const History: React.FC = () => {
   const [requests, setRequests] = useState<RepairRequest[]>([]);
@@ -9,8 +10,6 @@ const History: React.FC = () => {
   const [expandedRequestId, setExpandedRequestId] = useState<number | null>(null);
   const [requestLogs, setRequestLogs] = useState<{ [key: number]: RepairLog[] }>({});
   const [logsLoading, setLogsLoading] = useState<{ [key: number]: boolean }>({});
-
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     // Fetch all requests for user 1
@@ -27,7 +26,7 @@ const History: React.FC = () => {
         console.error("Failed to fetch API", err);
         setLoading(false);
       });
-  }, [API_BASE_URL]);
+  });
 
   const toggleLogs = async (requestId: number) => {
     if (expandedRequestId === requestId) {

@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import OnHoldReport from '../components/OnHoldReport';
 import type { RepairRequest, RepairLog, AssignmentResponse, AssignmentDetail } from '../types/types';
 import styles from './JobDetail.module.css';
+import { API_BASE_URL } from "../config";
 
 const JobDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,60 +14,107 @@ const JobDetail: React.FC = () => {
   const [logs, setLogs] = useState<RepairLog[]>([]);
   const [assignments, setAssignments] = useState<AssignmentDetail[]>([]);
   
-  const [loading, setLoading] = useState(true);
+  const [requestLoading, setRequestLoading] = useState(true);
   const [logsLoading, setLogsLoading] = useState(true);
   const [assignmentsLoading, setAssignmentsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [isOnHoldReportOpen, setIsOnHoldReportOpen] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const fetchRequestDetails = useCallback(async () => {
+    if (!id) return;
+    const res = await fetch(`${API_BASE_URL}/repair-requests/${id}`);
+    if (!res.ok) {
+      throw new Error("Failed to fetch request");
+    }
+    const data = await res.json();
+    setRequest(data);
+  }, [id]);
+
+  const fetchLogs = useCallback(async () => {
+    if (!id) return;
+    const res = await fetch(`${API_BASE_URL}/logs/request/${id}`);
+    if (!res.ok) {
+      throw new Error("Failed to fetch logs");
+    }
+    const data = await res.json();
+    setLogs(data);
+  }, [id]);
+
+  const fetchAssignments = useCallback(async () => {
+    if (!id) return;
+    const res = await fetch(`${API_BASE_URL}/assignments/repair-request/${id}`);
+    if (!res.ok) {
+      throw new Error("Failed to fetch assignments");
+    }
+    const data: AssignmentResponse = await res.json();
+    setAssignments(data.technicians);
+  }, [id]);
 
   useEffect(() => {
     if (!id) return;
 
-    // Fetch request details
-    fetch(`${API_BASE_URL}/repair-requests/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch request");
-        return res.json();
-      })
-      .then((data) => {
-        setRequest(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching request", err);
-        setLoading(false);
+    let cancelled = false;
+
+    async function loadInitialData() {
+      try {
+        await Promise.all([
+          fetchRequestDetails(),
+          fetchLogs(),
+          fetchAssignments(),
+        ]);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Error loading page data", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setRequestLoading(false);
+          setLogsLoading(false);
+          setAssignmentsLoading(false);
+        }
+      }
+    }
+
+    loadInitialData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, fetchRequestDetails, fetchLogs, fetchAssignments]);
+
+  const handleOnHoldConfirm = async (reason: string, notes: string) => {
+    if (!id) return;
+
+    const fullNote = `พักงาน: ${reason}${notes ? ` - ${notes}` : ''}`;
+    
+    try {
+      setRefreshing(true);
+      const response = await fetch(`${API_BASE_URL}/repair-requests/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'ON_HOLD',
+          note: fullNote,
+        }),
       });
 
-    // Fetch assignments
-    fetch(`${API_BASE_URL}/assignments/repair-request/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch assignments");
-        return res.json();
-      })
-      .then((data: AssignmentResponse) => {
-        setAssignments(data.technicians);
-        setAssignmentsLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching assignments", err);
-        setAssignmentsLoading(false);
-      });
+      if (!response.ok) {
+        throw new Error('Failed to update status to ON_HOLD');
+      }
 
-    // Fetch logs
-    fetch(`${API_BASE_URL}/logs/request/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch logs");
-        return res.json();
-      })
-      .then((data) => {
-        setLogs(data);
-        setLogsLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching logs", err);
-        setLogsLoading(false);
-      });
-  }, [id, API_BASE_URL]);
+      await Promise.all([
+        fetchRequestDetails(),
+        fetchLogs(),
+      ]);
+    } catch (error) {
+      console.error('Error confirming on hold:', error);
+      throw error;
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -85,7 +134,7 @@ const JobDetail: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (requestLoading) {
     return (
       <Layout title="รายละเอียดงาน">
         <div className={styles.container}>
@@ -115,8 +164,15 @@ const JobDetail: React.FC = () => {
 
   return (
     <Layout title="Maintenance Pro" showBackButton showBottomNav={false}>
-      <div className={styles.container}>
+      <div className={`${styles.container} ${refreshing ? styles.refreshingContent : ''}`}>
+        {refreshing && (
+          <div className={styles.refreshOverlay}>
+            <span className="material-symbols-outlined animate-spin">sync</span>
+            <span>กำลังอัปเดต...</span>
+          </div>
+        )}
         {/* Job Header & Status */}
+
         <section className={styles.section}>
           <div className={styles.jobHeader}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -225,15 +281,27 @@ const JobDetail: React.FC = () => {
 
       {/* Bottom Action Bar */}
       <div className={styles.bottomActionBar}>
-        <button className={styles.primaryButton}>
+        <button className={styles.primaryButton} disabled={refreshing}>
           <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>play_arrow</span>
           รับงาน (Accept Work)
         </button>
-        <button className={styles.secondaryButton}>
+        <button 
+          className={styles.secondaryButton}
+          onClick={() => setIsOnHoldReportOpen(true)}
+          disabled={refreshing}
+        >
           <span className="material-symbols-outlined">pause_circle</span>
           แจ้งปัญหา/หยุดงานชั่วคราว (On Hold)
         </button>
       </div>
+
+      <OnHoldReport 
+        isOpen={isOnHoldReportOpen}
+        onClose={() => setIsOnHoldReportOpen(false)}
+        jobId={request.id}
+        jobTitle={request.title}
+        onConfirm={handleOnHoldConfirm}
+      />
     </Layout>
   );
 };

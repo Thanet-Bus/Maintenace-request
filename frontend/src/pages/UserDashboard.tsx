@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import type { RepairRequest, RepairLog } from '../types/types';
 import styles from './UserDashboard.module.css';
+import { API_BASE_URL } from "../config";
 
 const mockRequest: RepairRequest = {
   id: 1002,
@@ -51,8 +52,6 @@ const UserDashboard: React.FC = () => {
   const [requestLogs, setRequestLogs] = useState<{ [key: number]: RepairLog[] }>({});
   const [logsLoading, setLogsLoading] = useState<{ [key: number]: boolean }>({});
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
   useEffect(() => {
     // Fetch requests for user 1 as a mockup
     fetch(`${API_BASE_URL}/repair-requests/requester/1`)
@@ -69,7 +68,7 @@ const UserDashboard: React.FC = () => {
         setRequests([mockRequest]);
         setLoading(false);
       });
-  }, [API_BASE_URL]);
+  });
 
   const toggleLogs = async (requestId: number) => {
     if (expandedRequestId === requestId) {

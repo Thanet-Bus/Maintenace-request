@@ -4,13 +4,13 @@ import Layout from '../components/Layout';
 import JobCard from '../components/JobCard';
 import type { RepairRequest } from '../types/types';
 import styles from './UserDashboard.module.css';
+import { API_BASE_URL } from "../config";
 
 const Tasks: React.FC = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<RepairRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     // Fetch all requests for user 1 (mocking current user)
@@ -27,7 +27,7 @@ const Tasks: React.FC = () => {
         console.error("Failed to fetch API", err);
         setLoading(false);
       });
-  }, [API_BASE_URL]);
+  });
 
   return (
     <Layout title="รายการแจ้งซ่อม">

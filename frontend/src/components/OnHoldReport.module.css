@@ -1,0 +1,271 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.overlayVisible {
+  visibility: visible;
+  opacity: 1;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 512px;
+  height: 90vh;
+  background-color: var(--color-background);
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s ease-in-out;
+  overflow: hidden;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.sheetVisible {
+  transform: translateY(0);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-container-mobile);
+  height: 4rem;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-outline-variant);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--color-on-surface-variant);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.backButton:hover {
+  background-color: var(--color-surface-container-low);
+}
+
+.title {
+  font-family: var(--font-headline);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-on-surface);
+  flex: 1;
+  text-align: center;
+  margin-right: 2.5rem; /* Offset for the back button to center title */
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-container-mobile);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-card-gap);
+  padding-bottom: 8rem; /* Space for fixed bottom bar */
+}
+
+.jobInfoCard {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(187, 203, 184, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.jobInfoLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.jobIdLabel {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.jobIdValue {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-on-surface);
+  background-color: var(--color-surface-container-high);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+}
+
+.jobTitle {
+  font-family: var(--font-headline);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sectionLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-on-surface-variant);
+}
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(187, 203, 184, 0.3);
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.radioLabel:hover {
+  background-color: var(--color-surface-container-low);
+}
+
+.radioInput {
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--color-outline);
+  border-radius: 50%;
+  margin-right: 0.75rem;
+  transition: all 0.2s;
+  background-color: var(--color-surface);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radioInput:checked {
+  border-color: var(--color-primary);
+  border-width: 6px;
+}
+
+.radioText {
+  font-size: 16px;
+  color: var(--color-on-surface);
+  transition: color 0.2s;
+}
+
+.radioLabel:hover .radioText {
+  color: var(--color-primary);
+}
+
+.textarea {
+  width: 100%;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-xl);
+  padding: 1rem;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--color-on-surface);
+  resize: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 110, 43, 0.2);
+}
+
+.bottomActions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--color-surface);
+  padding: 1rem var(--spacing-container-mobile);
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 0.75rem;
+  border-top: 1px solid rgba(187, 203, 184, 0.2);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  z-index: 20;
+}
+
+.cancelButton {
+  flex: 1;
+  background-color: var(--color-surface-container);
+  color: var(--color-on-surface);
+  border: none;
+  border-radius: var(--radius-xl);
+  font-weight: 500;
+  font-size: 14px;
+  height: 3rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: var(--color-surface-container-high);
+}
+
+.confirmButton {
+  flex: 2;
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  border: none;
+  border-radius: var(--radius-xl);
+  font-weight: 500;
+  font-size: 14px;
+  height: 3rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.confirmButton:hover {
+  background-color: var(--color-surface-tint);
+}
+
+.confirmButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
