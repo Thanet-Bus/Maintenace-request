@@ -1,4 +1,3 @@
-// import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import UserDashboard from './pages/UserDashboard';
@@ -8,18 +7,18 @@ import Tasks from './pages/Tasks';
 import JobDetail from './pages/JobDetail';
 import JobCompletion from './pages/JobCompletion';
 import AdminLogin from './pages/AdminLogin';
-// import AdminRequests from './pages/AdminRequests';
-// import TeamAssignment from './pages/TeamAssignment';
+import AdminRequests from './pages/AdminRequests';
+import TeamAssignment from './pages/TeamAssignment';
 import './styles/theme.css';
 
-// Lazy load pages later or just import now for simplicity
-// const AssignTechnician = () => <div className="p-8"><h1>มอบหมายช่าง</h1></div>;
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/requests" element={<AdminRequests />} />
+        <Route path="/admin/assign-team/:id" element={<TeamAssignment />} />
         <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/history" element={<History />} />

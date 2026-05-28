@@ -1,10 +1,144 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import styles from './TeamAssignment.module.css';
+import { API_BASE_URL } from '../config';
+import type { RepairRequest } from '../types/types';
+
+// Dummy list of technicians for the selection
+const dummyTechnicians = [
+  { id: 101, name: 'กฤษณะ แอร์เย็น', desc: 'ผู้เชี่ยวชาญระบบปรับอากาศ (คิวว่าง)', busy: false, avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAdocRMNiYMRfLRqjl3ZxK9WPt3que3VN6X-p-CcGPStbZnTjxVGopmPoxv6uNiIQkinKtGd6NyTCmSKayMGLU0XamIKzY_K29BgAfsitsaF_toE92ivOvrxT1aO6iXgim8MIGD0YvsSf7S0wtgNG2WtpWBzyS8ypDP0b_TaTUaivtkKW23LTlwO0GQU6iya2PUhw3ivJOPyeVnUrQSfCUrl4fD5PMpsevvpR1YZe4uSu56sXwppz8ulfqm2QwIQGxUA_0Wot72MA_0' },
+  { id: 102, name: 'วิชาญ งานไว', desc: 'ช่างทั่วไป (คิวว่าง)', busy: false, avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAgwnHzvs1oTP0YPWYcu99Q9j4GWAwiVa4I0Xaspw7XP-I6BBp_Xcm30ybKNvnFd7HW-Aa_Ft1c6D4g8W6HCiGONub1srwTB7KKLTqkM3LrO78cEmjCVXhOSoa111V8xJ6nb5qPPhY1JUrYAl9Z2qP7avSpm3z2avNnnL-hjKIOz6RzVjnj0mlZKATGiZiDqbGO2Q8Qiqz-Ci7DIBfVRS1ao4YqPTFJv35_pvfWRx40OCmhKfVzotgXHht_vPbw3lFFgaNXaBU2iuK3' },
+  { id: 103, name: 'ทวีศักดิ์ ไฟฟ้า', desc: 'ติดงานซ่อมอาคาร B (ถึง 15:00)', busy: true, avatar: '' }
+];
 
 const TeamAssignment: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const [request, setRequest] = useState<RepairRequest | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Form State
+  const [appointmentDate, setAppointmentDate] = useState('');
+  const [appointmentTime, setAppointmentTime] = useState('');
+  const [selectedTechs, setSelectedTechs] = useState<number[]>([]);
+  const [leaderId, setLeaderId] = useState<number | null>(null);
+  const [note, setNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchRequestDetails = useCallback(() => {
+    if (!id) return;
+    
+    return new Promise<void>((resolve, reject) => {
+      setLoading(true);
+      fetch(`${API_BASE_URL}/repair-requests/${id}`)
+        .then(res => {
+          if (!res.ok) throw new Error("Failed to fetch request");
+          return res.json();
+        })
+        .then(data => {
+          setRequest(data);
+          resolve();
+        })
+        .catch(err => {
+          console.error(err);
+          reject(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    });
+  }, [id]);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    fetchRequestDetails()?.catch(() => {
+      if (!isMounted) return;
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchRequestDetails]);
+
+  const handleTechToggle = (techId: number) => {
+    setSelectedTechs(prev => {
+      const isSelected = prev.includes(techId);
+      if (isSelected) {
+        // If removing the leader, reset leaderId
+        if (leaderId === techId) setLeaderId(null);
+        return prev.filter(id => id !== techId);
+      } else {
+        // If it's the first tech selected, make them the leader automatically
+        if (prev.length === 0) setLeaderId(techId);
+        return [...prev, techId];
+      }
+    });
+  };
+
+  const handleSubmit = async () => {
+    if (!id || selectedTechs.length === 0 || !appointmentDate || !appointmentTime) {
+      alert("กรุณากรอกข้อมูลให้ครบถ้วน (วันเวลา และเลือกช่างอย่างน้อย 1 คน)");
+      return;
+    }
+
+    // Ensure we have a leader if techs are selected
+    const finalLeaderId = leaderId || selectedTechs[0];
+
+    const isoDateTime = new Date(`${appointmentDate}T${appointmentTime}:00`).toISOString();
+
+    const payload = {
+      repair_request_id: parseInt(id, 10),
+      appointment_date: isoDateTime,
+      technicians: selectedTechs.map(techId => ({
+        technician_id: techId,
+        is_leader: techId === finalLeaderId
+      }))
+    };
+
+    setSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/assignments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error("Failed to assign team");
+      
+      // Optionally update note here via PATCH if required by business logic.
+
+      alert("มอบหมายงานสำเร็จ");
+      navigate('/admin/requests');
+    } catch (err) {
+      console.error(err);
+      alert("เกิดข้อผิดพลาดในการมอบหมายงาน");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className={styles.container}>
+          <p style={{ textAlign: 'center', marginTop: '40px' }}>กำลังโหลด...</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!request) {
+    return (
+      <AdminLayout>
+        <div className={styles.container}>
+          <p style={{ textAlign: 'center', marginTop: '40px' }}>ไม่พบข้อมูลคำร้อง</p>
+          <button className={styles.backButton} onClick={() => navigate('/admin/requests')}>กลับ</button>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -15,7 +149,7 @@ const TeamAssignment: React.FC = () => {
             <button className={styles.backButton} onClick={() => navigate(-1)}>
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
-            <h2 className={styles.pageTitle}>มอบหมายทีมช่าง (#REQ-1002)</h2>
+            <h2 className={styles.pageTitle}>มอบหมายทีมช่าง (#REQ-{request.id.toString().padStart(4, '0')})</h2>
           </div>
           <span className={styles.headerBadge}>รอการมอบหมาย</span>
         </div>
@@ -38,22 +172,21 @@ const TeamAssignment: React.FC = () => {
                   </div>
                   <div>
                     <p className={styles.infoLabel}>ผู้แจ้งซ่อม</p>
-                    <p className={styles.infoValue}>คุณสมชาย ใจดี (แผนกบุคคล)</p>
-                    <p className={styles.infoSubValue}>อาคาร A, ชั้น 3, ห้อง 302</p>
-                    <p className={styles.infoSubValue}>081-234-5678</p>
+                    <p className={styles.infoValue}>User {request.requester_id}</p>
+                    <p className={styles.infoSubValue}>{request.location}</p>
                   </div>
                 </div>
 
                 {/* Problem Description */}
                 <div className={styles.problemSection}>
                   <p className={styles.infoLabel}>หัวข้อปัญหา</p>
-                  <p className={styles.problemTitle}>แอร์ไม่เย็น มีน้ำหยด</p>
+                  <p className={styles.problemTitle}>{request.title}</p>
                   <div className={styles.descriptionBox}>
-                    เครื่องปรับอากาศหมายเลข AC-302-1 เปิดแล้วไม่เย็น มีแต่ลมออก และมีน้ำหยดลงมาที่พื้นบริเวณใต้เครื่อง ขอให้ช่างเข้ามาตรวจสอบด่วน
+                    {request.description || "ไม่มีรายละเอียดเพิ่มเติม"}
                   </div>
                 </div>
 
-                {/* Before Photos */}
+                {/* Before Photos (Mocked for now as backend doesn't have photos yet) */}
                 <div>
                   <p className={styles.infoLabel}>รูปภาพประกอบ (2)</p>
                   <div className={styles.photoGrid}>
@@ -89,11 +222,23 @@ const TeamAssignment: React.FC = () => {
                   <div className={styles.inputGrid}>
                     <div className={styles.inputWithIcon}>
                       <span className={`material-symbols-outlined ${styles.prefixIcon}`}>calendar_today</span>
-                      <input className={styles.input} type="date" defaultValue="2023-10-25" />
+                      <input 
+                        className={styles.input} 
+                        type="date" 
+                        value={appointmentDate}
+                        onChange={(e) => setAppointmentDate(e.target.value)}
+                        required
+                      />
                     </div>
                     <div className={styles.inputWithIcon}>
                       <span className={`material-symbols-outlined ${styles.prefixIcon}`}>schedule</span>
-                      <input className={styles.input} type="time" defaultValue="14:00" />
+                      <input 
+                        className={styles.input} 
+                        type="time" 
+                        value={appointmentTime}
+                        onChange={(e) => setAppointmentTime(e.target.value)}
+                        required
+                      />
                     </div>
                   </div>
                 </div>
@@ -102,69 +247,64 @@ const TeamAssignment: React.FC = () => {
                 <div className={styles.fieldGroup}>
                   <div className={styles.fieldHeader}>
                     <label className={styles.fieldLabel}>เลือกช่างเทคนิค <span className={styles.required}>*</span></label>
-                    <span className={styles.countInfo}>เลือกแล้ว 2 คน</span>
+                    <span className={styles.countInfo}>เลือกแล้ว {selectedTechs.length} คน</span>
                   </div>
                   
                   <div className={styles.techList}>
-                    {/* Tech 1 (Selected) */}
-                    <div className={`${styles.techItem} ${styles.techItemSelected}`}>
-                      <div className={styles.techMainInfo}>
-                        <input className={styles.checkbox} type="checkbox" defaultChecked />
-                        <img 
-                          className={styles.techAvatar} 
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdocRMNiYMRfLRqjl3ZxK9WPt3que3VN6X-p-CcGPStbZnTjxVGopmPoxv6uNiIQkinKtGd6NyTCmSKayMGLU0XamIKzY_K29BgAfsitsaF_toE92ivOvrxT1aO6iXgim8MIGD0YvsSf7S0wtgNG2WtpWBzyS8ypDP0b_TaTUaivtkKW23LTlwO0GQU6iya2PUhw3ivJOPyeVnUrQSfCUrl4fD5PMpsevvpR1YZe4uSu56sXwppz8ulfqm2QwIQGxUA_0Wot72MA_0" 
-                          alt="Tech 1" 
-                        />
-                        <div>
-                          <p className={styles.techName}>กฤษณะ แอร์เย็น</p>
-                          <p className={styles.techDesc}>ผู้เชี่ยวชาญระบบปรับอากาศ (คิวว่าง)</p>
+                    {dummyTechnicians.map((tech) => {
+                      const isSelected = selectedTechs.includes(tech.id);
+                      const isLeader = leaderId === tech.id;
+                      return (
+                        <div 
+                          key={tech.id} 
+                          className={`${styles.techItem} ${isSelected ? styles.techItemSelected : ''} ${tech.busy ? styles.techItemDisabled : ''}`}
+                        >
+                          <div className={styles.techMainInfo}>
+                            <input 
+                              className={styles.checkbox} 
+                              type="checkbox" 
+                              checked={isSelected}
+                              disabled={tech.busy && !isSelected}
+                              onChange={() => handleTechToggle(tech.id)}
+                            />
+                            {tech.avatar ? (
+                              <img className={styles.techAvatar} src={tech.avatar} alt={tech.name} />
+                            ) : (
+                              <div className={styles.initialAvatar}>{tech.name.charAt(0)}</div>
+                            )}
+                            <div>
+                              <p className={styles.techName}>{tech.name}</p>
+                              <p className={tech.busy ? styles.techDescBusy : styles.techDesc}>{tech.desc}</p>
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <div className={styles.roleAssignment}>
+                              <label className={styles.roleLabel}>
+                                <input 
+                                  type="radio" 
+                                  name={`role-${tech.id}`} 
+                                  checked={isLeader}
+                                  onChange={() => setLeaderId(tech.id)}
+                                /> Lead
+                              </label>
+                              <label className={styles.roleLabel}>
+                                <input 
+                                  type="radio" 
+                                  name={`role-${tech.id}`} 
+                                  checked={!isLeader}
+                                  onChange={() => {
+                                    if(isLeader && selectedTechs.length > 1) {
+                                      // Assign lead to someone else
+                                      setLeaderId(selectedTechs.find(id => id !== tech.id) || null);
+                                    }
+                                  }}
+                                /> Assist
+                              </label>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                      <div className={styles.roleAssignment}>
-                        <label className={styles.roleLabel}>
-                          <input type="radio" name="role1" defaultChecked /> Lead
-                        </label>
-                        <label className={styles.roleLabel}>
-                          <input type="radio" name="role1" /> Assist
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Tech 2 (Selected) */}
-                    <div className={styles.techItem}>
-                      <div className={styles.techMainInfo}>
-                        <input className={styles.checkbox} type="checkbox" defaultChecked />
-                        <img 
-                          className={styles.techAvatar} 
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgwnHzvs1oTP0YPWYcu99Q9j4GWAwiVa4I0Xaspw7XP-I6BBp_Xcm30ybKNvnFd7HW-Aa_Ft1c6D4g8W6HCiGONub1srwTB7KKLTqkM3LrO78cEmjCVXhOSoa111V8xJ6nb5qPPhY1JUrYAl9Z2qP7avSpm3z2avNnnL-hjKIOz6RzVjnj0mlZKATGiZiDqbGO2Q8Qiqz-Ci7DIBfVRS1ao4YqPTFJv35_pvfWRx40OCmhKfVzotgXHht_vPbw3lFFgaNXaBU2iuK3" 
-                          alt="Tech 2" 
-                        />
-                        <div>
-                          <p className={styles.techName}>วิชาญ งานไว</p>
-                          <p className={styles.techDesc}>ช่างทั่วไป (คิวว่าง)</p>
-                        </div>
-                      </div>
-                      <div className={styles.roleAssignment}>
-                        <label className={styles.roleLabel}>
-                          <input type="radio" name="role2" /> Lead
-                        </label>
-                        <label className={styles.roleLabel}>
-                          <input type="radio" name="role2" defaultChecked /> Assist
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Tech 3 (Unselected/Busy) */}
-                    <div className={`${styles.techItem} ${styles.techItemDisabled}`}>
-                      <div className={styles.techMainInfo}>
-                        <input className={styles.checkbox} type="checkbox" />
-                        <div className={styles.initialAvatar}>ท</div>
-                        <div>
-                          <p className={styles.techName}>ทวีศักดิ์ ไฟฟ้า</p>
-                          <p className={styles.techDescBusy}>ติดงานซ่อมอาคาร B (ถึง 15:00)</p>
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -175,15 +315,22 @@ const TeamAssignment: React.FC = () => {
                     className={styles.textarea} 
                     placeholder="เพิ่มรายละเอียดเพิ่มเติมหรือข้อควรระวังสำหรับช่าง..." 
                     rows={3}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
                   ></textarea>
                 </div>
 
                 {/* Actions */}
                 <div className={styles.formActions}>
-                  <button className={styles.cancelButton} type="button" onClick={() => navigate(-1)}>ยกเลิก</button>
-                  <button className={styles.confirmButton} type="button">
+                  <button className={styles.cancelButton} type="button" onClick={() => navigate(-1)} disabled={submitting}>ยกเลิก</button>
+                  <button 
+                    className={styles.confirmButton} 
+                    type="button" 
+                    onClick={handleSubmit}
+                    disabled={submitting || selectedTechs.length === 0 || !appointmentDate || !appointmentTime}
+                  >
                     <span className="material-symbols-outlined">check_circle</span>
-                    ยืนยันการมอบหมาย
+                    {submitting ? 'กำลังมอบหมาย...' : 'ยืนยันการมอบหมาย'}
                   </button>
                 </div>
               </form>

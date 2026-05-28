@@ -26,10 +26,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </div>
 
         <div className={styles.navItems}>
-          <NavLink to="/admin/dashboard" className={({ isActive }) => isActive ? styles.activeItem : styles.item}>
-            <span className="material-symbols-outlined">dashboard</span>
-            Dashboard
-          </NavLink>
           <NavLink to="/admin/requests" className={({ isActive }) => isActive ? styles.activeItem : styles.item}>
             <span className="material-symbols-outlined">list_alt</span>
             All Requests

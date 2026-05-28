@@ -1,8 +1,77 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import styles from './AdminRequests.module.css';
+import { API_BASE_URL } from '../config';
+import type { RepairRequest } from '../types/types';
 
 const AdminRequests: React.FC = () => {
+  const navigate = useNavigate();
+  const [requests, setRequests] = useState<RepairRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchRequests = useCallback( async () => {
+    return new Promise<void>((resolve, reject) => {
+      setLoading(true);
+      fetch(`${API_BASE_URL}/repair-requests`)
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch requests');
+          return res.json();
+        })
+        .then(data => {
+          setRequests(data);
+          resolve();
+        })
+        .catch(error => {
+          console.error('Error fetching requests:', error);
+          reject(error);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    });
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    fetchRequests().catch(() => {
+        if (!isMounted) return;
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchRequests]);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return { label: 'รอดำเนินการ', className: styles.statusPill, dotClass: styles.statusDot, color: 'var(--color-tertiary)' };
+      case 'ASSIGNED':
+        return { label: 'มอบหมายแล้ว', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-status-assigned)' };
+      case 'IN_PROGRESS':
+        return { label: 'กำลังซ่อม', className: styles.statusPill, dotClass: styles.statusDot, color: 'var(--color-primary)' };
+      case 'COMPLETED':
+        return { label: 'เสร็จสิ้น', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-outline)' };
+      case 'ON_HOLD':
+        return { label: 'พักงาน', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-error)' };
+      case 'CANCELLED':
+        return { label: 'ยกเลิก', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-error)' };
+      default:
+        return { label: status, className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'inherit' };
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  };
+  const formatTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
+  };
+
   return (
     <AdminLayout>
       <div className={styles.headerRow}>
@@ -32,24 +101,13 @@ const AdminRequests: React.FC = () => {
           <option value="active">กำลังดำเนินการ</option>
           <option value="completed">เสร็จสิ้น</option>
         </select>
-        <select className={styles.filterSelect}>
-          <option value="">ความเร่งด่วน</option>
-          <option value="high">เร่งด่วน</option>
-          <option value="normal">ปกติ</option>
-        </select>
-        <select className={styles.filterSelect}>
-          <option value="">หมวดหมู่</option>
-          <option value="ac">แอร์</option>
-          <option value="electric">ไฟฟ้า</option>
-          <option value="plumbing">ประปา</option>
-        </select>
         <div className={styles.dateInputWrapper}>
           <span className={`material-symbols-outlined ${styles.dateIcon}`}>calendar_month</span>
           <input className={styles.dateInput} placeholder="ช่วงวันที่" type="text" />
         </div>
-        <button className={styles.resetButton}>
+        <button className={styles.resetButton} onClick={fetchRequests}>
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>restart_alt</span>
-          รีเซ็ต
+          รีเฟรช
         </button>
       </div>
 
@@ -62,146 +120,98 @@ const AdminRequests: React.FC = () => {
                 <th>ID</th>
                 <th>หัวข้อ / สถานที่</th>
                 <th>ผู้แจ้ง</th>
-                <th>หมวดหมู่</th>
                 <th>สถานะ</th>
                 <th>วันที่สร้าง</th>
                 <th style={{ textAlign: 'right' }}>จัดการ</th>
               </tr>
             </thead>
             <tbody className={styles.tbody}>
-              {/* Row 1 */}
-              <tr className={styles.row}>
-                <td>
-                  <span className={styles.requestId}>#REQ-1002</span>
-                </td>
-                <td>
-                  <div className={styles.issueInfo}>
-                    <span className={styles.issueTitle}>แอร์ไม่เย็น มีน้ำหยด</span>
-                    <div className={styles.issueLocation}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
-                      ห้องประชุม 1 (ชั้น 3)
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div className={styles.requesterInfo}>
-                    <div className={styles.smallAvatar}>
-                      <img 
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPBIE0UYcHKHiKI_BRex_kBaEeRNvw8auHoh0ZeH_0n748bdkjuMo8koKJsSzYslT9WoqbKsDi3GiDjCRLlGyKgS1643NhccsKIDP6Fp9Zd8D4Wi3HlGiab2K410KCV-DbhbI5Ap9FO7BrjOVvl7Q1hMVGe4-tg6QEDmfVxhTjFoz92CjxizyiE95QZZvGQ0o51My1A0PYev-9IEjNvJ4uzeOa3SoKx8WkIha7b6dyNvI4ZvAqII0xf3D9C1ANlCWYuADy8410ckYD" 
-                        alt="Requester" 
-                      />
-                    </div>
-                    <span>คุณวิภาดา</span>
-                  </div>
-                </td>
-                <td>
-                  <div className={styles.categoryInfo}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>ac_unit</span>
-                    แอร์
-                  </div>
-                </td>
-                <td>
-                  <div className={styles.statusGroup}>
-                    <div className={styles.urgencyBadge}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '14px', fontWeight: 'bold' }}>warning</span>
-                      เร่งด่วน
-                    </div>
-                    <span className={styles.statusPill}>
-                      <span className={styles.statusDot}></span>
-                      รอดำเนินการ
-                    </span>
-                  </div>
-                </td>
-                <td>
-                  <div className={styles.dateInfo}>
-                    12/05/2024<br />
-                    <span className={styles.timeInfo}>10:30 AM</span>
-                  </div>
-                </td>
-                <td style={{ textAlign: 'right' }}>
-                  <div className={styles.actionGroup}>
-                    <button className={styles.editButton} title="แก้ไข">
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
-                    </button>
-                    <button className={styles.assignButton}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>person_add</span>
-                      มอบหมายงาน
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              
-              {/* Row 2 */}
-              <tr className={styles.row}>
-                <td>
-                  <span className={styles.requestIdInactive}>#REQ-1001</span>
-                </td>
-                <td>
-                  <div className={styles.issueInfo}>
-                    <span className={styles.issueTitle}>หลอดไฟทางเดินขาด 2 ดวง</span>
-                    <div className={styles.issueLocation}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
-                      โถงทางเดิน ชั้น 2
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <div className={styles.requesterInfo}>
-                    <div className={`${styles.smallAvatar} ${styles.initialAvatar}`}>
-                      ส
-                    </div>
-                    <span>สมชาย</span>
-                  </div>
-                </td>
-                <td>
-                  <div className={styles.categoryInfo}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>lightbulb</span>
-                    ไฟฟ้า
-                  </div>
-                </td>
-                <td>
-                  <div className={styles.statusGroup}>
-                    <div className={styles.urgencyNormal}>
-                      ปกติ
-                    </div>
-                    <span className={styles.statusPillInactive}>
-                      <span className={styles.statusDotInactive}></span>
-                      มอบหมายแล้ว
-                    </span>
-                  </div>
-                </td>
-                <td>
-                  <div className={styles.dateInfo}>
-                    11/05/2024<br />
-                    <span className={styles.timeInfo}>14:15 PM</span>
-                  </div>
-                </td>
-                <td style={{ textAlign: 'right' }}>
-                  <div className={styles.actionGroup}>
-                    <button className={styles.editButton} title="แก้ไข">
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>edit</span>
-                    </button>
-                    <button className={styles.detailButton}>
-                      ดูรายละเอียด
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>กำลังโหลดข้อมูล...</td>
+                </tr>
+              ) : requests.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>ไม่พบรายการแจ้งซ่อม</td>
+                </tr>
+              ) : (
+                requests.map((req) => {
+                  const badge = getStatusBadge(req.status);
+                  const isPending = req.status === 'PENDING';
+                  return (
+                    <tr key={req.id} className={styles.row}>
+                      <td>
+                        <span className={isPending ? styles.requestId : styles.requestIdInactive}>
+                          #REQ-{req.id.toString().padStart(4, '0')}
+                        </span>
+                      </td>
+                      <td>
+                        <div className={styles.issueInfo}>
+                          <span className={styles.issueTitle}>{req.title}</span>
+                          <div className={styles.issueLocation}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
+                            {req.location}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={styles.requesterInfo}>
+                          <div className={`${styles.smallAvatar} ${styles.initialAvatar}`}>
+                            ID
+                          </div>
+                          <span>User {req.requester_id}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={styles.statusGroup}>
+                          <span className={badge.className}>
+                            <span className={badge.dotClass} style={{ backgroundColor: badge.color }}></span>
+                            {badge.label}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={styles.dateInfo}>
+                          {formatDate(req.created_at)}<br />
+                          <span className={styles.timeInfo}>{formatTime(req.created_at)}</span>
+                        </div>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div className={styles.actionGroup}>
+                          <button 
+                            className={styles.detailButton} 
+                            onClick={() => navigate(`/request/${req.id}`)}
+                          >
+                            ดูรายละเอียด
+                          </button>
+                          {isPending && (
+                            <button 
+                              className={styles.assignButton}
+                              onClick={() => navigate(`/admin/assign-team/${req.id}`)}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>person_add</span>
+                              มอบหมายงาน
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination Footer */}
         <div className={styles.paginationFooter}>
-          <span className={styles.pageInfo}>แสดง 1 ถึง 10 จาก 45 รายการ</span>
+          <span className={styles.pageInfo}>แสดง {requests.length} รายการ</span>
           <div className={styles.paginationActions}>
             <button className={styles.pageButton} disabled>
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_left</span>
             </button>
             <button className={`${styles.pageButton} ${styles.pageButtonActive}`}>1</button>
-            <button className={styles.pageButton}>2</button>
-            <button className={styles.pageButton}>3</button>
-            <button className={styles.pageButton}>
+            <button className={styles.pageButton} disabled>
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>chevron_right</span>
             </button>
           </div>
