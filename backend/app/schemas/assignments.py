@@ -7,6 +7,7 @@ class TechnicianAssignment(BaseModel):
 
 class AssignmentCreate(BaseModel):
     repair_request_id: int
+    appointment_date: datetime
     technicians: list[TechnicianAssignment]
 
 class TechnicianAssignmentDetail(BaseModel):
