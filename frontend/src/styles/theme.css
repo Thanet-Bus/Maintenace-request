@@ -17,6 +17,12 @@
   --color-tertiary-container: #f09a01;
   --color-on-tertiary-container: #5d3900;
 
+  /* Colors - Error */
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
   /* Colors - Status */
   --color-status-assigned: #3b82f6;
   --color-status-progress: #f59e0b;
