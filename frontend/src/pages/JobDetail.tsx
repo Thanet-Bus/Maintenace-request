@@ -145,7 +145,7 @@ const JobDetail: React.FC = () => {
         setRefreshing(false);
       }
     } else {
-      // If already accepted/in progress, just go to completion page
+      // If already in progress, just go to completion page
       navigate(`/request/${id}/complete`);
     }
   };
@@ -155,7 +155,7 @@ const JobDetail: React.FC = () => {
       case 'PENDING':
         return { label: 'รอดำเนินการ', color: 'var(--color-tertiary-container)' };
       case 'ASSIGNED':
-        return { label: 'รับงาน', icon: 'pending', color: 'var(--color-tertiary-container)' };
+        return { label: 'รับงาน', color: 'var(--color-tertiary-container)' };
       case 'IN_PROGRESS':
         return { label: 'กำลังซ่อม', color: 'var(--color-primary)' };
       case 'COMPLETED':
@@ -323,18 +323,18 @@ const JobDetail: React.FC = () => {
       <div className={styles.bottomActionBar}>
         <button 
           className={styles.primaryButton} 
-          disabled={refreshing || request.status === 'COMPLETED'}
+          disabled={refreshing || (request.status === 'COMPLETED' || request.status === 'CANCELLED') }
           onClick={handleAcceptWork}
         >
           <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>
-            {request.status === 'PENDING' ? 'play_arrow' : 'check_circle'}
+            {(request.status === 'ASSIGNED' || request.status === 'ON_HOLD') ? 'play_arrow' : 'check_circle'}
           </span>
-          {request.status === 'PENDING' ? 'รับงาน (Accept Work)' : 'ปิดงาน (Complete Work)'}
+          {(request.status === 'ASSIGNED' || request.status === 'ON_HOLD') ? 'รับงาน (Accept Work)' : 'ปิดงาน (Complete Work)'}
         </button>
         <button 
           className={styles.secondaryButton}
           onClick={() => setIsOnHoldReportOpen(true)}
-          disabled={refreshing || request.status === 'COMPLETED'}
+          disabled={refreshing || (request.status === 'COMPLETED' || request.status === 'CANCELLED')}
         >
           <span className="material-symbols-outlined">pause_circle</span>
           แจ้งปัญหา/หยุดงานชั่วคราว (On Hold)

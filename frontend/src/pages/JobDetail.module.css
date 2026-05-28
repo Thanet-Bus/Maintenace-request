@@ -302,8 +302,16 @@
   transition: background-color 0.2s;
 }
 
-.primaryButton:hover {
+.primaryButton:hover:not(:disabled) {
   background-color: color-mix(in srgb, var(--color-primary) 90%, black);
+}
+
+.primaryButton:disabled {
+  background-color: var(--color-surface-container-high);
+  color: var(--color-on-surface-variant);
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
 }
 
 .secondaryButton {
@@ -322,8 +330,16 @@
   transition: background-color 0.2s;
 }
 
-.secondaryButton:hover {
+.secondaryButton:hover:not(:disabled) {
   background-color: var(--color-surface-container-low);
+}
+
+.secondaryButton:disabled {
+  background-color: var(--color-surface-container-low);
+  color: var(--color-on-surface-variant);
+  border-color: var(--color-surface-container-highest);
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 @media (min-width: 768px) {
