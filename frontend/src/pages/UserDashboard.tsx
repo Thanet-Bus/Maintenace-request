@@ -5,45 +5,6 @@ import type { RepairRequest, RepairLog } from '../types/types';
 import styles from './UserDashboard.module.css';
 import { API_BASE_URL } from "../config";
 
-const mockRequest: RepairRequest = {
-  id: 1002,
-  requester_id: 1,
-  title: "ก๊อกน้ำรั่วในห้องน้ำชั้น 2",
-  description: "",
-  location: "ตึก A ห้อง 204",
-  status: "IN_PROGRESS",
-  appointment_date: "2024-05-13T10:00:00Z",
-  created_at: "2024-05-12T08:00:00Z",
-  updated_at: "2024-05-12T08:00:00Z",
-};
-
-const mockLogs: RepairLog[] = [
-  {
-    id: 1,
-    repair_request_id: 1002,
-    changed_by: 1,
-    status_to: "IN_PROGRESS",
-    note: "กำลังดำเนินการเปลี่ยนก๊อกน้ำตัวใหม่",
-    created_at: "2024-05-13T10:00:00Z",
-  },
-  {
-    id: 2,
-    repair_request_id: 1002,
-    changed_by: 1,
-    status_to: "ASSIGNED",
-    note: "มอบหมายให้ช่างวิชาญดำเนินการ",
-    created_at: "2024-05-12T14:00:00Z",
-  },
-  {
-    id: 3,
-    repair_request_id: 1002,
-    changed_by: 1,
-    status_to: "PENDING",
-    note: "รับเรื่องแจ้งซ่อมเรียบร้อยแล้ว",
-    created_at: "2024-05-12T08:00:00Z",
-  }
-];
-
 const UserDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<RepairRequest[]>([]);
@@ -53,22 +14,31 @@ const UserDashboard: React.FC = () => {
   const [logsLoading, setLogsLoading] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
-    // Fetch requests for user 1 as a mockup
+    // Fetch requests for user 1
+    let isMounted = true;
     fetch(`${API_BASE_URL}/repair-requests/requester/1`)
       .then((res) => {
         if (!res.ok) throw new Error("API failed");
         return res.json();
       })
       .then((data) => {
-        setRequests(data);
-        setLoading(false);
+        if (isMounted) {
+          setRequests(data);
+          setLoading(false);
+        }
       })
       .catch((err) => {
-        console.error("Failed to fetch API, using mock data", err);
-        setRequests([mockRequest]);
-        setLoading(false);
+        console.error("Failed to fetch API", err);
+        if (isMounted) {
+          setRequests([]);
+          setLoading(false);
+        }
       });
-  });
+      
+      return () => {
+        isMounted = false;
+      };
+  }, []);
 
   const toggleLogs = async (requestId: number) => {
     if (expandedRequestId === requestId) {
@@ -87,8 +57,8 @@ const UserDashboard: React.FC = () => {
         const data = await response.json();
         setRequestLogs(prev => ({ ...prev, [requestId]: data }));
       } catch (err) {
-        console.error("Failed to fetch logs, using mock data", err);
-        setRequestLogs(prev => ({ ...prev, [requestId]: mockLogs }));
+        console.error("Failed to fetch logs", err);
+        setRequestLogs(prev => ({ ...prev, [requestId]: [] }));
       } finally {
         setLogsLoading(prev => ({ ...prev, [requestId]: false }));
       }
