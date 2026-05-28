@@ -6,6 +6,7 @@ import History from './pages/History';
 import CreateRequest from './pages/CreateRequest';
 import Tasks from './pages/Tasks';
 import JobDetail from './pages/JobDetail';
+import JobCompletion from './pages/JobCompletion';
 import AdminLogin from './pages/AdminLogin';
 // import AdminRequests from './pages/AdminRequests';
 // import TeamAssignment from './pages/TeamAssignment';
@@ -23,6 +24,7 @@ function App() {
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/history" element={<History />} />
         <Route path="/request/:id" element={<JobDetail />} />
+        <Route path="/request/:id/complete" element={<JobCompletion />} />
         <Route path="/create-request" element={<CreateRequest />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>

@@ -116,6 +116,40 @@ const JobDetail: React.FC = () => {
     }
   };
 
+  const handleAcceptWork = async () => {
+    if (!id || !request) return;
+
+    if (request.status === 'ASSIGNED' || request.status === 'ON_HOLD') {
+      try {
+        setRefreshing(true);
+        const response = await fetch(`${API_BASE_URL}/repair-requests/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            status: 'IN_PROGRESS',
+            note: 'รับงาน: ช่างเทคนิคกำลังเดินทางไปตรวจสอบ',
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update status to IN_PROGRESS');
+        }
+
+        // Navigate to completion page after successfully accepting
+        navigate(`/request/${id}/complete`);
+      } catch (error) {
+        console.error('Error accepting work:', error);
+        alert('เกิดข้อผิดพลาดในการรับงาน กรุณาลองอีกครั้ง');
+        setRefreshing(false);
+      }
+    } else {
+      // If already accepted/in progress, just go to completion page
+      navigate(`/request/${id}/complete`);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
@@ -286,14 +320,20 @@ const JobDetail: React.FC = () => {
 
       {/* Bottom Action Bar */}
       <div className={styles.bottomActionBar}>
-        <button className={styles.primaryButton} disabled={refreshing}>
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>play_arrow</span>
-          รับงาน (Accept Work)
+        <button 
+          className={styles.primaryButton} 
+          disabled={refreshing || request.status === 'COMPLETED'}
+          onClick={handleAcceptWork}
+        >
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: '"FILL" 1' }}>
+            {request.status === 'PENDING' ? 'play_arrow' : 'check_circle'}
+          </span>
+          {request.status === 'PENDING' ? 'รับงาน (Accept Work)' : 'ปิดงาน (Complete Work)'}
         </button>
         <button 
           className={styles.secondaryButton}
           onClick={() => setIsOnHoldReportOpen(true)}
-          disabled={refreshing}
+          disabled={refreshing || request.status === 'COMPLETED'}
         >
           <span className="material-symbols-outlined">pause_circle</span>
           แจ้งปัญหา/หยุดงานชั่วคราว (On Hold)

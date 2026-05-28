@@ -70,3 +70,5 @@ changed_by = user
 status_to = str
 note = text (on hold)
 timestamp = time now
+
+refactor code like in jobdetail implement

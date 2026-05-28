@@ -80,13 +80,13 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({
             </h3>
             <div className={styles.radioGroup}>
               {[
-                { value: "parts", label: "รออะไหล่ (Waiting for Parts)" },
+                { value: "รออะไหล่", label: "รออะไหล่ (Waiting for Parts)" },
                 {
-                  value: "tools",
+                  value: "ต้องใช้เครื่องมือพิเศษ",
                   label: "ต้องใช้เครื่องมือพิเศษ (Special Tools Needed)",
                 },
-                { value: "site", label: "หน้างานไม่พร้อม (Site Not Ready)" },
-                { value: "other", label: "อื่น ๆ (Other)" },
+                { value: "หน้างานไม่พร้อม", label: "หน้างานไม่พร้อม (Site Not Ready)" },
+                { value: "อื่น ๆ", label: "อื่น ๆ (Other)" },
               ].map((item) => (
                 <label key={item.value} className={styles.radioLabel}>
                   <input

@@ -1,0 +1,350 @@
+.container {
+  padding: 1rem var(--spacing-container-mobile);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-card-gap);
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+}
+
+.submitting {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.section {
+  background-color: var(--color-surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stepHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(187, 203, 184, 0.3);
+  padding-bottom: 0.75rem;
+}
+
+.stepNumber {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stepTitle {
+  font-family: var(--font-headline);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+/* Upload Area */
+.uploadArea {
+  border: 2px dashed var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface-container-low);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.uploadArea:hover {
+  background-color: var(--color-surface-container);
+}
+
+.uploadText {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-on-surface-variant);
+  margin: 0.5rem 0 0.25rem 0;
+}
+
+.uploadSubtext {
+  font-size: 12px;
+  color: var(--color-outline);
+  margin: 0;
+}
+
+/* Input Group */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-on-surface-variant);
+}
+
+.textarea {
+  width: 100%;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--color-on-surface);
+  resize: none;
+  transition: all 0.2s;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 110, 43, 0.2);
+}
+
+.textarea::placeholder {
+  color: var(--color-outline);
+}
+
+/* Ratings */
+.infoText {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  background-color: var(--color-surface-container-low);
+  padding: 0.75rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-surface-variant);
+  margin: 0;
+}
+
+.techniciansList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.techCard {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-surface-variant);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.techHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.techAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.techAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.techName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.techRoleBadge {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  background-color: var(--color-surface-container-high);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  display: inline-block;
+  margin-top: 0.25rem;
+}
+
+.starRating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.starBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-outline-variant);
+  transition: color 0.2s;
+}
+
+.starBtn span {
+  font-size: 32px;
+}
+
+.starBtn:hover, .starActive {
+  color: var(--color-tertiary-container);
+}
+
+.commentInput {
+  width: 100%;
+  background-color: var(--color-surface-bright);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+  padding: 0.625rem;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--color-on-surface);
+  transition: all 0.2s;
+}
+
+.commentInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 110, 43, 0.2);
+}
+
+/* Signature */
+.subLabel {
+  font-size: 12px;
+  color: var(--color-on-surface-variant);
+  margin: 0;
+}
+
+.signatureArea {
+  height: 12rem;
+  background-color: var(--color-surface-bright);
+  border: 2px dashed var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.signaturePlaceholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: var(--color-outline);
+  font-size: 18px;
+  opacity: 0.5;
+}
+
+.signatureActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.clearBtn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-surface);
+  color: var(--color-on-surface-variant);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.clearBtn:hover:not(:disabled) {
+  background-color: var(--color-surface-container-low);
+}
+
+.confirmSigBtn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s;
+}
+
+.confirmSigBtn:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-primary) 90%, black);
+}
+
+.clearBtn:disabled, .confirmSigBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Submit Area */
+.submitArea {
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background-color: var(--color-outline-variant);
+  color: var(--color-on-surface-variant);
+  border: none;
+  border-radius: var(--radius-xl);
+  font-family: var(--font-headline);
+  font-size: 22px;
+  font-weight: 700;
+  cursor: not-allowed;
+  opacity: 0.7;
+  transition: all 0.2s;
+}
+
+.submitBtnValid {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  opacity: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 110, 43, 0.3);
+}
+
+.submitBtnValid:hover {
+  background-color: color-mix(in srgb, var(--color-primary) 90%, black);
+}
+
+.errorText {
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-error);
+  margin-top: 0.5rem;
+}
