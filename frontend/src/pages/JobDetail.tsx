@@ -155,6 +155,7 @@ const JobDetail: React.FC = () => {
       case 'PENDING':
         return { label: 'รอดำเนินการ', color: 'var(--color-tertiary-container)' };
       case 'ASSIGNED':
+        return { label: 'รับงาน', icon: 'pending', color: 'var(--color-tertiary-container)' };
       case 'IN_PROGRESS':
         return { label: 'กำลังซ่อม', color: 'var(--color-primary)' };
       case 'COMPLETED':

@@ -75,6 +75,7 @@ const History: React.FC = () => {
       case 'PENDING':
         return { label: 'รอดำเนินการ', icon: 'pending', color: 'var(--color-tertiary-container)' };
       case 'ASSIGNED':
+        return { label: 'รับงาน', icon: 'pending', color: 'var(--color-tertiary-container)' };
       case 'IN_PROGRESS':
         return { label: 'กำลังซ่อม', icon: 'build', color: 'var(--color-primary)' };
       case 'COMPLETED':
@@ -101,7 +102,7 @@ const History: React.FC = () => {
           ) : (
             requests.map((request) => {
               const badge = getStatusBadge(request.status);
-              const progressPercentage = request.status === 'COMPLETED' ? '100%' : (request.status === 'IN_PROGRESS' || request.status === 'ASSIGNED' ? '50%' : '0%');
+              const progressPercentage = request.status === 'COMPLETED' ? '100%' : (request.status === 'IN_PROGRESS' ? '50%' : '0%');
               const isExpanded = expandedRequestId === request.id;
               const logs = requestLogs[request.id] || [];
               const isLoadingLogs = logsLoading[request.id];
