@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import AdminLayout from '../components/AdminLayout';
+import AdminLayout from '../../components/AdminLayout';
 import styles from './OnHoldManagement.module.css';
-import { API_BASE_URL } from '../config';
-import type { RepairRequest, RepairLog } from '../types/types';
+import { API_BASE_URL } from '../../config';
+import type { RepairRequest, RepairLog } from '../../types/types';
 
 // Dummy list of technicians for the selection (consistent with TeamAssignment)
 const dummyTechnicians = [

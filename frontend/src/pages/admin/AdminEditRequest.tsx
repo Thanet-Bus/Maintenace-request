@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import AdminLayout from '../components/AdminLayout';
+import AdminLayout from '../../components/AdminLayout';
 import styles from './AdminEditRequest.module.css';
-import { API_BASE_URL } from '../config';
-import type { RepairRequest } from '../types/types';
+import { API_BASE_URL } from '../../config';
+import type { RepairRequest } from '../../types/types';
 import type { SubmitEvent } from 'react';
 
 const AdminEditRequest: React.FC = () => {

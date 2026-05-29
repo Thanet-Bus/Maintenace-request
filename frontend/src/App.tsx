@@ -6,11 +6,11 @@ import CreateRequest from './pages/CreateRequest';
 import Tasks from './pages/Tasks';
 import JobDetail from './pages/JobDetail';
 import JobCompletion from './pages/JobCompletion';
-import AdminLogin from './pages/AdminLogin';
-import AdminRequests from './pages/AdminRequests';
-import AdminEditRequest from './pages/AdminEditRequest';
-import TeamAssignment from './pages/TeamAssignment';
-import OnHoldManagement from './pages/OnHoldManagement';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminRequests from './pages/admin/AdminRequests';
+import AdminEditRequest from './pages/admin/AdminEditRequest';
+import TeamAssignment from './pages/admin/TeamAssignment';
+import OnHoldManagement from './pages/admin/OnHoldManagement';
 import './styles/theme.css';
 
 function App() {
