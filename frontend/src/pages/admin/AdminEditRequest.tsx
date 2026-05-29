@@ -207,6 +207,10 @@ const AdminEditRequest: React.FC = () => {
                     <p className={styles.infoLabel}>วันที่แจ้ง</p>
                     <p className={styles.infoValue}>{formatDateTime(request.created_at)}</p>
                 </div>
+                <div>
+                    <p className={styles.infoLabel}>วันที่นัดหมาย</p>
+                    <p className={styles.infoValue}>{formatDateTime(request.appointment_date)}</p>
+                </div>
 
                 {/* Assigned Technicians */}
                 {request.technicians && request.technicians.length > 0 && (

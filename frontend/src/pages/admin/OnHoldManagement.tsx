@@ -235,6 +235,18 @@ const OnHoldManagement: React.FC = () => {
                   ? new Date(onHoldLog.created_at).toLocaleString("th-TH")
                   : "-"}
               </p>
+              <p
+                style={{
+                  fontSize: "15px",
+                  // color: "var(--color-outline)",
+                  // marginTop: "0.25rem",
+                }}
+              >
+                วันเวลานัดหมายเดิม:{" "}
+                {request.appointment_date
+                  ? new Date(request.appointment_date).toLocaleString("th-TH")
+                  : "-"}
+              </p>
             </div>
 
             <div className={styles.card}>
