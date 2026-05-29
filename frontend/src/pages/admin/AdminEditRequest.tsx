@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './AdminEditRequest.module.css';
 import { API_BASE_URL } from '../../config';
-import type { RepairRequest } from '../../types/types';
+import type { RepairRequest, TechnicianDetail } from '../../types/types';
 import type { SubmitEvent } from 'react';
 
 const AdminEditRequest: React.FC = () => {
@@ -20,7 +20,7 @@ const AdminEditRequest: React.FC = () => {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('');
   const [note, setNote] = useState('');
-  
+
   const formatDateTime = (isoString: string) => {
     return new Date(isoString).toLocaleString('th-TH', {
       year: 'numeric',
@@ -31,48 +31,80 @@ const AdminEditRequest: React.FC = () => {
     }) + ' น.';
   };
 
-  const fetchRequest = useCallback((signal?: AbortSignal) => {
+  const fetchRequestDetails = useCallback(async () => {
     if (!id) return;
-    
-    return new Promise<void>((resolve, reject) => {
-      setLoading(true);
-      fetch(`${API_BASE_URL}/repair-requests/${id}`, { signal })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch request');
-          return res.json();
-        })
-        .then(data => {
-          setRequest(data);
-          setTitle(data.title);
-          setLocation(data.location);
-          setDescription(data.description || '');
-          setStatus(data.status);
-          resolve();
-        })
-        .catch(error => {
-          if (error.name === 'AbortError') return;
-          console.error('Error fetching request:', error);
-          reject(error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    });
+    const res = await fetch(`${API_BASE_URL}/repair-requests/${id}`);
+    if (!res.ok) {
+      throw new Error('Failed to fetch request');
+    }
+    const data = await res.json();
+    setRequest(data);
+    setTitle(data.title);
+    setLocation(data.location);
+    setDescription(data.description || '');
+    setStatus(data.status);
+  }, [id]);
+
+  const fetchAssignments = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/assignments/repair-request/${id}`);
+      const data = await res.json();
+      if (data.technicians) {
+        const techDetails: TechnicianDetail[] = await Promise.all(
+          data.technicians.map(async (t: { technician_id: number; is_leader: boolean }) => {
+            try {
+              const userRes = await fetch(`${API_BASE_URL}/users/${t.technician_id}`);
+              const userData = await userRes.json();
+              return {
+                id: t.technician_id,
+                name: userData.name || `Technician ${t.technician_id}`,
+                is_leader: t.is_leader,
+              };
+            } catch {
+              return {
+                id: t.technician_id,
+                name: `Technician ${t.technician_id}`,
+                is_leader: t.is_leader,
+              };
+            }
+          })
+        );
+        setRequest(prev => prev ? { ...prev, technicians: techDetails } : prev);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }, [id]);
 
   useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-    
-    fetchRequest(controller.signal)?.catch(() => {
-      if (!isMounted) return;
-    });
+    if (!id) return;
+
+    let cancelled = false;
+
+    async function loadInitialData() {
+      try {
+        await Promise.all([
+          fetchRequestDetails(),
+          fetchAssignments(),
+        ]);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Error loading page data", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadInitialData();
 
     return () => {
-      isMounted = false;
-      controller.abort();
+      cancelled = true;
     };
-  }, [fetchRequest]);
+  }, [id, fetchRequestDetails, fetchAssignments]);
 
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -175,6 +207,34 @@ const AdminEditRequest: React.FC = () => {
                     <p className={styles.infoLabel}>วันที่แจ้ง</p>
                     <p className={styles.infoValue}>{formatDateTime(request.created_at)}</p>
                 </div>
+
+                {/* Assigned Technicians */}
+                {request.technicians && request.technicians.length > 0 && (
+                  <div className={styles.techSection}>
+                    <p className={styles.infoLabel}>ช่างที่ได้รับมอบหมาย</p>
+                    <div className={styles.techListDetailed}>
+                      {request.technicians.map(tech => (
+                        <div key={tech.id} className={styles.techItemDetailed}>
+                          <div className={styles.techMainInfo}>
+                            {tech.profile_image_url ? (
+                              <img className={styles.techAvatar} src={tech.profile_image_url} alt={tech.name} />
+                            ) : (
+                              <div className={styles.initialAvatar}>{tech.name.charAt(0)}</div>
+                            )}
+                            <div>
+                              <p className={styles.techName}>{tech.name}</p>
+                              {tech.is_leader ? (
+                                <span className={styles.leaderBadge}>หัวหน้าทีม</span>
+                              ) : (
+                                <span className={styles.assistBadge}>ช่างร่วม</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

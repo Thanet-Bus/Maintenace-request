@@ -296,3 +296,83 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.techSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(187, 203, 184, 0.2);
+}
+
+.techChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.techListDetailed {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.techItemDetailed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background-color: var(--color-surface-container-lowest);
+  border: 1px solid rgba(187, 203, 184, 0.2);
+}
+
+.techMainInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.techAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.initialAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--color-surface-container-high);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-on-surface-variant);
+  font-weight: 600;
+}
+
+.techName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.leaderBadge {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.assistBadge {
+  background-color: var(--color-surface-container-high);
+  color: var(--color-on-surface-variant);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 500;
+}

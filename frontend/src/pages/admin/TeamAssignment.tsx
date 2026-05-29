@@ -5,17 +5,18 @@ import styles from './TeamAssignment.module.css';
 import { API_BASE_URL } from '../../config';
 import type { RepairRequest } from '../../types/types';
 
-// Dummy list of technicians for the selection
-const dummyTechnicians = [
-  { id: 101, name: 'กฤษณะ แอร์เย็น', desc: 'ผู้เชี่ยวชาญระบบปรับอากาศ (คิวว่าง)', busy: false, avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAdocRMNiYMRfLRqjl3ZxK9WPt3que3VN6X-p-CcGPStbZnTjxVGopmPoxv6uNiIQkinKtGd6NyTCmSKayMGLU0XamIKzY_K29BgAfsitsaF_toE92ivOvrxT1aO6iXgim8MIGD0YvsSf7S0wtgNG2WtpWBzyS8ypDP0b_TaTUaivtkKW23LTlwO0GQU6iya2PUhw3ivJOPyeVnUrQSfCUrl4fD5PMpsevvpR1YZe4uSu56sXwppz8ulfqm2QwIQGxUA_0Wot72MA_0' },
-  { id: 102, name: 'วิชาญ งานไว', desc: 'ช่างทั่วไป (คิวว่าง)', busy: false, avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAgwnHzvs1oTP0YPWYcu99Q9j4GWAwiVa4I0Xaspw7XP-I6BBp_Xcm30ybKNvnFd7HW-Aa_Ft1c6D4g8W6HCiGONub1srwTB7KKLTqkM3LrO78cEmjCVXhOSoa111V8xJ6nb5qPPhY1JUrYAl9Z2qP7avSpm3z2avNnnL-hjKIOz6RzVjnj0mlZKATGiZiDqbGO2Q8Qiqz-Ci7DIBfVRS1ao4YqPTFJv35_pvfWRx40OCmhKfVzotgXHht_vPbw3lFFgaNXaBU2iuK3' },
-  { id: 103, name: 'ทวีศักดิ์ ไฟฟ้า', desc: 'ติดงานซ่อมอาคาร B (ถึง 15:00)', busy: true, avatar: '' }
-];
+type Technician = {
+  id: number;
+  name: string;
+  phone?: string | null;
+  profile_image_url?: string | null;
+};
 
 const TeamAssignment: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [request, setRequest] = useState<RepairRequest | null>(null);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Form State
@@ -51,17 +52,28 @@ const TeamAssignment: React.FC = () => {
     });
   }, [id]);
 
+  const fetchTechnicians = useCallback(() => {
+    fetch(`${API_BASE_URL}/users/technicians`)
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch technicians");
+        return res.json();
+      })
+      .then(data => setTechnicians(data))
+      .catch(err => console.error(err));
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
     
     fetchRequestDetails()?.catch(() => {
       if (!isMounted) return;
     });
+    fetchTechnicians();
 
     return () => {
       isMounted = false;
     };
-  }, [fetchRequestDetails]);
+  }, [fetchRequestDetails, fetchTechnicians]);
 
   const handleTechToggle = (techId: number) => {
     setSelectedTechs(prev => {
@@ -252,30 +264,29 @@ const TeamAssignment: React.FC = () => {
                   </div>
                   
                   <div className={styles.techList}>
-                    {dummyTechnicians.map((tech) => {
+                    {technicians.map((tech) => {
                       const isSelected = selectedTechs.includes(tech.id);
                       const isLeader = leaderId === tech.id;
                       return (
                         <div 
                           key={tech.id} 
-                          className={`${styles.techItem} ${isSelected ? styles.techItemSelected : ''} ${tech.busy ? styles.techItemDisabled : ''}`}
+                          className={`${styles.techItem} ${isSelected ? styles.techItemSelected : ''}`}
                         >
                           <div className={styles.techMainInfo}>
                             <input 
                               className={styles.checkbox} 
                               type="checkbox" 
                               checked={isSelected}
-                              disabled={tech.busy && !isSelected}
                               onChange={() => handleTechToggle(tech.id)}
                             />
-                            {tech.avatar ? (
-                              <img className={styles.techAvatar} src={tech.avatar} alt={tech.name} />
+                            {tech.profile_image_url ? (
+                              <img className={styles.techAvatar} src={tech.profile_image_url} alt={tech.name} />
                             ) : (
                               <div className={styles.initialAvatar}>{tech.name.charAt(0)}</div>
                             )}
                             <div>
                               <p className={styles.techName}>{tech.name}</p>
-                              <p className={tech.busy ? styles.techDescBusy : styles.techDesc}>{tech.desc}</p>
+                              {tech.phone && <p className={styles.techDesc}>{tech.phone}</p>}
                             </div>
                           </div>
                           {isSelected && (
@@ -295,8 +306,7 @@ const TeamAssignment: React.FC = () => {
                                   checked={!isLeader}
                                   onChange={() => {
                                     if(isLeader && selectedTechs.length > 1) {
-                                      // Assign lead to someone else
-                                      setLeaderId(selectedTechs.find(id => id !== tech.id) || null);
+                                      setLeaderId(selectedTechs.find(tid => tid !== tech.id) || null);
                                     }
                                   }}
                                 /> Assist
@@ -323,7 +333,6 @@ const TeamAssignment: React.FC = () => {
 
                 {/* Actions */}
                 <div className={styles.formActions}>
-                  <button className={styles.cancelButton} type="button" onClick={() => navigate(-1)} disabled={submitting}>ยกเลิก</button>
                   <button 
                     className={styles.confirmButton} 
                     type="button" 

@@ -8,6 +8,7 @@ export interface RepairRequest {
   appointment_date: string | null;
   created_at: string;
   updated_at: string;
+  technicians?: TechnicianDetail[];
 }
 
 export interface RepairLog {
@@ -37,3 +38,11 @@ export interface AssignmentResponse {
   repair_request_id: number;
   technicians: AssignmentDetail[];
 }
+
+export type TechnicianDetail = {
+  id: number;
+  name: string;
+  phone?: string | null;
+  profile_image_url?: string | null;
+  is_leader: boolean;
+};
