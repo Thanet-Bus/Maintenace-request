@@ -9,6 +9,8 @@ const AdminRequests: React.FC = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<RepairRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const fetchRequests = useCallback( async () => {
     return new Promise<void>((resolve, reject) => {
@@ -44,6 +46,16 @@ const AdminRequests: React.FC = () => {
     };
   }, [fetchRequests]);
 
+  const filteredRequests = requests.filter(req => {
+    const matchesStatus = statusFilter === '' || req.status === statusFilter;
+    const matchesSearch = searchQuery === '' || 
+      req.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      req.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      `#REQ-${req.id.toString().padStart(4, '0')}`.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesStatus && matchesSearch;
+  });
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
@@ -55,7 +67,7 @@ const AdminRequests: React.FC = () => {
       case 'COMPLETED':
         return { label: 'เสร็จสิ้น', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-outline)' };
       case 'ON_HOLD':
-        return { label: 'พักงาน', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-error)' };
+        return { label: 'พักงาน', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-status-onhold)' };
       case 'CANCELLED':
         return { label: 'ยกเลิก', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-error)' };
       default:
@@ -79,14 +91,6 @@ const AdminRequests: React.FC = () => {
           <h1 className={styles.pageTitle}>การจัดการใบแจ้งซ่อม</h1>
           <p className={styles.pageSubtitle}>Manage, assign, and track maintenance requests efficiently.</p>
         </div>
-        <div className={styles.searchWrapper}>
-          <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
-          <input 
-            className={styles.searchInput} 
-            placeholder="ค้นหา รหัส, หัวข้อ, สถานที่..." 
-            type="text" 
-          />
-        </div>
       </div>
 
       {/* Filter Bar */}
@@ -95,19 +99,30 @@ const AdminRequests: React.FC = () => {
           <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>filter_list</span>
           ตัวกรอง:
         </div>
-        <select className={styles.filterSelect}>
+        <select 
+          className={styles.filterSelect}
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
           <option value="">สถานะทั้งหมด</option>
-          <option value="pending">รอดำเนินการ</option>
-          <option value="active">กำลังดำเนินการ</option>
-          <option value="completed">เสร็จสิ้น</option>
+          <option value="PENDING">รอดำเนินการ</option>
+          <option value="ASSIGNED">มอบหมายแล้ว</option>
+          <option value="IN_PROGRESS">กำลังซ่อม</option>
+          <option value="ON_HOLD">พักงาน</option>
+          <option value="COMPLETED">เสร็จสิ้น</option>
+          <option value="CANCELLED">ยกเลิก</option>
         </select>
         <div className={styles.dateInputWrapper}>
           <span className={`material-symbols-outlined ${styles.dateIcon}`}>calendar_month</span>
           <input className={styles.dateInput} placeholder="ช่วงวันที่" type="text" />
         </div>
-        <button className={styles.resetButton} onClick={fetchRequests}>
+        <button className={styles.resetButton} onClick={() => {
+            setSearchQuery('');
+            setStatusFilter('');
+            fetchRequests();
+        }}>
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>restart_alt</span>
-          รีเฟรช
+          รีเซ็ต
         </button>
       </div>
 
@@ -130,14 +145,15 @@ const AdminRequests: React.FC = () => {
                 <tr>
                   <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>กำลังโหลดข้อมูล...</td>
                 </tr>
-              ) : requests.length === 0 ? (
+              ) : filteredRequests.length === 0 ? (
                 <tr>
                   <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>ไม่พบรายการแจ้งซ่อม</td>
                 </tr>
               ) : (
-                requests.map((req) => {
+                filteredRequests.map((req) => {
                   const badge = getStatusBadge(req.status);
                   const isPending = req.status === 'PENDING';
+                  const isOnHold = req.status === 'ON_HOLD';
                   return (
                     <tr key={req.id} className={styles.row}>
                       <td>
@@ -180,9 +196,9 @@ const AdminRequests: React.FC = () => {
                         <div className={styles.actionGroup}>
                           <button 
                             className={styles.detailButton} 
-                            onClick={() => navigate(`/request/${req.id}`)}
+                            onClick={() => navigate(`/admin/request/edit/${req.id}`)}
                           >
-                            ดูรายละเอียด
+                            แก้ไข
                           </button>
                           {isPending && (
                             <button 
@@ -191,6 +207,15 @@ const AdminRequests: React.FC = () => {
                             >
                               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>person_add</span>
                               มอบหมายงาน
+                            </button>
+                          )}
+                          {isOnHold && (
+                            <button 
+                              className={styles.onHoldButton}
+                              onClick={() => navigate(`/admin/on-hold/${req.id}`)}
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_clock</span>
+                              จัดการงานที่พักไว้
                             </button>
                           )}
                         </div>

@@ -25,6 +25,7 @@ const TeamAssignment: React.FC = () => {
   const [leaderId, setLeaderId] = useState<number | null>(null);
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchRequestDetails = useCallback(() => {
     if (!id) return;
@@ -326,11 +327,11 @@ const TeamAssignment: React.FC = () => {
                   <button 
                     className={styles.confirmButton} 
                     type="button" 
-                    onClick={handleSubmit}
+                    onClick={() => setIsModalOpen(true)}
                     disabled={submitting || selectedTechs.length === 0 || !appointmentDate || !appointmentTime}
                   >
                     <span className="material-symbols-outlined">check_circle</span>
-                    {submitting ? 'กำลังมอบหมาย...' : 'ยืนยันการมอบหมาย'}
+                    ยืนยันการมอบหมาย
                   </button>
                 </div>
               </form>
@@ -338,6 +339,40 @@ const TeamAssignment: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {isModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => !submitting && setIsModalOpen(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={`material-symbols-outlined ${styles.modalIcon}`}>person_add</span>
+              <h3 className={styles.modalTitle}>ยืนยันการมอบหมายงาน</h3>
+            </div>
+            <div className={styles.modalBody}>
+              <p className={styles.modalText}>
+                คุณต้องการมอบหมายงานซ่อม <strong>#REQ-{request.id.toString().padStart(4, '0')}</strong><br/>
+                ให้กับช่างเทคนิคจำนวน <strong>{selectedTechs.length}</strong> คน ใช่หรือไม่?
+              </p>
+            </div>
+            <div className={styles.modalFooter}>
+              <button 
+                className={styles.modalCancelButton} 
+                onClick={() => setIsModalOpen(false)}
+                disabled={submitting}
+              >
+                ยกเลิก
+              </button>
+              <button 
+                className={styles.modalConfirmButton} 
+                onClick={handleSubmit}
+                disabled={submitting}
+              >
+                {submitting ? 'กำลังมอบหมาย...' : 'ยืนยัน'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };

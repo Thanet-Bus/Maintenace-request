@@ -8,7 +8,9 @@ import JobDetail from './pages/JobDetail';
 import JobCompletion from './pages/JobCompletion';
 import AdminLogin from './pages/AdminLogin';
 import AdminRequests from './pages/AdminRequests';
+import AdminEditRequest from './pages/AdminEditRequest';
 import TeamAssignment from './pages/TeamAssignment';
+import OnHoldManagement from './pages/OnHoldManagement';
 import './styles/theme.css';
 
 function App() {
@@ -18,7 +20,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/requests" element={<AdminRequests />} />
+        <Route path="/admin/request/edit/:id" element={<AdminEditRequest />} />
         <Route path="/admin/assign-team/:id" element={<TeamAssignment />} />
+        <Route path="/admin/on-hold/:id" element={<OnHoldManagement />} />
         <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/history" element={<History />} />

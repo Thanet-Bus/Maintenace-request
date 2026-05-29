@@ -48,7 +48,7 @@ def create_assignments(
         repair_request_id=data.repair_request_id,
         changed_by=2, # Default admin user id for assignment
         status_to=RepairStatus.ASSIGNED,
-        note="Assigned technicians"
+        note="แอดมินกำหนดงานให้ช่าง"
     )
     db.add(log_entry)
 
