@@ -1,4 +1,4 @@
-add init test user
+# add init test user
 docker compose exec backend python -m app.seed
 
 # Alembic
@@ -28,7 +28,6 @@ Router/API:
   catches your app error
   converts it to HTTPException for frontend
 
-6. frontend request form + request list
 7. then LINE Login
 8. then roles/permissions properly
 
