@@ -45,8 +45,8 @@
 }
 
 .headerBadge {
-  background-color: var(--color-error-container);
-  color: var(--color-on-error-container);
+  background-color: rgba(139, 92, 246, 0.1);
+  color: var(--color-status-onhold);
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 14px;
@@ -101,8 +101,8 @@
 }
 
 .onHoldCard {
-  border-left: 6px solid var(--color-error);
-  background-color: #fffafb;
+  border-left: 6px solid var(--color-status-onhold);
+  background-color: rgba(139, 92, 246, 0.05);
 }
 
 .cardTitle {
@@ -156,18 +156,21 @@
 .reasonBox {
   margin-top: 0.5rem;
   padding: 1rem;
-  background-color: var(--color-error-container);
+  background-color: var(--color-surface);
+  border: 1px solid rgba(187, 203, 184, 0.5);
+  border-left: 4px solid var(--color-status-onhold);
   border-radius: 8px;
-  color: var(--color-on-error-container);
+  margin-bottom: 1.25rem;
 }
 
 .reasonTitle {
-  font-weight: 700;
+  font-weight: 600;
   font-size: 14px;
   margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: var(--color-on-surface-variant);
 }
 
 .reasonText {
@@ -253,7 +256,7 @@
   background-size: 1.25rem;
 }
 
-.textarea {
+.cancelTextarea {
   width: 100%;
   padding: 0.75rem;
   background-color: var(--color-surface-container-lowest);
@@ -267,8 +270,8 @@
   font-family: var(--font-body);
 }
 
-.textarea:focus {
-  border-color: var(--color-primary);
+.cancelTextarea:focus {
+  border-color: var(--color-error);
 }
 
 .formActions {
@@ -324,33 +327,46 @@
 }
 
 .terminateCard {
-  border-top: 1px solid var(--color-outline-variant);
-  padding-top: 1.5rem;
-  margin-top: 1rem;
+  background-color: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  padding: 1.5rem;
+  border: 1px solid var(--color-error-container);
+}
+
+.terminateHeader {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .terminateTitle {
-  font-size: 16px;
+  font-family: var(--font-headline);
+  font-size: 20px;
   font-weight: 600;
-  color: var(--color-error);
-  margin-bottom: 0.5rem;
+  color: var(--color-on-surface);
+  margin: 0;
 }
 
 .terminateButton {
-  background: none;
+  width: 100%;
+  height: 48px;
+  background-color: var(--color-surface);
   border: 1px solid var(--color-error);
   color: var(--color-error);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   cursor: pointer;
   transition: all 0.2s;
-  align-self: flex-end;
 }
 
 .terminateButton:hover {
   background-color: var(--color-error-container);
+  color: var(--color-on-error-container);
 }

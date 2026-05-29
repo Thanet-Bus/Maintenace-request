@@ -371,16 +371,23 @@ const OnHoldManagement: React.FC = () => {
                   </button>
                 </div>
               </form>
+            </div>
 
-              <div className={styles.terminateCard}>
-                <p className={styles.terminateTitle}>ยกเลิกรายการซ่อมนี้</p>
-                <div className={styles.fieldGroup} style={{ marginBottom: "1rem" }}>
+            {/* Action Card: Cancel */}
+            <div className={styles.terminateCard}>
+              <div className={styles.terminateHeader}>
+                <span className="material-symbols-outlined" style={{ color: "var(--color-error)" }}>cancel</span>
+                <h3 className={styles.terminateTitle}>ยกเลิกงาน (Cancel)</h3>
+              </div>
+              
+              <form className={styles.form}>
+                <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>
-                    เหตุผลในการยกเลิก
+                    เหตุผลการยกเลิก
                   </label>
                   <textarea
-                    className={styles.textarea}
-                    placeholder="โปรดระบุเหตุผลในการยกเลิก..."
+                    className={styles.cancelTextarea}
+                    placeholder="โปรดระบุเหตุผลที่ต้องยกเลิกใบแจ้งซ่อมนี้..."
                     rows={3}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
@@ -390,20 +397,11 @@ const OnHoldManagement: React.FC = () => {
                   className={styles.terminateButton}
                   onClick={handleTerminate}
                   disabled={submitting}
+                  type="button"
                 >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{
-                      verticalAlign: "middle",
-                      marginRight: "4px",
-                      fontSize: "18px",
-                    }}
-                  >
-                    cancel
-                  </span>
-                  ยกเลิกคำร้องอย่างถาวร
+                  ยกเลิกใบแจ้งซ่อม
                 </button>
-              </div>
+              </form>
             </div>
           </div>
         </div>
