@@ -1,47 +1,146 @@
-# add init test user
+# Development Setup
+
+## Prerequisites
+- Docker and Docker Compose
+- Node.js 18+ (only if running frontend outside Docker)
+
+## Initial Setup
+
+### 1. Clone the repository
+```bash
+git clone <repository-url>
+cd maintenance-request
+```
+
+### 2. Set up environment variables
+```bash
+cp .env.example .env
+# Edit .env with your preferred values
+```
+
+### 3. Start the database
+```bash
+docker compose up -d db
+```
+
+> **Note:** Start the database first to ensure it's ready before running migrations. Otherwise, the backend may fail to connect during migration.
+
+### 4. Run database migrations
+```bash
+docker compose exec backend alembic upgrade head
+```
+
+### 5. Seed test user data
+```bash
+docker compose exec backend python -m app.seed
+```
+
+### 6. Start all services
+```bash
+docker compose up -d
+```
+
+## Development Commands
+
+### Run without Docker (Backend)
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+### Run without Docker (Frontend)
+> (Requires Node.js 18+)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Database Commands
+```bash
+# Connect to database
+docker compose exec db psql -U <POSTGRES_USER> -d <POSTGRES_DB>
+
+# Create migration
+docker compose exec backend alembic revision --autogenerate -m "description"
+
+# Apply migrations
+docker compose exec backend alembic upgrade head
+
+# Rollback last migration
+docker compose exec backend alembic downgrade -1
+```
+
+## API Documentation
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Project Structure
+```
+backend/
+├── app/
+│   ├── api/           # FastAPI routers/endpoints
+│   ├── core/          # Database and config
+│   ├── crud/          # Database operations
+│   ├── model/         # SQLAlchemy models
+│   └── schemas/       # Pydantic schemas
+frontend/
+├── src/
+│   ├── pages/         # Page components
+│   ├── components/    # Shared components
+│   └── types/         # TypeScript types
+```
+
+---
+
+# Development Notes
+
+## Commands Reference
+```bash
+# Init test user
 docker compose exec backend python -m app.seed
 
 # Alembic
 docker compose exec backend alembic init alembic
 
-database version control:
+# Database version control
 docker compose exec backend alembic current
 docker compose exec backend alembic history
+```
 
-# database
+## Database Commands
+```bash
+# Database
 docker compose exec db psql -U username -d maintenance_db -c "\dt"
 docker compose exec db psql -U username -d maintenance_db -c "SELECT * FROM users;"
-*change username that has setted
+# change username that has setted
 
-- migrate
-    docker compose exec backend alembic revision --autogenerate -m "name changed database schema"
-    docker compose exec backend alembic upgrade head
+# Migrate
+docker compose exec backend alembic revision --autogenerate -m "name changed database schema"
+docker compose exec backend alembic upgrade head
 
-- downgrade
-    docker compose exec backend alembic downgrade -1
-  
-CRUD/service:
-  catches database/business errors
-  raises your own app error with message/code
+# Downgrade
+docker compose exec backend alembic downgrade -1
+```
 
-Router/API:
-  catches your app error
-  converts it to HTTPException for frontend
+## Architecture Notes
+- CRUD/service: catches database/business errors, raises your own app error with message/code
+- Router/API: catches your app error, converts it to HTTPException for frontend
 
-7. then LINE Login
-8. then roles/permissions properly
+## Roadmap
+7. Implement LINE Login
+8. Implement roles/permissions properly
 
-Admin changed:
-PENDING → ASSIGNED
+## Status Transitions
+| Actor | Transition |
+|-------|------------|
+| Admin | PENDING → ASSIGNED |
+| Technician | ASSIGNED → IN_PROGRESS |
+| Technician | IN_PROGRESS → COMPLETED |
 
-Technician changed:
-ASSIGNED → IN_PROGRESS
-
-Technician changed:
-IN_PROGRESS → COMPLETED
-
-
-repair_images
+## Future Tables
+### repair_images
 - id PK
 - repair_request_id FK -> repair_requests.id
 - uploaded_by FK -> users.id
@@ -49,7 +148,7 @@ repair_images
 - image_type
 - created_at
 
-repair_reviews
+### repair_reviews
 - id PK
 - repair_request_id FK -> repair_requests.id
 - reviewer_id FK -> users.id
@@ -58,16 +157,19 @@ repair_reviews
 - comment
 - created_at
 
-assigned -> admin dated and tech assigned
-in progress -> tech acknowledge request
-on hold -> change date, tech on hold
-cancelled -> admin cancelled
-complete -> tech submit request/ admin can complete too
+## Log Fields
+- id = repair_request_id
+- changed_by = user
+- status_to = str
+- note = text (on hold)
+- timestamp = time now
 
-id =  repair_request_id
-changed_by = user
-status_to = str
-note = text (on hold)
-timestamp = time now
+## Table Status Descriptions
+- **assigned**: admin dated and tech assigned
+- **in progress**: tech acknowledge request
+- **on hold**: change date, tech on hold
+- **cancelled**: admin cancelled
+- **complete**: tech submit request / admin can complete too
 
-refactor code like in jobdetail implement
+## Refactor Tasks
+- Refactor code like in jobdetail implement
