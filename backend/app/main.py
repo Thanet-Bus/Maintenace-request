@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.api.requests import router as repair_requests_router
 from app.api.assignments import router as assignments_router
 from app.api.logs import router as logs_router
+from app.api.users import router as users_router
 
 app = FastAPI()
 
@@ -22,6 +23,7 @@ app.add_middleware(
 app.include_router(repair_requests_router)
 app.include_router(assignments_router)
 app.include_router(logs_router)
+app.include_router(users_router)
 
 @app.get("/")
 async def root():
