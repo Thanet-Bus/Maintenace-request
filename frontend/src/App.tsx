@@ -11,6 +11,7 @@ import AdminRequests from './pages/admin/AdminRequests';
 import AdminEditRequest from './pages/admin/AdminEditRequest';
 import TeamAssignment from './pages/admin/TeamAssignment';
 import OnHoldManagement from './pages/admin/OnHoldManagement';
+import Technicians from './pages/admin/Technicians';
 import './styles/theme.css';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/requests" element={<AdminRequests />} />
+        <Route path="/admin/technicians" element={<Technicians />} />
         <Route path="/admin/request/edit/:id" element={<AdminEditRequest />} />
         <Route path="/admin/assign-team/:id" element={<TeamAssignment />} />
         <Route path="/admin/on-hold/:id" element={<OnHoldManagement />} />
