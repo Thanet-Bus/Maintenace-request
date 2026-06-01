@@ -28,6 +28,7 @@ const AdminEditRequest: React.FC = () => {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Asia/Bangkok'
     }) + ' น.';
   };
 

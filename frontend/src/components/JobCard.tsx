@@ -13,6 +13,7 @@ const JobCard: React.FC<JobCardProps> = ({ request, onClick }) => {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      timeZone: 'Asia/Bangkok'
     });
   };
 
@@ -23,6 +24,7 @@ const JobCard: React.FC<JobCardProps> = ({ request, onClick }) => {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Asia/Bangkok'
     }) + ' น.';
   };
 

@@ -27,6 +27,7 @@ const TeamAssignment: React.FC = () => {
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const fetchRequestDetails = useCallback(() => {
     if (!id) return;
@@ -91,15 +92,17 @@ const TeamAssignment: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    setErrorMessage('');
     if (!id || selectedTechs.length === 0 || !appointmentDate || !appointmentTime) {
-      alert("กรุณากรอกข้อมูลให้ครบถ้วน (วันเวลา และเลือกช่างอย่างน้อย 1 คน)");
+      setErrorMessage("กรุณากรอกข้อมูลให้ครบถ้วน (วันเวลา และเลือกช่างอย่างน้อย 1 คน)");
+      setIsModalOpen(false);
       return;
     }
 
     // Ensure we have a leader if techs are selected
     const finalLeaderId = leaderId || selectedTechs[0];
 
-    const isoDateTime = new Date(`${appointmentDate}T${appointmentTime}:00`).toISOString();
+    const isoDateTime = new Date(`${appointmentDate}T${appointmentTime}:00+07:00`).toISOString();
 
     const payload = {
       repair_request_id: parseInt(id, 10),
@@ -122,11 +125,11 @@ const TeamAssignment: React.FC = () => {
       
       // Optionally update note here via PATCH if required by business logic.
 
-      alert("มอบหมายงานสำเร็จ");
       navigate('/admin/requests');
     } catch (err) {
       console.error(err);
-      alert("เกิดข้อผิดพลาดในการมอบหมายงาน");
+      setErrorMessage("เกิดข้อผิดพลาดในการมอบหมายงาน");
+      setIsModalOpen(false);
     } finally {
       setSubmitting(false);
     }
@@ -297,7 +300,7 @@ const TeamAssignment: React.FC = () => {
                                   name={`role-${tech.id}`} 
                                   checked={isLeader}
                                   onChange={() => setLeaderId(tech.id)}
-                                /> Lead
+                                /> หัวหน้าทีม
                               </label>
                               <label className={styles.roleLabel}>
                                 <input 
@@ -309,7 +312,7 @@ const TeamAssignment: React.FC = () => {
                                       setLeaderId(selectedTechs.find(tid => tid !== tech.id) || null);
                                     }
                                   }}
-                                /> Assist
+                                /> ผู้ช่วย
                               </label>
                             </div>
                           )}
@@ -330,6 +333,14 @@ const TeamAssignment: React.FC = () => {
                     onChange={(e) => setNote(e.target.value)}
                   ></textarea>
                 </div>
+
+                {/* Error Message */}
+                {errorMessage && (
+                  <div style={{ color: 'var(--color-error)', fontSize: '14px', marginTop: '0.5rem', marginBottom: '0.5rem', padding: '0.75rem', backgroundColor: 'var(--color-error-container)', borderRadius: '8px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '4px' }}>error</span>
+                    {errorMessage}
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className={styles.formActions}>

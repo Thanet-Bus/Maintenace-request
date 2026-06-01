@@ -95,7 +95,7 @@ const OnHoldManagement: React.FC = () => {
     setSubmitting(true);
     try {
       const isoDateTime = new Date(
-        `${appointmentDate}T${appointmentTime}:00`,
+        `${appointmentDate}T${appointmentTime}:00+07:00`,
       ).toISOString();
 
       // 1. Update Request appointment date

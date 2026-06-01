@@ -77,11 +77,20 @@ const AdminRequests: React.FC = () => {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('th-TH', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    return d.toLocaleDateString('th-TH', { 
+      year: 'numeric', 
+      month: 'numeric', 
+      day: 'numeric',
+      timeZone: 'Asia/Bangkok'
+    });
   };
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
+    return d.toLocaleTimeString('th-TH', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZone: 'Asia/Bangkok'
+    }) + ' น.';
   };
 
   return (
@@ -137,17 +146,18 @@ const AdminRequests: React.FC = () => {
                 <th>ผู้แจ้ง</th>
                 <th>สถานะ</th>
                 <th>วันที่สร้าง</th>
+                <th>วันนัดหมาย</th>
                 <th style={{ textAlign: 'right' }}>จัดการ</th>
               </tr>
             </thead>
             <tbody className={styles.tbody}>
               {loading ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>กำลังโหลดข้อมูล...</td>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>กำลังโหลดข้อมูล...</td>
                 </tr>
               ) : filteredRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>ไม่พบรายการแจ้งซ่อม</td>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>ไม่พบรายการแจ้งซ่อม</td>
                 </tr>
               ) : (
                 filteredRequests.map((req) => {
@@ -190,6 +200,18 @@ const AdminRequests: React.FC = () => {
                         <div className={styles.dateInfo}>
                           {formatDate(req.created_at)}<br />
                           <span className={styles.timeInfo}>{formatTime(req.created_at)}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={styles.dateInfo}>
+                          {req.appointment_date ? (
+                            <>
+                              {formatDate(req.appointment_date)}<br />
+                              <span className={styles.timeInfo}>{formatTime(req.appointment_date)}</span>
+                            </>
+                          ) : (
+                            '-'
+                          )}
                         </div>
                       </td>
                       <td style={{ textAlign: 'right' }}>
