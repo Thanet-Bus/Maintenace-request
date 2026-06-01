@@ -30,7 +30,8 @@ const OnHoldManagement: React.FC = () => {
   // Form State
   const [appointmentDate, setAppointmentDate] = useState("");
   const [appointmentTime, setAppointmentTime] = useState("");
-  const [selectedTech, setSelectedTech] = useState<string>("");
+  const [selectedTechs, setSelectedTechs] = useState<number[]>([]);
+  const [leaderId, setLeaderId] = useState<number | null>(null);
   const [note, setNote] = useState("");
 
   const fetchRequestDetails = useCallback(async () => {
@@ -99,6 +100,21 @@ const OnHoldManagement: React.FC = () => {
     };
   }, [id, fetchRequestDetails, fetchLogs, fetchTechnicians]);
 
+  const handleTechToggle = (techId: number) => {
+    setSelectedTechs(prev => {
+      const isSelected = prev.includes(techId);
+      if (isSelected) {
+        // If removing the leader, reset leaderId
+        if (leaderId === techId) setLeaderId(null);
+        return prev.filter(id => id !== techId);
+      } else {
+        // If it's the first tech selected, make them the leader automatically
+        if (prev.length === 0) setLeaderId(techId);
+        return [...prev, techId];
+      }
+    });
+  };
+
   const handlePreReschedule = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage("");
@@ -111,6 +127,9 @@ const OnHoldManagement: React.FC = () => {
 
   const executeReschedule = async () => {
     if (!id || !appointmentDate || !appointmentTime) return;
+
+    // Ensure we have a leader if techs are selected
+    const finalLeaderId = leaderId || (selectedTechs.length > 0 ? selectedTechs[0] : null);
 
     setSubmitting(true);
     try {
@@ -131,20 +150,18 @@ const OnHoldManagement: React.FC = () => {
 
       if (!patchRes.ok) throw new Error("Failed to update request");
 
-      // 2. If a new technician was selected, update assignments
-      if (selectedTech) {
+      // 2. If technicians were selected, update assignments
+      if (selectedTechs.length > 0) {
         await fetch(`${API_BASE_URL}/assignments`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             repair_request_id: parseInt(id, 10),
             appointment_date: isoDateTime,
-            technicians: [
-              {
-                technician_id: parseInt(selectedTech, 10),
-                is_leader: true,
-              },
-            ],
+            technicians: selectedTechs.map(techId => ({
+              technician_id: techId,
+              is_leader: techId === finalLeaderId
+            })),
           }),
         });
       }
@@ -382,21 +399,65 @@ const OnHoldManagement: React.FC = () => {
                 </div>
 
                 <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>
-                    มอบหมายช่างใหม่ (ไม่บังคับ)
-                  </label>
-                  <select
-                    className={styles.select}
-                    value={selectedTech}
-                    onChange={(e) => setSelectedTech(e.target.value)}
-                  >
-                    <option value="">-- ใช้ทีมเดิม --</option>
-                    {technicians.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className={styles.fieldHeader}>
+                    <label className={styles.fieldLabel}>มอบหมายช่างใหม่ (ถ้ามี)</label>
+                    <span className={styles.countInfo}>เลือกแล้ว {selectedTechs.length} คน</span>
+                  </div>
+                  
+                  <div className={styles.techList}>
+                    {technicians.map((tech) => {
+                      const isSelected = selectedTechs.includes(tech.id);
+                      const isLeader = leaderId === tech.id;
+                      return (
+                        <div 
+                          key={tech.id} 
+                          className={`${styles.techItem} ${isSelected ? styles.techItemSelected : ''}`}
+                        >
+                          <div className={styles.techMainInfo}>
+                            <input 
+                              className={styles.checkbox} 
+                              type="checkbox" 
+                              checked={isSelected}
+                              onChange={() => handleTechToggle(tech.id)}
+                            />
+                            {tech.profile_image_url ? (
+                              <img className={styles.techAvatar} src={tech.profile_image_url} alt={tech.name} />
+                            ) : (
+                              <div className={styles.initialAvatar}>{tech.name.charAt(0)}</div>
+                            )}
+                            <div>
+                              <p className={styles.techName}>{tech.name}</p>
+                              {tech.phone && <p className={styles.techDesc}>{tech.phone}</p>}
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <div className={styles.roleAssignment}>
+                              <label className={styles.roleLabel}>
+                                <input 
+                                  type="radio" 
+                                  name={`role-${tech.id}`} 
+                                  checked={isLeader}
+                                  onChange={() => setLeaderId(tech.id)}
+                                /> หัวหน้าทีม
+                              </label>
+                              <label className={styles.roleLabel}>
+                                <input 
+                                  type="radio" 
+                                  name={`role-${tech.id}`} 
+                                  checked={!isLeader}
+                                  onChange={() => {
+                                    if(isLeader && selectedTechs.length > 1) {
+                                      setLeaderId(selectedTechs.find(tid => tid !== tech.id) || null);
+                                    }
+                                  }}
+                                /> ผู้ช่วย
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Error Message */}
@@ -468,6 +529,11 @@ const OnHoldManagement: React.FC = () => {
               <p className={styles.modalText}>
                 คุณต้องการยืนยันการนัดหมายเข้าซ่อมใหม่ในวันที่ <strong>{new Date(appointmentDate).toLocaleDateString('th-TH')}</strong> เวลา <strong>{appointmentTime} น.</strong> สำหรับคำร้อง <strong>#REQ-{request.id.toString().padStart(4, '0')}</strong> ใช่หรือไม่?
               </p>
+              {selectedTechs.length > 0 && (
+                <p className={styles.modalText} style={{ marginTop: '0.5rem' }}>
+                  โดยมอบหมายทีมช่างใหม่จำนวน <strong>{selectedTechs.length}</strong> คน
+                </p>
+              )}
               {errorMessage && (
                 <div style={{ color: 'var(--color-error)', fontSize: '14px', marginTop: '1rem', padding: '0.75rem', backgroundColor: 'var(--color-error-container)', borderRadius: '8px' }}>
                   <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '4px' }}>error</span>
