@@ -161,7 +161,7 @@ const JobDetail: React.FC = () => {
       case 'COMPLETED':
         return { label: 'เสร็จสิ้น', color: 'var(--color-outline)' };
       case 'ON_HOLD':
-        return { label: 'พักงาน', color: 'var(--color-error)' };
+        return { label: 'พักงาน', color: 'var(--color-status-onhold)' };
       case 'CANCELLED':
         return { label: 'ยกเลิก', color: 'var(--color-error)' };
       default:

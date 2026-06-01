@@ -39,7 +39,7 @@ const JobCard: React.FC<JobCardProps> = ({ request, onClick }) => {
       case 'COMPLETED':
         return { label: 'เสร็จสิ้น', icon: 'check_circle', color: 'var(--color-outline)' };
       case 'ON_HOLD':
-        return { label: 'พักงาน', icon: 'pause_circle', color: 'var(--color-error)' };
+        return { label: 'พักงาน', icon: 'pause_circle', color: 'var(--color-status-onhold)' };
       case 'CANCELLED':
         return { label: 'ยกเลิก', icon: 'cancel', color: 'var(--color-error)' };
       default:

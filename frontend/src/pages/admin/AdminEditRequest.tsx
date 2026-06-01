@@ -47,7 +47,7 @@ const AdminEditRequest: React.FC = () => {
       case 'COMPLETED':
         return { label: 'เสร็จสิ้น', icon: 'check_circle', color: 'var(--color-outline)' };
       case 'ON_HOLD':
-        return { label: 'พักงาน', icon: 'pause_circle', color: 'var(--color-error)' };
+        return { label: 'พักงาน', icon: 'pause_circle', color: 'var(--color-status-onhold)' };
       case 'CANCELLED':
         return { label: 'ยกเลิก', icon: 'cancel', color: 'var(--color-error)' };
       default:
@@ -296,25 +296,28 @@ const AdminEditRequest: React.FC = () => {
                     <p style={{ fontSize: '14px', color: 'var(--color-on-surface-variant)', marginTop: '0.5rem' }}>ไม่พบประวัติการดำเนินการ</p>
                   ) : (
                     <div className={styles.logsContainer}>
-                      {logs.map((log) => (
-                        <div key={log.id} className={styles.logItem}>
-                          <div className={styles.logTimeline}>
-                            <div className={styles.logDot}></div>
-                            <div className={styles.logLine}></div>
-                          </div>
-                          <div className={styles.logContent}>
-                            <div className={styles.logHeader}>
-                              <span className={styles.logStatus}>
-                                {getStatusBadge(log.status_to).label}
-                              </span>
-                              <span className={styles.logTime}>{formatDateTime(log.created_at)}</span>
+                      {logs.map((log) => {
+                        const logBadge = getStatusBadge(log.status_to);
+                        return (
+                          <div key={log.id} className={styles.logItem}>
+                            <div className={styles.logTimeline}>
+                              <div className={styles.logDot} style={{ backgroundColor: logBadge.color }}></div>
+                              <div className={styles.logLine}></div>
                             </div>
-                            {log.note && (
-                              <div className={styles.logNote}>{log.note}</div>
-                            )}
+                            <div className={styles.logContent}>
+                              <div className={styles.logHeader}>
+                                <span className={styles.logStatus}>
+                                  {logBadge.label}
+                                </span>
+                                <span className={styles.logTime}>{formatDateTime(log.created_at)}</span>
+                              </div>
+                              {log.note && (
+                                <div className={styles.logNote}>{log.note}</div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
