@@ -34,6 +34,7 @@ const OnHoldManagement: React.FC = () => {
   // Custom Alert / Modal State
   const [errorMessage, setErrorMessage] = useState("");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
 
   // Form State
   const [appointmentDate, setAppointmentDate] = useState("");
@@ -92,13 +93,18 @@ const OnHoldManagement: React.FC = () => {
     };
   }, [id, fetchRequestDetails, fetchLogs]);
 
-  const handleReschedule = async (e: React.SubmitEvent) => {
+  const handlePreReschedule = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage("");
     if (!id || !appointmentDate || !appointmentTime) {
       setErrorMessage("กรุณาระบุวันและเวลาที่นัดหมายใหม่");
       return;
     }
+    setIsRescheduleModalOpen(true);
+  };
+
+  const executeReschedule = async () => {
+    if (!id || !appointmentDate || !appointmentTime) return;
 
     setSubmitting(true);
     try {
@@ -141,6 +147,7 @@ const OnHoldManagement: React.FC = () => {
     } catch (err) {
       console.error(err);
       setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลการนัดหมาย");
+      setIsRescheduleModalOpen(false);
     } finally {
       setSubmitting(false);
     }
@@ -330,7 +337,7 @@ const OnHoldManagement: React.FC = () => {
                 กำหนดวันนัดหมายใหม่ (Reschedule)
               </h3>
 
-              <form className={styles.form} onSubmit={handleReschedule}>
+              <form className={styles.form} onSubmit={handlePreReschedule}>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>
                     วันเวลาที่นัดหมายใหม่{" "}
@@ -387,7 +394,7 @@ const OnHoldManagement: React.FC = () => {
                 </div>
 
                 {/* Error Message */}
-                {errorMessage && !isCancelModalOpen && (
+                {errorMessage && !isCancelModalOpen && !isRescheduleModalOpen && (
                   <div style={{ color: 'var(--color-error)', fontSize: '14px', marginTop: '0.5rem', marginBottom: '0.5rem', padding: '0.75rem', backgroundColor: 'var(--color-error-container)', borderRadius: '8px' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '4px' }}>error</span>
                     {errorMessage}
@@ -442,6 +449,45 @@ const OnHoldManagement: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal for Reschedule */}
+      {isRescheduleModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => !submitting && setIsRescheduleModalOpen(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={`material-symbols-outlined ${styles.modalIcon}`}>calendar_clock</span>
+              <h3 className={styles.modalTitle}>ยืนยันการนัดหมายใหม่</h3>
+            </div>
+            <div className={styles.modalBody}>
+              <p className={styles.modalText}>
+                คุณต้องการยืนยันการนัดหมายเข้าซ่อมใหม่ในวันที่ <strong>{new Date(appointmentDate).toLocaleDateString('th-TH')}</strong> เวลา <strong>{appointmentTime} น.</strong> สำหรับคำร้อง <strong>#REQ-{request.id.toString().padStart(4, '0')}</strong> ใช่หรือไม่?
+              </p>
+              {errorMessage && (
+                <div style={{ color: 'var(--color-error)', fontSize: '14px', marginTop: '1rem', padding: '0.75rem', backgroundColor: 'var(--color-error-container)', borderRadius: '8px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '4px' }}>error</span>
+                  {errorMessage}
+                </div>
+              )}
+            </div>
+            <div className={styles.modalFooter}>
+              <button 
+                className={styles.modalCancelButton} 
+                onClick={() => setIsRescheduleModalOpen(false)}
+                disabled={submitting}
+              >
+                ย้อนกลับ
+              </button>
+              <button 
+                className={styles.modalConfirmButton} 
+                onClick={executeReschedule}
+                disabled={submitting}
+              >
+                {submitting ? 'กำลังบันทึก...' : 'ยืนยัน'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Modal for Termination */}
       {isCancelModalOpen && (
