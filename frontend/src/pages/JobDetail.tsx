@@ -5,6 +5,7 @@ import OnHoldReport from '../components/OnHoldReport';
 import type { RepairRequest, RepairLog, AssignmentResponse, AssignmentDetail } from '../types/types';
 import styles from './JobDetail.module.css';
 import { API_BASE_URL } from "../config";
+import { getStatusBadge } from '../utils/statusUtils';
 
 const JobDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -150,25 +151,6 @@ const JobDetail: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return { label: 'รอดำเนินการ', color: 'var(--color-tertiary-container)' };
-      case 'ASSIGNED':
-        return { label: 'รับงาน', color: 'var(--color-tertiary-container)' };
-      case 'IN_PROGRESS':
-        return { label: 'กำลังซ่อม', color: 'var(--color-primary)' };
-      case 'COMPLETED':
-        return { label: 'เสร็จสิ้น', color: 'var(--color-outline)' };
-      case 'ON_HOLD':
-        return { label: 'พักงาน', color: 'var(--color-status-onhold)' };
-      case 'CANCELLED':
-        return { label: 'ยกเลิก', color: 'var(--color-error)' };
-      default:
-        return { label: status, color: 'var(--color-on-surface-variant)' };
-    }
-  };
-
   if (requestLoading) {
     return (
       <Layout title="รายละเอียดงาน">
@@ -296,22 +278,25 @@ const JobDetail: React.FC = () => {
             ) : logs.length === 0 ? (
               <p style={{ textAlign: 'center', fontSize: '14px' }}>ไม่พบประวัติการดำเนินการ</p>
             ) : (
-              logs.map((log) => (
-                <div key={log.id} style={{ display: 'flex', gap: '0.75rem', fontSize: '14px' }}>
-                  <div style={{ minWidth: '100px', color: 'var(--color-on-surface-variant)', display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: '500' }}>
-                      {new Date(log.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
-                    </span>
-                    <span style={{ fontSize: '12px' }}>
-                      {new Date(log.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
-                    </span>
+              logs.map((log) => {
+                const badge = getStatusBadge(log.status_to);
+                return (
+                  <div key={log.id} style={{ display: 'flex', gap: '0.75rem', fontSize: '14px' }}>
+                    <div style={{ minWidth: '100px', color: 'var(--color-on-surface-variant)', display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontWeight: '500' }}>
+                        {new Date(log.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                      </span>
+                      <span style={{ fontSize: '12px' }}>
+                        {new Date(log.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.
+                      </span>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontWeight: '600', color: badge.color }}>{badge.label}</span>
+                      {log.note && <p style={{ margin: '0.25rem 0 0 0', color: 'var(--color-on-surface-variant)' }}>{log.note}</p>}
+                    </div>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <span style={{ fontWeight: '600' }}>{getStatusBadge(log.status_to).label}</span>
-                    {log.note && <p style={{ margin: '0.25rem 0 0 0', color: 'var(--color-on-surface-variant)' }}>{log.note}</p>}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </section>

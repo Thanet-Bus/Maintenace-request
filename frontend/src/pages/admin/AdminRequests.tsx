@@ -4,6 +4,7 @@ import AdminLayout from '../../components/AdminLayout';
 import styles from './AdminRequests.module.css';
 import { API_BASE_URL } from '../../config';
 import type { RepairRequest } from '../../types/types';
+import { getStatusBadge as getBaseStatusBadge } from '../../utils/statusUtils';
 
 const INITIAL_LOAD_COUNT = 15;
 const LOAD_MORE_COUNT = 10;
@@ -83,22 +84,15 @@ const AdminRequests: React.FC = () => {
   const visibleRequests = filteredRequests.slice(0, visibleCount);
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return { label: 'รอดำเนินการ', className: styles.statusPill, dotClass: styles.statusDot, color: 'var(--color-tertiary)' };
-      case 'ASSIGNED':
-        return { label: 'มอบหมายแล้ว', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-status-assigned)' };
-      case 'IN_PROGRESS':
-        return { label: 'กำลังซ่อม', className: styles.statusPill, dotClass: styles.statusDot, color: 'var(--color-primary)' };
-      case 'COMPLETED':
-        return { label: 'เสร็จสิ้น', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-outline)' };
-      case 'ON_HOLD':
-        return { label: 'พักงาน', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-status-onhold)' };
-      case 'CANCELLED':
-        return { label: 'ยกเลิก', className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'var(--color-error)' };
-      default:
-        return { label: status, className: styles.statusPillInactive, dotClass: styles.statusDotInactive, color: 'inherit' };
-    }
+    const baseBadge = getBaseStatusBadge(status, true); // true for isAdmin specific labels like "มอบหมายแล้ว"
+    const isInactive = ['ASSIGNED', 'COMPLETED', 'ON_HOLD', 'CANCELLED'].includes(status);
+    
+    return {
+      label: baseBadge.label,
+      color: baseBadge.color,
+      className: isInactive ? styles.statusPillInactive : styles.statusPill,
+      dotClass: isInactive ? styles.statusDotInactive : styles.statusDot
+    };
   };
 
   const formatDate = (dateStr: string) => {
