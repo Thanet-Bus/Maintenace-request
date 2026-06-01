@@ -30,6 +30,10 @@ const OnHoldManagement: React.FC = () => {
   const [logs, setLogs] = useState<RepairLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  
+  // Custom Alert / Modal State
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   // Form State
   const [appointmentDate, setAppointmentDate] = useState("");
@@ -90,7 +94,11 @@ const OnHoldManagement: React.FC = () => {
 
   const handleReschedule = async (e: React.SubmitEvent) => {
     e.preventDefault();
-    if (!id || !appointmentDate || !appointmentTime) return;
+    setErrorMessage("");
+    if (!id || !appointmentDate || !appointmentTime) {
+      setErrorMessage("กรุณาระบุวันและเวลาที่นัดหมายใหม่");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -129,19 +137,26 @@ const OnHoldManagement: React.FC = () => {
         });
       }
 
-      alert("บันทึกการนัดหมายใหม่สำเร็จ");
       navigate("/admin/requests");
     } catch (err) {
       console.error(err);
-      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+      setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลการนัดหมาย");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleTerminate = async () => {
-    if (!id || !window.confirm("คุณต้องการยกเลิกคำร้องนี้ใช่หรือไม่?")) return;
+  const handleTerminateClick = () => {
+    setErrorMessage("");
+    if (!note.trim()) {
+      setErrorMessage("กรุณาระบุเหตุผลในการยกเลิกใบแจ้งซ่อม");
+      return;
+    }
+    setIsCancelModalOpen(true);
+  };
 
+  const executeTerminate = async () => {
+    if (!id) return;
     setSubmitting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/repair-requests/${id}`, {
@@ -149,16 +164,16 @@ const OnHoldManagement: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: "CANCELLED",
-          note: note || "แอดมินยกเลิกรายการ",
+          note: note,
         }),
       });
       if (!res.ok) throw new Error("Failed to cancel request");
 
-      alert("ยกเลิกรายการสำเร็จ");
       navigate("/admin/requests");
     } catch (err) {
       console.error(err);
-      alert("เกิดข้อผิดพลาด");
+      setErrorMessage("เกิดข้อผิดพลาดในการยกเลิกรายการ");
+      setIsCancelModalOpen(false);
     } finally {
       setSubmitting(false);
     }
@@ -371,6 +386,14 @@ const OnHoldManagement: React.FC = () => {
                   </select>
                 </div>
 
+                {/* Error Message */}
+                {errorMessage && !isCancelModalOpen && (
+                  <div style={{ color: 'var(--color-error)', fontSize: '14px', marginTop: '0.5rem', marginBottom: '0.5rem', padding: '0.75rem', backgroundColor: 'var(--color-error-container)', borderRadius: '8px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '4px' }}>error</span>
+                    {errorMessage}
+                  </div>
+                )}
+
                 <div className={styles.formActions}>
                   <button
                     className={styles.confirmButton}
@@ -408,7 +431,7 @@ const OnHoldManagement: React.FC = () => {
                 </div>
                 <button
                   className={styles.terminateButton}
-                  onClick={handleTerminate}
+                  onClick={handleTerminateClick}
                   disabled={submitting}
                   type="button"
                 >
@@ -419,6 +442,47 @@ const OnHoldManagement: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal for Termination */}
+      {isCancelModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => !submitting && setIsCancelModalOpen(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={`material-symbols-outlined ${styles.modalIcon}`} style={{ color: 'var(--color-error)' }}>warning</span>
+              <h3 className={styles.modalTitle}>ยืนยันการยกเลิกใบแจ้งซ่อม</h3>
+            </div>
+            <div className={styles.modalBody}>
+              <p className={styles.modalText}>
+                คุณต้องการยกเลิกคำร้อง <strong>#REQ-{request.id.toString().padStart(4, '0')}</strong> ใช่หรือไม่?<br/>
+                การดำเนินการนี้ไม่สามารถย้อนกลับได้
+              </p>
+              {errorMessage && (
+                <div style={{ color: 'var(--color-error)', fontSize: '14px', marginTop: '1rem', padding: '0.75rem', backgroundColor: 'var(--color-error-container)', borderRadius: '8px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '4px' }}>error</span>
+                  {errorMessage}
+                </div>
+              )}
+            </div>
+            <div className={styles.modalFooter}>
+              <button 
+                className={styles.modalCancelButton} 
+                onClick={() => setIsCancelModalOpen(false)}
+                disabled={submitting}
+              >
+                ย้อนกลับ
+              </button>
+              <button 
+                className={styles.modalConfirmButton} 
+                style={{ backgroundColor: 'var(--color-error)' }}
+                onClick={executeTerminate}
+                disabled={submitting}
+              >
+                {submitting ? 'กำลังยกเลิก...' : 'ยืนยันการยกเลิก'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };
