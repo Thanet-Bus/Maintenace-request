@@ -5,22 +5,12 @@ import styles from "./OnHoldManagement.module.css";
 import { API_BASE_URL } from "../../config";
 import type { RepairRequest, RepairLog } from "../../types/types";
 
-// Dummy list of technicians for the selection (consistent with TeamAssignment)
-const dummyTechnicians = [
-  {
-    id: 101,
-    name: "กฤษณะ แอร์เย็น",
-    desc: "ผู้เชี่ยวชาญระบบปรับอากาศ (คิวว่าง)",
-    busy: false,
-  },
-  { id: 102, name: "วิชาญ งานไว", desc: "ช่างทั่วไป (คิวว่าง)", busy: false },
-  {
-    id: 103,
-    name: "ทวีศักดิ์ ไฟฟ้า",
-    desc: "ติดงานซ่อมอาคาร B (ถึง 15:00)",
-    busy: true,
-  },
-];
+type Technician = {
+  id: number;
+  name: string;
+  phone?: string | null;
+  profile_image_url?: string | null;
+};
 
 const OnHoldManagement: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +18,7 @@ const OnHoldManagement: React.FC = () => {
 
   const [request, setRequest] = useState<RepairRequest | null>(null);
   const [logs, setLogs] = useState<RepairLog[]>([]);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
@@ -67,6 +58,17 @@ const OnHoldManagement: React.FC = () => {
     setLogs(data);
   }, [id]);
 
+  const fetchTechnicians = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/technicians`);
+      if (!res.ok) throw new Error("Failed to fetch technicians");
+      const data = await res.json();
+      setTechnicians(data);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   useEffect(() => {
     if (!id) return;
 
@@ -74,7 +76,11 @@ const OnHoldManagement: React.FC = () => {
 
     async function loadInitialData() {
       try {
-        await Promise.all([fetchRequestDetails(), fetchLogs()]);
+        await Promise.all([
+          fetchRequestDetails(), 
+          fetchLogs(),
+          fetchTechnicians()
+        ]);
       } catch (err) {
         if (!cancelled) {
           console.error("Error loading page data", err);
@@ -91,7 +97,7 @@ const OnHoldManagement: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [id, fetchRequestDetails, fetchLogs]);
+  }, [id, fetchRequestDetails, fetchLogs, fetchTechnicians]);
 
   const handlePreReschedule = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -385,9 +391,9 @@ const OnHoldManagement: React.FC = () => {
                     onChange={(e) => setSelectedTech(e.target.value)}
                   >
                     <option value="">-- ใช้ทีมเดิม --</option>
-                    {dummyTechnicians.map((t) => (
-                      <option key={t.id} value={t.id} disabled={t.busy}>
-                        {t.name} {t.busy ? "(ติดงาน)" : "(ว่าง)"}
+                    {technicians.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
                       </option>
                     ))}
                   </select>
