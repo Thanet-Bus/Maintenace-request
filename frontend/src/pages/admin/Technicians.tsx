@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './Technicians.module.css';
 import { API_BASE_URL } from '../../config';
+import JobCard from '../../components/JobCard';
+import type { RepairRequest, AssignmentResponse } from '../../types/types';
 
 type Technician = {
   id: number;
@@ -15,20 +17,75 @@ const Technicians: React.FC = () => {
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // History Modal State
+  const [selectedTech, setSelectedTech] = useState<Technician | null>(null);
+  const [techRequests, setTechRequests] = useState<RepairRequest[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchTechnicians = useCallback(async () => {
+    const res = await fetch(`${API_BASE_URL}/users/technicians`);
+    if (!res.ok) throw new Error("Failed to fetch technicians");
+    const data = await res.json();
+    setTechnicians(data);
+  }, []);
+
   useEffect(() => {
-    fetch(`${API_BASE_URL}/users/technicians`)
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch technicians");
-        return res.json();
-      })
-      .then(data => {
-        setTechnicians(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
+    let cancelled = false;
+
+    async function loadInitialData() {
+      try {
+        await Promise.all([
+          fetchTechnicians(),
+        ]);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Error loading page data", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadInitialData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchTechnicians]);
+
+  const handleViewHistory = useCallback(async (tech: Technician) => {
+    setSelectedTech(tech);
+    setIsModalOpen(true);
+    setHistoryLoading(true);
+    setTechRequests([]);
+
+    try {
+      // 1. Get assignments for this technician
+      const res = await fetch(`${API_BASE_URL}/assignments/technician/${tech.id}`);
+      if (!res.ok) throw new Error("Failed to fetch assignments");
+      const assignments: AssignmentResponse[] = await res.json(); 
+
+      // 2. Fetch full details for each unique request
+      const requestIds = assignments.map((a: AssignmentResponse) => a.repair_request_id);
+      const uniqueIds = Array.from(new Set(requestIds));
+
+      const requestDetails = await Promise.all(
+        uniqueIds.map(async (id) => {
+          const rRes = await fetch(`${API_BASE_URL}/repair-requests/${id}`);
+          if (rRes.ok) return rRes.json();
+          return null;
+        })
+      );
+
+      setTechRequests(requestDetails.filter(r => r !== null));
+    } catch (err) {
+      console.error("Error loading technician history", err);
+    } finally {
+      setHistoryLoading(false);
+    }
   }, []);
 
   return (
@@ -92,7 +149,7 @@ const Technicians: React.FC = () => {
                 </div>
 
                 <div className={styles.actions}>
-                  <button className={styles.viewBtn}>ดูประวัติ</button>
+                  <button className={styles.viewBtn} onClick={() => handleViewHistory(tech)}>ดูประวัติ</button>
                   <button className={styles.editBtn}>แก้ไข</button>
                 </div>
               </div>
@@ -100,6 +157,38 @@ const Technicians: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Technician History Modal */}
+      {isModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={`material-symbols-outlined ${styles.modalIcon}`}>engineering</span>
+              <h3 className={styles.modalTitle}>ประวัติงาน: {selectedTech?.name}</h3>
+              <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
+            <div className={styles.modalBody}>
+              {historyLoading ? (
+                <p style={{ textAlign: 'center', padding: '2rem' }}>กำลังโหลดประวัติงาน...</p>
+              ) : techRequests.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3rem' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'var(--color-outline-variant)' }}>folder_off</span>
+                    <p style={{ marginTop: '1rem', color: 'var(--color-on-surface-variant)' }}>ไม่พบประวัติการได้รับมอบหมายงาน</p>
+                </div>
+              ) : (
+                <div className={styles.historyList}>
+                  {techRequests.map((request) => (
+                    <JobCard key={request.id} request={request} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };
