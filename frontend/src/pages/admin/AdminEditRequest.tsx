@@ -240,7 +240,9 @@ const AdminEditRequest: React.FC = () => {
                 </div>
                 <div>
                     <p className={styles.infoLabel}>วันที่นัดหมาย</p>
-                    <p className={styles.infoValue}>{formatDateTime(request.appointment_date)}</p>
+                    <p className={styles.infoValue}>
+                        {request.appointment_date ? formatDateTime(request.appointment_date) : '-'}
+                    </p>
                 </div>
 
                 {/* Assigned Technicians */}
