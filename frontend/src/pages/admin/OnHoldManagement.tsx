@@ -88,7 +88,7 @@ const OnHoldManagement: React.FC = () => {
     };
   }, [id, fetchRequestDetails, fetchLogs]);
 
-  const handleReschedule = async (e: React.FormEvent) => {
+  const handleReschedule = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!id || !appointmentDate || !appointmentTime) return;
 
@@ -105,7 +105,7 @@ const OnHoldManagement: React.FC = () => {
         body: JSON.stringify({
           appointment_date: isoDateTime,
           status: "ASSIGNED", // Move back to Assigned when rescheduled
-          note: `แอดมินกำหนดวันนัดหมายใหม่: ${appointmentDate} ${appointmentTime}`,
+          note: `แอดมินกำหนดวันนัดหมายใหม่: ${appointmentDate} ${appointmentTime} น.`,
         }),
       });
 
@@ -232,19 +232,20 @@ const OnHoldManagement: React.FC = () => {
               >
                 วันที่พักงาน:{" "}
                 {onHoldLog
-                  ? new Date(onHoldLog.created_at).toLocaleString("th-TH")
+                  ? new Date(onHoldLog.created_at).toLocaleString("th-TH") + ' น.'
                   : "-"}
               </p>
               <p
                 style={{
                   fontSize: "15px",
-                  // color: "var(--color-outline)",
-                  // marginTop: "0.25rem",
+                  fontWeight: 600,
+                  color: "var(--color-primary)",
+                  marginTop: "0.5rem",
                 }}
               >
                 วันเวลานัดหมายเดิม:{" "}
                 {request.appointment_date
-                  ? new Date(request.appointment_date).toLocaleString("th-TH")
+                  ? new Date(request.appointment_date).toLocaleString("th-TH") + ' น.'
                   : "-"}
               </p>
             </div>
