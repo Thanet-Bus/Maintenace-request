@@ -4,6 +4,7 @@ import AdminLayout from "../../components/AdminLayout";
 import styles from "./OnHoldManagement.module.css";
 import { API_BASE_URL } from "../../config";
 import type { RepairRequest, RepairLog } from "../../types/types";
+import { getStatusBadge } from "../../utils/statusUtils";
 
 type Technician = {
   id: number;
@@ -343,6 +344,56 @@ const OnHoldManagement: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Request Logs */}
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: "var(--color-primary)" }}
+                >
+                  history
+                </span>
+                ประวัติการดำเนินการ
+              </h3>
+              {logs.length === 0 ? (
+                <p style={{ fontSize: '14px', color: 'var(--color-on-surface-variant)' }}>ไม่พบประวัติการดำเนินการ</p>
+              ) : (
+                <div className={styles.logsContainer}>
+                  {logs.map((log) => {
+                    const logBadge = getStatusBadge(log.status_to);
+                    return (
+                      <div key={log.id} className={styles.logItem}>
+                        <div className={styles.logTimeline}>
+                          <div className={styles.logDot} style={{ backgroundColor: logBadge.color }}></div>
+                          <div className={styles.logLine}></div>
+                        </div>
+                        <div className={styles.logContent}>
+                          <div className={styles.logHeader}>
+                            <span className={styles.logStatus}>
+                              {logBadge.label}
+                            </span>
+                            <span className={styles.logTime}>
+                              {new Date(log.created_at).toLocaleString('th-TH', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                timeZone: 'Asia/Bangkok'
+                              })} น.
+                            </span>
+                          </div>
+                          {log.note && (
+                            <div className={styles.logNote}>{log.note}</div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
