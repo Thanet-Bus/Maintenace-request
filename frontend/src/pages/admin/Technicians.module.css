@@ -139,7 +139,7 @@
 
 .statsRow {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   border-top: 1px solid var(--color-outline-variant);
   padding-top: 1rem;
 }

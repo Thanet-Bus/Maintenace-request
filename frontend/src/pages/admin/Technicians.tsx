@@ -11,6 +11,7 @@ type Technician = {
   name: string;
   phone?: string | null;
   profile_image_url?: string | null;
+  activeJobsCount?: number;
 };
 
 const Technicians: React.FC = () => {
@@ -27,7 +28,22 @@ const Technicians: React.FC = () => {
     const res = await fetch(`${API_BASE_URL}/users/technicians`);
     if (!res.ok) throw new Error("Failed to fetch technicians");
     const data = await res.json();
-    setTechnicians(data);
+    
+    // Fetch active assignments count for each technician
+    const techsWithStats = await Promise.all(data.map(async (tech: Technician) => {
+      try {
+        const asRes = await fetch(`${API_BASE_URL}/assignments/technician/${tech.id}`);
+        if (asRes.ok) {
+           const assignments = await asRes.json();
+           return { ...tech, activeJobsCount: assignments.length };
+        }
+      } catch (err) {
+         console.error(`Failed to fetch stats for tech ${tech.id} ${err}`);
+      }
+      return { ...tech, activeJobsCount: 0 };
+    }));
+    
+    setTechnicians(techsWithStats);
   }, []);
 
   useEffect(() => {
@@ -135,12 +151,8 @@ const Technicians: React.FC = () => {
 
                 <div className={styles.statsRow}>
                   <div className={styles.stat}>
-                    <span className={styles.statValue}>12</span>
-                    <span className={styles.statLabel}>งานเสร็จสิ้น</span>
-                  </div>
-                  <div className={styles.stat}>
-                    <span className={styles.statValue}>2</span>
-                    <span className={styles.statLabel}>กำลังทำ</span>
+                    <span className={styles.statValue}>{tech.activeJobsCount ?? 0}</span>
+                    <span className={styles.statLabel}>งานที่รับผิดชอบ</span>
                   </div>
                   <div className={styles.stat}>
                     <span className={styles.statValue}>4.8</span>
