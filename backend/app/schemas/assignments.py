@@ -1,5 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
+from app.model.status import RepairStatus
 
 class TechnicianAssignment(BaseModel):
     technician_id: int
@@ -26,3 +27,8 @@ class AssignmentResponse(BaseModel):
 
 class AssignmentLeaderUpdate(BaseModel):
     is_leader: bool
+
+class AssignmentStatusResponse(BaseModel):
+    repair_request_id: int
+    status: RepairStatus
+    technicians: list[TechnicianAssignmentDetail]

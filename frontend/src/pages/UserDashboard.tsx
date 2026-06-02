@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import type { RepairRequest, RepairLog } from '../types/types';
 import styles from './UserDashboard.module.css';
 import { API_BASE_URL } from "../config";
+import { getStatusBadge } from '../utils/statusUtils';
 
 const UserDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -85,26 +86,8 @@ const UserDashboard: React.FC = () => {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Asia/Bangkok'
     }) + ' น.';
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return { label: 'รอดำเนินการ', icon: 'pending', color: 'var(--color-tertiary-container)' };
-      case 'ASSIGNED':
-        return { label: 'รับงาน', icon: 'pending', color: 'var(--color-tertiary-container)' };
-      case 'IN_PROGRESS':
-        return { label: 'กำลังซ่อม', icon: 'build', color: 'var(--color-primary)' };
-      case 'COMPLETED':
-        return { label: 'เสร็จสิ้น', icon: 'check_circle', color: 'var(--color-outline)' };
-      case 'ON_HOLD':
-        return { label: 'พักงาน', icon: 'pause_circle', color: 'var(--color-error)' };
-      case 'CANCELLED':
-        return { label: 'ยกเลิก', icon: 'cancel', color: 'var(--color-error)' };
-      default:
-        return { label: status, icon: 'info', color: 'var(--color-on-surface-variant)' };
-    }
   };
 
   return (
@@ -244,25 +227,28 @@ const UserDashboard: React.FC = () => {
                         ) : logs.length === 0 ? (
                           <p style={{ textAlign: 'center', fontSize: '14px' }}>ไม่พบประวัติการดำเนินการ</p>
                         ) : (
-                          logs.map((log) => (
-                            <div key={log.id} className={styles.logItem}>
-                              <div className={styles.logTimeline}>
-                                <div className={styles.logDot}></div>
-                                <div className={styles.logLine}></div>
-                              </div>
-                              <div className={styles.logContent}>
-                                <div className={styles.logHeader}>
-                                  <span className={styles.logStatus}>
-                                    {getStatusBadge(log.status_to).label}
-                                  </span>
-                                  <span className={styles.logTime}>{formatDateTime(log.created_at)}</span>
+                          logs.map((log) => {
+                            const logBadge = getStatusBadge(log.status_to);
+                            return (
+                              <div key={log.id} className={styles.logItem}>
+                                <div className={styles.logTimeline}>
+                                  <div className={styles.logDot} style={{ backgroundColor: logBadge.color }}></div>
+                                  <div className={styles.logLine}></div>
                                 </div>
-                                {log.note && (
-                                  <div className={styles.logNote}>{log.note}</div>
-                                )}
+                                <div className={styles.logContent}>
+                                  <div className={styles.logHeader}>
+                                    <span className={styles.logStatus}>
+                                      {logBadge.label}
+                                    </span>
+                                    <span className={styles.logTime}>{formatDateTime(log.created_at)}</span>
+                                  </div>
+                                  {log.note && (
+                                    <div className={styles.logNote}>{log.note}</div>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     )}

@@ -3,16 +3,21 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './AdminEditRequest.module.css';
 import { API_BASE_URL } from '../../config';
-import type { RepairRequest } from '../../types/types';
-import type { SubmitEvent } from 'react';
+import type { RepairRequest, TechnicianDetail, RepairLog } from '../../types/types';
+import { getStatusBadge } from '../../utils/statusUtils';
 
 const AdminEditRequest: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
   const [request, setRequest] = useState<RepairRequest | null>(null);
+  const [logs, setLogs] = useState<RepairLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  
+  // Custom Alert / Modal State
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   
   // Form state
   const [title, setTitle] = useState('');
@@ -20,7 +25,7 @@ const AdminEditRequest: React.FC = () => {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('');
   const [note, setNote] = useState('');
-  
+
   const formatDateTime = (isoString: string) => {
     return new Date(isoString).toLocaleString('th-TH', {
       year: 'numeric',
@@ -28,54 +33,112 @@ const AdminEditRequest: React.FC = () => {
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Asia/Bangkok'
     }) + ' น.';
   };
 
-  const fetchRequest = useCallback((signal?: AbortSignal) => {
+  const fetchRequestDetails = useCallback(async () => {
     if (!id) return;
-    
-    return new Promise<void>((resolve, reject) => {
-      setLoading(true);
-      fetch(`${API_BASE_URL}/repair-requests/${id}`, { signal })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch request');
-          return res.json();
-        })
-        .then(data => {
-          setRequest(data);
-          setTitle(data.title);
-          setLocation(data.location);
-          setDescription(data.description || '');
-          setStatus(data.status);
-          resolve();
-        })
-        .catch(error => {
-          if (error.name === 'AbortError') return;
-          console.error('Error fetching request:', error);
-          reject(error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    });
+    const res = await fetch(`${API_BASE_URL}/repair-requests/${id}`);
+    if (!res.ok) {
+      throw new Error('Failed to fetch request');
+    }
+    const data = await res.json();
+    setRequest(data);
+    setTitle(data.title);
+    setLocation(data.location);
+    setDescription(data.description || '');
+    setStatus(data.status);
+  }, [id]);
+
+  const fetchLogs = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/logs/request/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setLogs(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch logs", err);
+    }
+  }, [id]);
+
+  const fetchAssignments = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/assignments/repair-request/${id}`);
+      const data = await res.json();
+      if (data.technicians) {
+        const techDetails: TechnicianDetail[] = await Promise.all(
+          data.technicians.map(async (t: { technician_id: number; is_leader: boolean }) => {
+            try {
+              const userRes = await fetch(`${API_BASE_URL}/users/${t.technician_id}`);
+              const userData = await userRes.json();
+              return {
+                id: t.technician_id,
+                name: userData.name || `Technician ${t.technician_id}`,
+                is_leader: t.is_leader,
+              };
+            } catch {
+              return {
+                id: t.technician_id,
+                name: `Technician ${t.technician_id}`,
+                is_leader: t.is_leader,
+              };
+            }
+          })
+        );
+        setRequest(prev => prev ? { ...prev, technicians: techDetails } : prev);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }, [id]);
 
   useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-    
-    fetchRequest(controller.signal)?.catch(() => {
-      if (!isMounted) return;
-    });
+    if (!id) return;
+
+    let cancelled = false;
+
+    async function loadInitialData() {
+      try {
+        await Promise.all([
+          fetchRequestDetails(),
+          fetchAssignments(),
+          fetchLogs(),
+        ]);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Error loading page data", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadInitialData();
 
     return () => {
-      isMounted = false;
-      controller.abort();
+      cancelled = true;
     };
-  }, [fetchRequest]);
+  }, [id, fetchRequestDetails, fetchAssignments, fetchLogs]);
 
-  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
+  const handlePreSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrorMessage('');
+    
+    if (!title.trim() || !location.trim()) {
+      setErrorMessage("กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน");
+      return;
+    }
+
+    setIsConfirmModalOpen(true);
+  };
+
+  const executeSubmit = async () => {
     if (!id) return;
 
     setSubmitting(true);
@@ -94,11 +157,11 @@ const AdminEditRequest: React.FC = () => {
 
       if (!response.ok) throw new Error('Failed to update request');
 
-      alert('แก้ไขข้อมูลสำเร็จ');
       navigate('/admin/requests');
     } catch (err) {
       console.error(err);
-      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      setErrorMessage('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      setIsConfirmModalOpen(false);
     } finally {
       setSubmitting(false);
     }
@@ -175,6 +238,73 @@ const AdminEditRequest: React.FC = () => {
                     <p className={styles.infoLabel}>วันที่แจ้ง</p>
                     <p className={styles.infoValue}>{formatDateTime(request.created_at)}</p>
                 </div>
+                <div>
+                    <p className={styles.infoLabel}>วันที่นัดหมาย</p>
+                    <p className={styles.infoValue}>
+                        {request.appointment_date ? formatDateTime(request.appointment_date) : '-'}
+                    </p>
+                </div>
+
+                {/* Assigned Technicians */}
+                {request.technicians && request.technicians.length > 0 && (
+                  <div className={styles.techSection}>
+                    <p className={styles.infoLabel}>ช่างที่ได้รับมอบหมาย</p>
+                    <div className={styles.techListDetailed}>
+                      {request.technicians.map(tech => (
+                        <div key={tech.id} className={styles.techItemDetailed}>
+                          <div className={styles.techMainInfo}>
+                            {tech.profile_image_url ? (
+                              <img className={styles.techAvatar} src={tech.profile_image_url} alt={tech.name} />
+                            ) : (
+                              <div className={styles.initialAvatar}>{tech.name.charAt(0)}</div>
+                            )}
+                            <div>
+                              <p className={styles.techName}>{tech.name}</p>
+                              {tech.is_leader ? (
+                                <span className={styles.leaderBadge}>หัวหน้าทีม</span>
+                              ) : (
+                                <span className={styles.assistBadge}>ช่างร่วม</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Request Logs */}
+                <div className={styles.techSection}>
+                  <p className={styles.infoLabel}>ประวัติการดำเนินการ</p>
+                  {logs.length === 0 ? (
+                    <p style={{ fontSize: '14px', color: 'var(--color-on-surface-variant)', marginTop: '0.5rem' }}>ไม่พบประวัติการดำเนินการ</p>
+                  ) : (
+                    <div className={styles.logsContainer}>
+                      {logs.map((log) => {
+                        const logBadge = getStatusBadge(log.status_to);
+                        return (
+                          <div key={log.id} className={styles.logItem}>
+                            <div className={styles.logTimeline}>
+                              <div className={styles.logDot} style={{ backgroundColor: logBadge.color }}></div>
+                              <div className={styles.logLine}></div>
+                            </div>
+                            <div className={styles.logContent}>
+                              <div className={styles.logHeader}>
+                                <span className={styles.logStatus}>
+                                  {logBadge.label}
+                                </span>
+                                <span className={styles.logTime}>{formatDateTime(log.created_at)}</span>
+                              </div>
+                              {log.note && (
+                                <div className={styles.logNote}>{log.note}</div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -188,7 +318,7 @@ const AdminEditRequest: React.FC = () => {
                 ฟอร์มแก้ไขข้อมูล
               </h3>
 
-              <form className={styles.form} onSubmit={handleSubmit}>
+              <form className={styles.form} onSubmit={handlePreSubmit}>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>หัวข้อปัญหา <span className={styles.required}>*</span></label>
                   <input 
@@ -253,6 +383,14 @@ const AdminEditRequest: React.FC = () => {
                   ></textarea>
                 </div>
 
+                {/* Error Message */}
+                {errorMessage && !isConfirmModalOpen && (
+                  <div style={{ color: 'var(--color-error)', fontSize: '14px', marginTop: '0.5rem', marginBottom: '0.5rem', padding: '0.75rem', backgroundColor: 'var(--color-error-container)', borderRadius: '8px' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '4px' }}>error</span>
+                    {errorMessage}
+                  </div>
+                )}
+
                 <div className={styles.formActions}>
                   <button 
                     className={styles.cancelButton} 
@@ -276,6 +414,45 @@ const AdminEditRequest: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal for Edit Save */}
+      {isConfirmModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => !submitting && setIsConfirmModalOpen(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={`material-symbols-outlined ${styles.modalIcon}`}>save_as</span>
+              <h3 className={styles.modalTitle}>ยืนยันการแก้ไขข้อมูล</h3>
+            </div>
+            <div className={styles.modalBody}>
+              <p className={styles.modalText}>
+                คุณต้องการบันทึกการแก้ไขข้อมูลใบแจ้งซ่อม <strong>#REQ-{request.id.toString().padStart(4, '0')}</strong> ใช่หรือไม่?
+              </p>
+              {errorMessage && (
+                <div style={{ color: 'var(--color-error)', fontSize: '14px', marginTop: '1rem', padding: '0.75rem', backgroundColor: 'var(--color-error-container)', borderRadius: '8px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '4px' }}>error</span>
+                  {errorMessage}
+                </div>
+              )}
+            </div>
+            <div className={styles.modalFooter}>
+              <button 
+                className={styles.modalCancelButton} 
+                onClick={() => setIsConfirmModalOpen(false)}
+                disabled={submitting}
+              >
+                ย้อนกลับ
+              </button>
+              <button 
+                className={styles.modalConfirmButton} 
+                onClick={executeSubmit}
+                disabled={submitting}
+              >
+                {submitting ? 'กำลังบันทึก...' : 'ยืนยันการบันทึก'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };

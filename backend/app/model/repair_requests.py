@@ -16,7 +16,9 @@ class RepairRequests(Base):
         repair_status_enum,
         default=RepairStatus.PENDING,
         nullable=False)
-    appointment_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    appointment_date: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True)
     signature_image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

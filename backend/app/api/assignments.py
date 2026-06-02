@@ -11,7 +11,7 @@ from app.crud.assignment import (
     get_assignments_by_technician,
     update_assignment_is_leader,
 )
-from app.schemas.assignments import AssignmentCreate, AssignmentResponse, TechnicianAssignmentDetail, AssignmentLeaderUpdate
+from app.schemas.assignments import AssignmentCreate, AssignmentResponse, TechnicianAssignmentDetail, AssignmentLeaderUpdate, AssignmentStatusResponse
 
 router = APIRouter(prefix="/assignments", tags=["assignments"])
 
@@ -66,26 +66,34 @@ def list_assignments_by_repair_request(
 
 @router.get(
     "/technician/{technician_id}",
-    response_model=list[AssignmentResponse],
+    response_model=list[AssignmentStatusResponse],
 )
 def list_assignments_by_technician(
     technician_id: int,
     db: Session = Depends(get_db),
 ):
     assignments = get_assignments_by_technician(db, technician_id)
-    if assignments is None:
+    if not assignments:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Not found for this technician",
         )
     
-    grouped = defaultdict(list)
-    for a in assignments:
-        grouped[a.repair_request_id].append(a)
+    # Structure: dict[req_id, dict] => {"status": RepairStatus, "technicians": list[Assignment]}
+    grouped_data = {}
+    for assignment, status_val in assignments:
+        req_id = assignment.repair_request_id
+        if req_id not in grouped_data:
+            grouped_data[req_id] = {"status": status_val, "technicians": []}
+        grouped_data[req_id]["technicians"].append(assignment)
         
     return [
-        AssignmentResponse(repair_request_id=req_id, technicians=techs)
-        for req_id, techs in grouped.items()
+        AssignmentStatusResponse(
+            repair_request_id=req_id, 
+            status=data["status"],
+            technicians=data["technicians"]
+        )
+        for req_id, data in grouped_data.items()
     ]
 
 
