@@ -28,14 +28,16 @@ export interface Technician {
 }
 
 export interface AssignmentDetail {
+  // id: number;
   technician_id: number;
   is_leader: boolean;
   assigned_at: string;
-  technician_name?: string; // Optional if we fetch it separately or join
+  technician_name?: string;
 }
 
 export interface AssignmentResponse {
   repair_request_id: number;
+  status: string;
   technicians: AssignmentDetail[];
 }
 
