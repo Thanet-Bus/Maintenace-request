@@ -164,6 +164,14 @@ docker compose exec backend alembic downgrade -1
 - note = text (on hold)
 - timestamp = time now
 
+## Image type
+- REQUEST        = image uploaded by user when creating request
+- BEFORE         = image before technician works
+- AFTER          = image after technician completes work
+- ON_HOLD        = image explaining why work is paused
+- SIGNATURE      = signature image if needed
+- OTHER          = fallback
+
 ## Table Status Descriptions
 - **assigned**: admin dated and tech assigned
 - **in progress**: tech acknowledge request
