@@ -2,6 +2,7 @@ from pathlib import Path
 from uuid import uuid4
 from fastapi import UploadFile
 
+
 UPLOAD_DIR = Path("uploads/images")
 
 
@@ -10,8 +11,8 @@ async def save_upload_file(
     repair_request_id: int,
     image_type: str,
 ) -> str:
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     file_extension = Path(file.filename or "").suffix.lower()
 
     while True:

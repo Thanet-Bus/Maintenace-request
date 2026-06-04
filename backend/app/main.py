@@ -10,6 +10,9 @@ from app.api.assignments import router as assignments_router
 from app.api.logs import router as logs_router
 from app.api.users import router as users_router
 from app.api.images import router as images_router
+from app.service.storage import UPLOAD_DIR
+
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI()
 
@@ -23,7 +26,7 @@ app.add_middleware(
 )
 
 # Mount the uploads directory so images can be served directly
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.mount("/uploads/images", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 app.include_router(repair_requests_router)
 app.include_router(assignments_router)
