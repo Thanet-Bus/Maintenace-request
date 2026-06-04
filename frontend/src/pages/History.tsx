@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
-import type { RepairRequest, RepairLog } from '../types/types';
+import type { RepairRequest, RepairLog, AssignmentDetail} from '../types/types';
 import styles from './UserDashboard.module.css'; // Reusing dashboard styles for consistency
 import { API_BASE_URL } from "../config";
 import { getStatusBadge } from '../utils/statusUtils';
@@ -14,6 +14,7 @@ const History: React.FC = () => {
   const [expandedRequestId, setExpandedRequestId] = useState<number | null>(null);
   const [requestLogs, setRequestLogs] = useState<{ [key: number]: RepairLog[] }>({});
   const [logsLoading, setLogsLoading] = useState<{ [key: number]: boolean }>({});
+  const [requestAssignments, setRequestAssignments] = useState<{ [key: number]: AssignmentDetail[] }>({});
 
   // Lazy loading state
   const [visibleCount, setVisibleCount] = useState(INITIAL_LOAD_COUNT);
@@ -27,10 +28,21 @@ const History: React.FC = () => {
         if (!res.ok) throw new Error("API failed");
         return res.json();
       })
-      .then((data) => {
+      .then((data: RepairRequest[]) => {
         if (isMounted) {
           setRequests(data);
           setLoading(false);
+
+          data.forEach(req => {
+            fetch(`${API_BASE_URL}/assignments/repair-request/${req.id}`)
+              .then(res => res.ok ? res.json() : null)
+              .then(assignData => {
+                if (isMounted && assignData && assignData.technicians) {
+                  setRequestAssignments(prev => ({ ...prev, [req.id]: assignData.technicians }));
+                }
+              })
+              .catch(err => console.error("Failed to fetch assignments", err));
+          });
         }
       })
       .catch((err) => {
@@ -183,6 +195,38 @@ const History: React.FC = () => {
                           <span className={styles.stepLabel} style={{ color: progressPercentage === '100%' ? 'var(--color-primary)' : 'inherit' }}>เสร็จสิ้น</span>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Technicians & Images Section */}
+                    <div >
+                      {/* Technicians */}
+                      {requestAssignments[request.id] && requestAssignments[request.id].length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', borderTop: '1px solid var(--color-outline-variant)', paddingTop: '1rem' }}>
+                          <p style={{ fontSize: '14px', fontWeight: '600', marginBottom: '0.5rem' }}>ทีมช่างที่รับผิดชอบ</p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            {requestAssignments[request.id].map(assignment => (
+                              <div key={assignment.technician_id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '14px' }}>
+                                <div style={{ 
+                                  width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', 
+                                  border: assignment.is_leader ? '2px solid var(--color-primary)' : '1px solid var(--color-outline)' 
+                                }}>
+                                  <img 
+                                    src={assignment.is_leader 
+                                      ? "https://lh3.googleusercontent.com/aida-public/AB6AXuDUZ7iULgAMP6dKL_DqVDPds7OJ50FFD5IctlX8TWg6j1hb3VQ1vJch6F4a5Fi-MjdEDYZLU8NVSxs9SS_4KPQe8KE0WQsUykE5v-DrJnDuHgmt166WbFCfknyPiZSfsCIy-STkqR47fxUDhx9bD9y9Zfv0vIE8oDJa4z4yUTVeOC0PYdZvb_kzmYTQGRAfunQOL6KVnZityhTkgbOmdIzE-aTGkVv3D0HjvVLLfCpi8ftaSXMFLENCqoYwoCNIbArGbJAWwXunlwj0"
+                                      : "https://lh3.googleusercontent.com/aida-public/AB6AXuDv_yiorjYzWFH3zNQvWbU-zz-bc6Eo0cnrnayY2fCXWJWMQo7au5MVEHAHD9XnZ78u_i_-l_x3fGggWfJzUsFDAwe1rYZe5dNmtKCWyY2BCqbpWEn4LEOjYwDCySWxg7kJurYEJjxbF8PysPjeKQJVHEP5ZQ45VU1NAQwDax4hPnWOn-fYHAJ-clGLMWvIFtOacJRVm5XlJtxVAkF_H0Byez-2_MFBbcP8bVCD9-QluqvmLldN2PPtC2dJzRE4PCOZNdZOevn0g78-"
+                                    } 
+                                    alt="Tech" style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                  />
+                                </div>
+                                <div>
+                                  <span style={{ fontWeight: assignment.is_leader ? '600' : '400' }}>{assignment.technician_name || `ช่างเทคนิค ID: ${assignment.technician_id}`}</span>
+                                  {assignment.is_leader && <span style={{ marginLeft: '4px', fontSize: '10px', backgroundColor: 'var(--color-primary-container)', color: 'var(--color-on-primary-container)', padding: '2px 6px', borderRadius: '4px' }}>หัวหน้า</span>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Logs Dropdown Toggle */}
