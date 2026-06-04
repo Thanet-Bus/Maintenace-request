@@ -198,7 +198,7 @@ const JobCompletion: React.FC = () => {
     return (
       <Layout title="ปิดงานซ่อม" showBackButton>
         <div className={styles.container}>
-          <p style={{ textAlign: "center", marginTop: "40px" }}>กำลังโหลด...</p>
+          <p className={styles.loadingText}>กำลังโหลด...</p>
         </div>
       </Layout>
     );
@@ -227,45 +227,30 @@ const JobCompletion: React.FC = () => {
             accept="image/*"
             capture="environment"
             ref={fileInputRef}
-            style={{ display: "none" }}
+            className={styles.hiddenInput}
             onChange={handlePhotoChange}
           />
 
           <div className={styles.uploadArea}>
             {photoPreview ? (
-              <div style={{ position: "relative", width: "100%", textAlign: "center" }}>
+              <div className={styles.photoPreviewContainer}>
                 <img
                   src={photoPreview}
                   alt="After repair"
-                  style={{ maxWidth: "100%", maxHeight: "200px", borderRadius: "8px", objectFit: "contain" }}
+                  className={styles.photoPreviewImage}
                 />
                 <button
                   type="button"
                   onClick={removePhoto}
-                  style={{
-                    position: "absolute",
-                    top: "8px",
-                    right: "8px",
-                    background: "rgba(0,0,0,0.5)",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "50%",
-                    width: "32px",
-                    height: "32px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                  }}
+                  className={styles.removePhotoBtn}
                 >
                   <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
             ) : (
-              <div style={{ cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }} onClick={() => fileInputRef.current?.click()}>
+              <div className={styles.uploadAreaInner} onClick={() => fileInputRef.current?.click()}>
                 <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: "36px", color: "var(--color-primary)" }}
+                  className={`material-symbols-outlined ${styles.uploadIcon}`}
                 >
                   add_a_photo
                 </span>
@@ -308,12 +293,7 @@ const JobCompletion: React.FC = () => {
           </div>
           <p className={styles.infoText}>
             <span
-              className="material-symbols-outlined"
-              style={{
-                fontSize: "16px",
-                marginRight: "4px",
-                verticalAlign: "text-bottom",
-              }}
+              className={`material-symbols-outlined ${styles.infoIcon}`}
             >
               info
             </span>
@@ -357,13 +337,7 @@ const JobCompletion: React.FC = () => {
                       disabled={isSubmitting}
                     >
                       <span
-                        className="material-symbols-outlined"
-                        style={{
-                          fontVariationSettings:
-                            (ratings[tech.technician_id]?.rating || 0) >= star
-                              ? '"FILL" 1'
-                              : '"FILL" 0',
-                        }}
+                        className={`material-symbols-outlined ${(ratings[tech.technician_id]?.rating || 0) >= star ? styles.starIconFilled : styles.starIconEmpty}`}
                       >
                         star
                       </span>
@@ -403,8 +377,7 @@ const JobCompletion: React.FC = () => {
                 canvasProps={{
                   width: 350,
                   height: 200,
-                  className: 'sigCanvas',
-                  style: { touchAction: "none" }
+                  className: styles.sigCanvas,
                 }}
                 onEnd={() => setHasSignature(true)}
               />
@@ -432,12 +405,7 @@ const JobCompletion: React.FC = () => {
               {isSignatureConfirmed ? (
                 <>
                   <span
-                    className="material-symbols-outlined"
-                    style={{
-                      fontSize: "18px",
-                      marginRight: "4px",
-                      verticalAlign: "text-bottom",
-                    }}
+                    className={`material-symbols-outlined ${styles.confirmIcon}`}
                   >
                     check_circle
                   </span>
