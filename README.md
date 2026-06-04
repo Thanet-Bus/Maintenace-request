@@ -163,7 +163,6 @@ docker compose exec backend alembic downgrade -1
 
 - id PK
 - repair_request_id FK -> repair_requests.id
-- reviewer_id FK -> users.id
 - technician_id FK -> users.id
 - rating
 - comment
