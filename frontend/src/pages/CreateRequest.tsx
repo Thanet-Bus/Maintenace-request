@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import type { SubmitEvent } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './CreateRequest.module.css';
 import { API_BASE_URL } from "../config";
@@ -14,10 +13,33 @@ const CreateRequest: React.FC = () => {
   const [details, setDetails] = useState('');
   const [phone, setPhone] = useState('');
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      
+      const objectUrl = URL.createObjectURL(file);
+      setImagePreview(objectUrl);
+    }
+  };
+
+  const clearImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
@@ -32,7 +54,6 @@ const CreateRequest: React.FC = () => {
     };
 
     try {
-
       const response = await fetch(`${API_BASE_URL}/repair-requests`, {
         method: 'POST',
         headers: {
@@ -43,6 +64,26 @@ const CreateRequest: React.FC = () => {
 
       if (!response.ok) {
         throw new Error('Failed to create repair request');
+      }
+
+      const createdRequest = await response.json();
+
+      // Upload image if selected
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('repair_request_id', createdRequest.id.toString());
+        formData.append('image_type', 'REQUEST');
+        formData.append('file', imageFile);
+
+        const imageResponse = await fetch(`${API_BASE_URL}/repair-images`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!imageResponse.ok) {
+          console.warn('Repair request created, but image upload failed');
+          // Continuing to dashboard anyway since the primary request succeeded
+        }
       }
 
       // Redirect to dashboard on success
@@ -154,13 +195,52 @@ const CreateRequest: React.FC = () => {
             ></textarea>
           </div>
 
-          {/* Image Upload Area (Placeholder) */}
+          {/* Image Upload Area */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>อัปโหลดรูปภาพประกอบ</label>
-            <button className={styles.uploadButton} type="button">
-              <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>add_a_photo</span>
-              <span className={styles.uploadText}>แตะเพื่อถ่ายรูป หรือเลือกรูปภาพ</span>
-            </button>
+            <input 
+              type="file" 
+              accept="image/*" 
+              ref={fileInputRef} 
+              style={{ display: 'none' }} 
+              onChange={handleImageChange} 
+            />
+            
+            {imagePreview ? (
+              <div style={{ position: 'relative', width: '100%', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--color-outline-variant)' }}>
+                <img src={imagePreview} alt="Preview" style={{ width: '100%', display: 'block', maxHeight: '300px', objectFit: 'contain' }} />
+                <button 
+                  type="button" 
+                  onClick={clearImage}
+                  style={{ 
+                    position: 'absolute', 
+                    top: '8px', 
+                    right: '8px', 
+                    background: 'rgba(0,0,0,0.6)', 
+                    color: 'white', 
+                    border: 'none', 
+                    borderRadius: '50%', 
+                    width: '32px', 
+                    height: '32px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    cursor: 'pointer' 
+                  }}
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            ) : (
+              <button 
+                className={styles.uploadButton} 
+                type="button" 
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>add_a_photo</span>
+                <span className={styles.uploadText}>แตะเพื่อถ่ายรูป หรือเลือกรูปภาพ</span>
+              </button>
+            )}
           </div>
 
           {/* Contact Phone Input */}

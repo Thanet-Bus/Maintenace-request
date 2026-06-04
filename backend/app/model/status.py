@@ -13,3 +13,15 @@ repair_status_enum = SQLEnum(
     RepairStatus,
     name="repair_status_enum",
 )
+
+class RepairImageType(str, Enum):
+    REQUEST = "REQUEST"
+    COMPLETE = "COMPLETE"
+    ON_HOLD = "ON_HOLD"
+    SIGNATURE = "SIGNATURE"
+    OTHER = "OTHER"
+
+repair_image_type_enum = SQLEnum(
+    RepairImageType,
+    name="repair_image_type_enum",
+)

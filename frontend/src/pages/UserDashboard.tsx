@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import type { RepairRequest, RepairLog } from '../types/types';
+import type { RepairRequest, RepairLog, AssignmentDetail} from '../types/types';
 import styles from './UserDashboard.module.css';
 import { API_BASE_URL } from "../config";
 import { getStatusBadge } from '../utils/statusUtils';
@@ -13,6 +13,7 @@ const UserDashboard: React.FC = () => {
   const [expandedRequestId, setExpandedRequestId] = useState<number | null>(null);
   const [requestLogs, setRequestLogs] = useState<{ [key: number]: RepairLog[] }>({});
   const [logsLoading, setLogsLoading] = useState<{ [key: number]: boolean }>({});
+  const [requestAssignments, setRequestAssignments] = useState<{ [key: number]: AssignmentDetail[] }>({});
 
   useEffect(() => {
     // Fetch requests for user 1
@@ -22,10 +23,23 @@ const UserDashboard: React.FC = () => {
         if (!res.ok) throw new Error("API failed");
         return res.json();
       })
-      .then((data) => {
+      .then((data: RepairRequest[]) => {
         if (isMounted) {
           setRequests(data);
           setLoading(false);
+          
+          // Fetch assignments and images for all returned requests
+          data.forEach(req => {
+            // Fetch assignments
+            fetch(`${API_BASE_URL}/assignments/repair-request/${req.id}`)
+              .then(res => res.ok ? res.json() : null)
+              .then(assignData => {
+                if (isMounted && assignData && assignData.technicians) {
+                  setRequestAssignments(prev => ({ ...prev, [req.id]: assignData.technicians }));
+                }
+              })
+              .catch(err => console.error("Failed to fetch assignments", err));
+          });
         }
       })
       .catch((err) => {
@@ -209,6 +223,35 @@ const UserDashboard: React.FC = () => {
                           <span className={styles.stepLabel} style={{ color: progressPercentage === '100%' ? 'var(--color-primary)' : 'inherit' }}>เสร็จสิ้น</span>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Technicians & Images Section */}
+                    <div >
+                      {/* Technicians */}
+                      {requestAssignments[request.id] && requestAssignments[request.id].length > 0 && (
+                        <div className={styles.techAndImagesSection}>
+                          <p className={styles.sectionSubtitle}>ทีมช่างที่รับผิดชอบ</p>
+                          <div className={styles.techList}>
+                            {requestAssignments[request.id].map(assignment => (
+                              <div key={assignment.technician_id} className={styles.techItem}>
+                                <div className={`${styles.techAvatar} ${assignment.is_leader ? styles.techAvatarLead : styles.techAvatarRegular}`}>
+                                  <img 
+                                    src={assignment.is_leader 
+                                      ? "https://lh3.googleusercontent.com/aida-public/AB6AXuDUZ7iULgAMP6dKL_DqVDPds7OJ50FFD5IctlX8TWg6j1hb3VQ1vJch6F4a5Fi-MjdEDYZLU8NVSxs9SS_4KPQe8KE0WQsUykE5v-DrJnDuHgmt166WbFCfknyPiZSfsCIy-STkqR47fxUDhx9bD9y9Zfv0vIE8oDJa4z4yUTVeOC0PYdZvb_kzmYTQGRAfunQOL6KVnZityhTkgbOmdIzE-aTGkVv3D0HjvVLLfCpi8ftaSXMFLENCqoYwoCNIbArGbJAWwXunlwj0"
+                                      : "https://lh3.googleusercontent.com/aida-public/AB6AXuDv_yiorjYzWFH3zNQvWbU-zz-bc6Eo0cnrnayY2fCXWJWMQo7au5MVEHAHD9XnZ78u_i_-l_x3fGggWfJzUsFDAwe1rYZe5dNmtKCWyY2BCqbpWEn4LEOjYwDCySWxg7kJurYEJjxbF8PysPjeKQJVHEP5ZQ45VU1NAQwDax4hPnWOn-fYHAJ-clGLMWvIFtOacJRVm5XlJtxVAkF_H0Byez-2_MFBbcP8bVCD9-QluqvmLldN2PPtC2dJzRE4PCOZNdZOevn0g78-"
+                                    } 
+                                    alt="Tech" 
+                                  />
+                                </div>
+                                <div>
+                                  <span className={assignment.is_leader ? styles.techNameLead : styles.techNameRegular}>{assignment.technician_name || `ช่างเทคนิค ID: ${assignment.technician_id}`}</span>
+                                  {assignment.is_leader && <span className={styles.leadBadge}>หัวหน้า</span>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Logs Dropdown Toggle */}
