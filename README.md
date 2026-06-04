@@ -166,7 +166,6 @@ docker compose exec backend alembic downgrade -1
 
 ## Image type
 - REQUEST        = image uploaded by user when creating request
-- BEFORE         = image before technician works
 - AFTER          = image after technician completes work
 - ON_HOLD        = image explaining why work is paused
 - SIGNATURE      = signature image if needed

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import OnHoldReport from '../components/OnHoldReport';
-import type { RepairRequest, RepairLog, AssignmentResponse, AssignmentDetail } from '../types/types';
+import type { RepairRequest, RepairLog, AssignmentResponse, AssignmentDetail, RepairImage } from '../types/types';
 import styles from './JobDetail.module.css';
 import { API_BASE_URL } from "../config";
 import { getStatusBadge } from '../utils/statusUtils';
@@ -14,10 +14,12 @@ const JobDetail: React.FC = () => {
   const [request, setRequest] = useState<RepairRequest | null>(null);
   const [logs, setLogs] = useState<RepairLog[]>([]);
   const [assignments, setAssignments] = useState<AssignmentDetail[]>([]);
+  const [images, setImages] = useState<RepairImage[]>([]);
   
   const [requestLoading, setRequestLoading] = useState(true);
   const [logsLoading, setLogsLoading] = useState(true);
   const [assignmentsLoading, setAssignmentsLoading] = useState(true);
+  const [imagesLoading, setImagesLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isOnHoldReportOpen, setIsOnHoldReportOpen] = useState(false);
 
@@ -51,6 +53,16 @@ const JobDetail: React.FC = () => {
     setAssignments(data.technicians);
   }, [id]);
 
+  const fetchImages = useCallback(async () => {
+    if (!id) return;
+    const res = await fetch(`${API_BASE_URL}/repair-images/repair-request/${id}`);
+    if (!res.ok) {
+      throw new Error("Failed to fetch images");
+    }
+    const data = await res.json();
+    setImages(data);
+  }, [id]);
+
   useEffect(() => {
     if (!id) return;
 
@@ -62,6 +74,7 @@ const JobDetail: React.FC = () => {
           fetchRequestDetails(),
           fetchLogs(),
           fetchAssignments(),
+          fetchImages(),
         ]);
       } catch (err) {
         if (!cancelled) {
@@ -72,6 +85,7 @@ const JobDetail: React.FC = () => {
           setRequestLoading(false);
           setLogsLoading(false);
           setAssignmentsLoading(false);
+          setImagesLoading(false);
         }
       }
     }
@@ -81,7 +95,7 @@ const JobDetail: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [id, fetchRequestDetails, fetchLogs, fetchAssignments]);
+  }, [id, fetchRequestDetails, fetchLogs, fetchAssignments, fetchImages]);
 
   const handleOnHoldConfirm = async (reason: string, notes: string) => {
     if (!id) return;
@@ -226,13 +240,21 @@ const JobDetail: React.FC = () => {
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>รูปภาพก่อนซ่อม (Problem Photos)</h3>
           <div className={styles.photoGrid}>
-            <div className={styles.photoItem}>
-              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtdHn5H-xTgXlx8rRrzNkMcLG3-aJmOaaxydteshhAIwFM0W7uqDQ5sb5TfsWGW_4iPmBRblwSScOOO43mh_aqd3rmq1TSIgxVJNhdH-d9UcVTRdJLaomKHhtYUFIR6nUzH3pr4RU-wSK_rSSmhx8E5hTVQbCakaQkV6AHrVvAvjddjRq8KdN3ssY6z2_wL_k8MQ5HIv2c9nzWDZFGT7HrzF05dk3gVqL4_aYF5EGKubvQwDFqHjaVlt7HpLKpFL1jX5st-vd1RkkA" alt="Problem" />
-            </div>
-            <button className={styles.addPhotoButton}>
+            {imagesLoading ? (
+              <p style={{ fontSize: '14px', textAlign: 'center' }}>กำลังโหลดรูปภาพ...</p>
+            ) : images.filter(img => img.image_type === 'REQUEST').length > 0 ? (
+              images.filter(img => img.image_type === 'REQUEST').map((image) => (
+                <div key={image.id} className={styles.photoItem}>
+                  <img src={`${API_BASE_URL.replace(/\/api$/, '')}${image.image_url}`} alt="Problem" />
+                </div>
+              ))
+            ) : (
+              <p style={{ fontSize: '14px', textAlign:'center', color: 'var(--color-on-surface-variant)' }}>ไม่มีรูปภาพประกอบ</p>
+            )}
+            {/* <button className={styles.addPhotoButton}>
               <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>add_photo_alternate</span>
               <span style={{ fontSize: '12px', fontWeight: '600' }}>เพิ่มรูปภาพ</span>
-            </button>
+            </button> */}
           </div>
         </section>
 

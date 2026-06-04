@@ -41,6 +41,15 @@ export interface AssignmentResponse {
   technicians: AssignmentDetail[];
 }
 
+export interface RepairImage {
+  id: number;
+  repair_request_id: number;
+  uploaded_by: number | null;
+  image_url: string;
+  image_type: string;
+  created_at: string;
+}
+
 export type TechnicianDetail = {
   id: number;
   name: string;
