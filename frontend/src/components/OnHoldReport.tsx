@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./OnHoldReport.module.css";
 import type { SubmitEvent } from "react";
 
@@ -7,7 +7,7 @@ interface OnHoldReportProps {
   onClose: () => void;
   jobId: number;
   jobTitle: string;
-  onConfirm: (reason: string, notes: string) => Promise<void>;
+  onConfirm: (reason: string, notes: string, photo: File | null) => Promise<void>;
 }
 
 const OnHoldReport: React.FC<OnHoldReportProps> = ({
@@ -20,6 +20,10 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({
   const [reason, setReason] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -29,13 +33,27 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({
     };
   }, [isOpen]);
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      setPhoto(selectedFile);
+      setPhotoPreview(URL.createObjectURL(selectedFile));
+    }
+  };
+
+  const removePhoto = () => {
+    setPhoto(null);
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(null);
+  };
+
   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!reason || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
-      await onConfirm(reason, notes);
+      await onConfirm(reason, notes, photo);
       onClose();
     } catch (error) {
       console.error("Failed to submit on hold report:", error);
@@ -121,6 +139,55 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({
                 disabled={isSubmitting}
               ></textarea>
             </section>
+            
+            <section
+              className={styles.formSection}
+              style={{ marginTop: "1rem" }}
+            >
+              <h3 className={styles.sectionLabel}>
+                อัปโหลดรูปภาพที่เกี่ยวข้อง (ถ้ามี)
+              </h3>
+              
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                ref={fileInputRef}
+                className={styles.hiddenInput}
+                onChange={handlePhotoChange}
+              />
+
+              <div className={styles.uploadArea}>
+                {photoPreview ? (
+                  <div className={styles.photoPreviewContainer}>
+                    <img
+                      src={photoPreview}
+                      alt="On Hold Context"
+                      className={styles.photoPreviewImage}
+                    />
+                    <button
+                      type="button"
+                      onClick={removePhoto}
+                      className={styles.removePhotoBtn}
+                    >
+                      <span className="material-symbols-outlined">close</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className={styles.uploadAreaInner} onClick={() => fileInputRef.current?.click()}>
+                    <span
+                      className={`material-symbols-outlined ${styles.uploadIcon}`}
+                    >
+                      add_a_photo
+                    </span>
+                    <p className={styles.uploadText}>แตะเพื่อถ่ายรูปหรือเลือกรูปภาพ</p>
+                    <p className={styles.uploadSubtext}>
+                      อัปโหลดรูปภาพที่อธิบายเหตุผลการพักงาน
+                    </p>
+                  </div>
+                )}
+              </div>
+            </section>
           </form>
         </main>
 
@@ -129,6 +196,7 @@ const OnHoldReport: React.FC<OnHoldReportProps> = ({
             className={styles.cancelButton}
             onClick={onClose}
             disabled={isSubmitting}
+            type="button"
           >
             ยกเลิก
           </button>

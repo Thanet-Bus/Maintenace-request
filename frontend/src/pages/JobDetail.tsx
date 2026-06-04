@@ -106,7 +106,7 @@ const JobDetail: React.FC = () => {
     };
   }, [id, fetchRequestDetails, fetchLogs, fetchAssignments, fetchImages]);
 
-  const handleOnHoldConfirm = async (reason: string, notes: string) => {
+  const handleOnHoldConfirm = async (reason: string, notes: string, photo: File | null) => {
     if (!id) return;
 
     const fullNote = `พักงาน: ${reason}${notes ? ` - ${notes}` : ""}`;
@@ -128,7 +128,24 @@ const JobDetail: React.FC = () => {
         throw new Error("Failed to update status to ON_HOLD");
       }
 
-      await Promise.all([fetchRequestDetails(), fetchLogs()]);
+      if (photo) {
+        const formData = new FormData();
+        formData.append("repair_request_id", id.toString());
+        formData.append("image_type", "ON_HOLD");
+        formData.append("uploaded_by", "1"); // Assuming user ID 1 for now
+        formData.append("file", photo);
+
+        const photoRes = await fetch(`${API_BASE_URL}/repair-images`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!photoRes.ok) {
+          console.warn("Failed to upload ON_HOLD photo");
+        }
+      }
+
+      await Promise.all([fetchRequestDetails(), fetchLogs(), fetchImages()]);
     } catch (error) {
       console.error("Error confirming on hold:", error);
       throw error;
@@ -276,10 +293,10 @@ const JobDetail: React.FC = () => {
               <p style={{ fontSize: "14px", textAlign: "center" }}>
                 กำลังโหลดรูปภาพ...
               </p>
-            ) : images.filter((img) => img.image_type === "REQUEST" || img.image_type === "BEFORE" || img.image_type === "OTHER").length >
+            ) : images.filter((img) => img.image_type === "REQUEST" || img.image_type === "ON_HOLD" || img.image_type === "OTHER").length >
               0 ? (
               images
-                .filter((img) => img.image_type === "REQUEST" || img.image_type === "BEFORE" || img.image_type === "OTHER")
+                .filter((img) => img.image_type === "REQUEST" || img.image_type === "ON_HOLD" || img.image_type === "OTHER")
                 .map((image) => (
                   <div 
                     key={image.id} 
