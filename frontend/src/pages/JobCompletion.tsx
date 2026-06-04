@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import SignatureCanvas from 'react-signature-canvas' // third party plugin, might need to install for IDE sake
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import type {
@@ -27,12 +28,28 @@ const JobCompletion: React.FC = () => {
   const [summary, setSummary] = useState("");
   const [ratings, setRatings] = useState<Record<number, TechnicianRating>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const [photos, setPhotos] = useState<string[]>([]);
+  
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
+  const canvasRef = useRef<SignatureCanvas>(null);
   const [hasSignature, setHasSignature] = useState(false);
   const [isSignatureConfirmed, setIsSignatureConfirmed] = useState(false);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      setPhoto(selectedFile);
+      setPhotoPreview(URL.createObjectURL(selectedFile));
+    }
+  };
+
+  const removePhoto = () => {
+    setPhoto(null);
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhotoPreview(null);
+  };
 
   const fetchRequestDetails = useCallback(async () => {
     if (!id) return;
@@ -83,93 +100,17 @@ const JobCompletion: React.FC = () => {
     };
   }, [id, fetchRequestDetails, fetchAssignments]);
 
-  // Signature Canvas Logic
-  const startDrawing = (
-    e:
-      | React.MouseEvent<HTMLCanvasElement>
-      | React.TouchEvent<HTMLCanvasElement>,
-  ) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    setIsDrawing(true);
-    const rect = canvas.getBoundingClientRect();
-
-    let clientX, clientY;
-    if ("touches" in e) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-
-    ctx.beginPath();
-    ctx.moveTo(clientX - rect.left, clientY - rect.top);
-  };
-
-  const draw = (
-    e:
-      | React.MouseEvent<HTMLCanvasElement>
-      | React.TouchEvent<HTMLCanvasElement>,
-  ) => {
-    if (!isDrawing) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-
-    let clientX, clientY;
-    if ("touches" in e) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-      // Prevent scrolling while drawing on mobile
-      e.preventDefault();
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-
-    ctx.lineTo(clientX - rect.left, clientY - rect.top);
-    ctx.stroke();
-    setHasSignature(true);
-  };
-
-  const stopDrawing = () => {
-    setIsDrawing(false);
-  };
-
   const clearSignature = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvasRef.current?.clear();
     setHasSignature(false);
     setIsSignatureConfirmed(false);
   };
 
   const confirmSignature = () => {
-    if (hasSignature) {
+    if (canvasRef.current && !canvasRef.current.isEmpty()) {
       setIsSignatureConfirmed(true);
     }
   };
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.lineWidth = 2;
-        ctx.lineCap = "round";
-        ctx.strokeStyle = "#000";
-      }
-    }
-  }, [loading]);
 
   const handleRatingChange = (techId: number, rating: number) => {
     setRatings((prev) => ({
@@ -204,7 +145,45 @@ const JobCompletion: React.FC = () => {
 
       if (!statusRes.ok) throw new Error("Failed to complete job");
 
-      // (In a real app, you would also submit the signature image, photos, and ratings here)
+      // 2. Upload COMPLETE photo if available
+      if (photo) {
+        const formData = new FormData();
+        formData.append("repair_request_id", id.toString());
+        formData.append("image_type", "COMPLETE");
+        formData.append("uploaded_by", "1"); // Use actual user id if available
+        formData.append("file", photo);
+
+        const photoRes = await fetch(`${API_BASE_URL}/repair-images`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!photoRes.ok) console.warn("Failed to upload complete photo");
+      }
+
+      // 3. Upload SIGNATURE image
+      if (canvasRef.current && hasSignature) {
+        const canvas = canvasRef.current.getTrimmedCanvas();
+        const signatureBlob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob((blob) => resolve(blob), "image/png");
+        });
+
+        if (signatureBlob) {
+          const signatureFile = new File([signatureBlob], "signature.png", { type: "image/png" });
+          const sigFormData = new FormData();
+          sigFormData.append("repair_request_id", id.toString());
+          sigFormData.append("image_type", "SIGNATURE");
+          sigFormData.append("uploaded_by", "1"); // Use actual user id if available
+          sigFormData.append("file", signatureFile);
+
+          const sigRes = await fetch(`${API_BASE_URL}/repair-images`, {
+            method: "POST",
+            body: sigFormData,
+          });
+          if (!sigRes.ok) console.warn("Failed to upload signature");
+        }
+      }
+
+      // (In a real app, you would also submit ratings here)
 
       navigate("/tasks", { replace: true });
     } catch (error) {
@@ -243,17 +222,59 @@ const JobCompletion: React.FC = () => {
             <h2 className={styles.stepTitle}>อัปโหลดรูปภาพหลังซ่อม</h2>
           </div>
 
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={handlePhotoChange}
+          />
+
           <div className={styles.uploadArea}>
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: "36px", color: "var(--color-primary)" }}
-            >
-              add_a_photo
-            </span>
-            <p className={styles.uploadText}>แตะเพื่อถ่ายรูปหรือเลือกรูปภาพ</p>
-            <p className={styles.uploadSubtext}>
-              อัปโหลดรูปภาพความละเอียดสูงเพื่อยืนยันการซ่อมแซม
-            </p>
+            {photoPreview ? (
+              <div style={{ position: "relative", width: "100%", textAlign: "center" }}>
+                <img
+                  src={photoPreview}
+                  alt="After repair"
+                  style={{ maxWidth: "100%", maxHeight: "200px", borderRadius: "8px", objectFit: "contain" }}
+                />
+                <button
+                  type="button"
+                  onClick={removePhoto}
+                  style={{
+                    position: "absolute",
+                    top: "8px",
+                    right: "8px",
+                    background: "rgba(0,0,0,0.5)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "50%",
+                    width: "32px",
+                    height: "32px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            ) : (
+              <div style={{ cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }} onClick={() => fileInputRef.current?.click()}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: "36px", color: "var(--color-primary)" }}
+                >
+                  add_a_photo
+                </span>
+                <p className={styles.uploadText}>แตะเพื่อถ่ายรูปหรือเลือกรูปภาพ</p>
+                <p className={styles.uploadSubtext}>
+                  อัปโหลดรูปภาพความละเอียดสูงเพื่อยืนยันการซ่อมแซม
+                </p>
+              </div>
+            )}
           </div>
         </section>
 
@@ -376,20 +397,18 @@ const JobCompletion: React.FC = () => {
           </p>
 
           <div className={styles.signatureArea}>
-            <canvas
-              ref={canvasRef}
-              width={300}
-              height={150}
-              className={`${styles.canvas} ${isSignatureConfirmed ? styles.canvasConfirmed : ""}`}
-              onMouseDown={isSignatureConfirmed ? undefined : startDrawing}
-              onMouseMove={isSignatureConfirmed ? undefined : draw}
-              onMouseUp={isSignatureConfirmed ? undefined : stopDrawing}
-              onMouseLeave={isSignatureConfirmed ? undefined : stopDrawing}
-              onTouchStart={isSignatureConfirmed ? undefined : startDrawing}
-              onTouchMove={isSignatureConfirmed ? undefined : draw}
-              onTouchEnd={isSignatureConfirmed ? undefined : stopDrawing}
-              style={{ touchAction: "none" }} // Prevent scrolling while signing
-            />
+            <div className={`${styles.canvas} ${isSignatureConfirmed ? styles.canvasConfirmed : ""}`}>
+              <SignatureCanvas
+                ref={canvasRef}
+                canvasProps={{
+                  width: 350,
+                  height: 200,
+                  className: 'sigCanvas',
+                  style: { touchAction: "none" }
+                }}
+                onEnd={() => setHasSignature(true)}
+              />
+            </div>
             {!hasSignature && (
               <div className={styles.signaturePlaceholder}>
                 <span>พื้นที่สำหรับเซ็นชื่อ</span>
