@@ -12,6 +12,7 @@ type Technician = {
   phone?: string | null;
   profile_image_url?: string | null;
   activeJobsCount?: number;
+  avgRating?: number;
 };
 
 const Technicians: React.FC = () => {
@@ -29,18 +30,32 @@ const Technicians: React.FC = () => {
     if (!res.ok) throw new Error("Failed to fetch technicians");
     const data = await res.json();
     
-    // Fetch active assignments count for each technician
     const techsWithStats = await Promise.all(data.map(async (tech: Technician) => {
+      let activeJobsCount = 0;
+      let avgRating = 0;
+      
       try {
-        const asRes = await fetch(`${API_BASE_URL}/assignments/technician/${tech.id}`);
+        const [asRes, revRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/assignments/technician/${tech.id}`),
+          fetch(`${API_BASE_URL}/reviews/technician/${tech.id}`)
+        ]);
+        
         if (asRes.ok) {
-           const assignments = await asRes.json();
-           return { ...tech, activeJobsCount: assignments.length };
+          const assignments = await asRes.json();
+          activeJobsCount = assignments.length;
+        }
+        
+        if (revRes.ok) {
+          const reviews = await revRes.json();
+          if (reviews.length > 0) {
+            avgRating = reviews.reduce((sum: number, r: {rating: number}) => sum + r.rating, 0) / reviews.length;
+          }
         }
       } catch (err) {
          console.error(`Failed to fetch stats for tech ${tech.id} ${err}`);
       }
-      return { ...tech, activeJobsCount: 0 };
+      
+      return { ...tech, activeJobsCount, avgRating };
     }));
     
     setTechnicians(techsWithStats);
@@ -154,10 +169,10 @@ const Technicians: React.FC = () => {
                     <span className={styles.statValue}>{tech.activeJobsCount ?? 0}</span>
                     <span className={styles.statLabel}>งานที่รับผิดชอบ</span>
                   </div>
-                  <div className={styles.stat}>
-                    <span className={styles.statValue}>4.8</span>
-                    <span className={styles.statLabel}>คะแนน</span>
-                  </div>
+                   <div className={styles.stat}>
+                     <span className={styles.statValue}>{(tech).avgRating?.toFixed(1) || '-'}</span>
+                     <span className={styles.statLabel}>คะแนน</span>
+                   </div>
                 </div>
 
                 <div className={styles.actions}>
