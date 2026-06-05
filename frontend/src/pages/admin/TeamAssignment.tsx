@@ -111,7 +111,7 @@ const TeamAssignment: React.FC = () => {
           technician_id: techId,
           is_leader: techId === finalLeaderId
         })),
-        note: note.trim() || undefined,
+        note: note || "แอดมินกำหนดงานให้ช่าง",
     };
 
     setSubmitting(true);
