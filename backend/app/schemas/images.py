@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from app.model.status import RepairImageType
 
 class RepairImageBase(BaseModel):
-    id: int
     image_url: str
     image_type: RepairImageType | None = None
 
@@ -12,6 +11,7 @@ class RepairImageCreate(RepairImageBase):
     uploaded_by: int | None = None
 
 class RepairImageResponse(RepairImageBase):
+    id: int
     repair_request_id: int
     uploaded_by: int | None
     created_at: datetime

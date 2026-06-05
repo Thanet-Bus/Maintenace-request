@@ -105,12 +105,13 @@ const TeamAssignment: React.FC = () => {
     const isoDateTime = new Date(`${appointmentDate}T${appointmentTime}:00+07:00`).toISOString();
 
     const payload = {
-      repair_request_id: parseInt(id, 10),
-      appointment_date: isoDateTime,
-      technicians: selectedTechs.map(techId => ({
-        technician_id: techId,
-        is_leader: techId === finalLeaderId
-      }))
+        repair_request_id: parseInt(id, 10),
+        appointment_date: isoDateTime,
+        technicians: selectedTechs.map(techId => ({
+          technician_id: techId,
+          is_leader: techId === finalLeaderId
+        })),
+        note: note.trim() || undefined,
     };
 
     setSubmitting(true);
@@ -122,9 +123,8 @@ const TeamAssignment: React.FC = () => {
       });
 
       if (!response.ok) throw new Error("Failed to assign team");
-      
-      // Optionally update note here via PATCH if required by business logic.
 
+      setNote('');
       navigate('/admin/requests');
     } catch (err) {
       console.error(err);

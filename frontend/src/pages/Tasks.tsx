@@ -14,13 +14,13 @@ const Tasks: React.FC = () => {
 
   useEffect(() => {
     // Fetch all requests for user 1 (mocking current user)
-    fetch(`${API_BASE_URL}/repair-requests/requester/1`)
+    fetch(`${API_BASE_URL}/repair-requests`)
       .then((res) => {
         if (!res.ok) throw new Error("API failed");
         return res.json();
       })
       .then((data) => {
-        setRequests(data);
+        setRequests(data.filter((req: RepairRequest) => req.status !== "PENDING"));
         setLoading(false);
       })
       .catch((err) => {
