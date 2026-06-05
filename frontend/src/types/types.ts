@@ -9,6 +9,7 @@ export interface RepairRequest {
   created_at: string;
   updated_at: string;
   technicians?: TechnicianDetail[];
+  images?: RepairImage[];
 }
 
 export interface RepairLog {
