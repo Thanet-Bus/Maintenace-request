@@ -10,6 +10,7 @@ class AssignmentCreate(BaseModel):
     repair_request_id: int
     appointment_date: datetime
     technicians: list[TechnicianAssignment]
+    note: str | None = None
 
 class TechnicianAssignmentDetail(BaseModel):
     id: int

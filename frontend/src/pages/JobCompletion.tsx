@@ -83,6 +83,8 @@ const JobCompletion: React.FC = () => {
 
     let cancelled = false;
 
+    window.scrollTo(0, 0);
+
     async function loadData() {
       try {
         await Promise.all([fetchRequestDetails(), fetchAssignments()]);
@@ -150,7 +152,7 @@ const JobCompletion: React.FC = () => {
         const formData = new FormData();
         formData.append("repair_request_id", id.toString());
         formData.append("image_type", "COMPLETE");
-        formData.append("uploaded_by", "1"); // Use actual user id if available
+        formData.append("uploaded_by", "3"); // Use actual user id if available
         formData.append("file", photo);
 
         const photoRes = await fetch(`${API_BASE_URL}/repair-images`, {
@@ -162,7 +164,7 @@ const JobCompletion: React.FC = () => {
 
       // 3. Upload SIGNATURE image
       if (canvasRef.current && hasSignature) {
-        const canvas = canvasRef.current.getTrimmedCanvas();
+        const canvas = canvasRef.current.getCanvas();
         const signatureBlob = await new Promise<Blob | null>((resolve) => {
           canvas.toBlob((blob) => resolve(blob), "image/png");
         });
@@ -172,7 +174,7 @@ const JobCompletion: React.FC = () => {
           const sigFormData = new FormData();
           sigFormData.append("repair_request_id", id.toString());
           sigFormData.append("image_type", "SIGNATURE");
-          sigFormData.append("uploaded_by", "1"); // Use actual user id if available
+          sigFormData.append("uploaded_by", "3"); // Use actual user id if available
           sigFormData.append("file", signatureFile);
 
           const sigRes = await fetch(`${API_BASE_URL}/repair-images`, {
@@ -183,7 +185,28 @@ const JobCompletion: React.FC = () => {
         }
       }
 
-      // (In a real app, you would also submit ratings here)
+      // 4. Submit ratings to the review API
+      const reviewPromises = Object.values(ratings)
+        .filter((r) => r.rating > 0)
+        .map((r) =>
+          fetch(`${API_BASE_URL}/reviews`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              repair_request_id: parseInt(id),
+              technician_id: r.technician_id,
+              rating: r.rating,
+              comment: r.comment || null,
+            }),
+          })
+        );
+
+      if (reviewPromises.length > 0) {
+        const reviewResults = await Promise.all(reviewPromises);
+        reviewResults.forEach((res, index) => {
+          if (!res.ok) console.warn(`Failed to submit review for tech index ${index}`);
+        });
+      }
 
       navigate("/tasks", { replace: true });
     } catch (error) {
@@ -320,7 +343,7 @@ const JobCompletion: React.FC = () => {
                         `ช่างเทคนิค ID: ${tech.technician_id}`}
                     </h3>
                     <span className={styles.techRoleBadge}>
-                      {tech.is_leader ? "Leader" : "Assistant"}
+                      {tech.is_leader ? "หัวหน้า" : "ผู้ช่วย"}
                     </span>
                   </div>
                 </div>

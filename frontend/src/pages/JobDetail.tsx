@@ -77,6 +77,8 @@ const JobDetail: React.FC = () => {
 
     let cancelled = false;
 
+    window.scrollTo(0, 0);
+
     async function loadInitialData() {
       try {
         await Promise.all([
@@ -132,7 +134,7 @@ const JobDetail: React.FC = () => {
         const formData = new FormData();
         formData.append("repair_request_id", id.toString());
         formData.append("image_type", "ON_HOLD");
-        formData.append("uploaded_by", "1"); // Assuming user ID 1 for now
+        formData.append("uploaded_by", "3"); // Assuming user ID 1 for now
         formData.append("file", photo);
 
         const photoRes = await fetch(`${API_BASE_URL}/repair-images`, {
@@ -461,7 +463,8 @@ const JobDetail: React.FC = () => {
           disabled={
             refreshing ||
             request.status === "COMPLETED" ||
-            request.status === "CANCELLED"
+            request.status === "CANCELLED" ||
+            request.status === "ON_HOLD"
           }
           onClick={handleAcceptWork}
         >

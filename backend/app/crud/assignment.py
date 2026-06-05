@@ -49,9 +49,9 @@ def create_assignments(
     # Add a log entry for the status change
     log_entry = RepairLogs(
         repair_request_id=data.repair_request_id,
-        changed_by=2,  # Default admin user id for assignment
+        changed_by=2,
         status_to=RepairStatus.ASSIGNED,
-        note="แอดมินกำหนดงานให้ช่าง",
+        note=data.note or "แอดมินกำหนดงานให้ช่าง",
     )
     db.add(log_entry)
 

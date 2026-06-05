@@ -73,6 +73,7 @@ const CreateRequest: React.FC = () => {
         const formData = new FormData();
         formData.append('repair_request_id', createdRequest.id.toString());
         formData.append('image_type', 'REQUEST');
+        formData.append('uploaded_by', '1'); // Mock user id for demo_user
         formData.append('file', imageFile);
 
         const imageResponse = await fetch(`${API_BASE_URL}/repair-images`, {
