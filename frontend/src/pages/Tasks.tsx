@@ -20,7 +20,7 @@ const Tasks: React.FC = () => {
         return res.json();
       })
       .then((data) => {
-        setRequests(data.filter((req: RepairRequest) => req.status !== "PENDING"));
+        setRequests(data.filter((req: RepairRequest) => req.status !== "PENDING" && req.status !== "COMPLETED"));
         setLoading(false);
       })
       .catch((err) => {

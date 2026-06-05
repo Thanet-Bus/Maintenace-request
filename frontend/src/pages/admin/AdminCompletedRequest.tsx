@@ -91,7 +91,7 @@ const AdminCompletedRequest: React.FC = () => {
   }
 
   // Group images by type
-  const beforeImages = images.filter(img => img.image_type === 'REQUEST');
+  const beforeImages = images.filter(img => img.image_type === 'REQUEST' || img.image_type === 'ON_HOLD');
   const afterImages = images.filter(img => img.image_type === 'COMPLETE');
   const signatureImages = images.filter(img => img.image_type === 'SIGNATURE');
 
