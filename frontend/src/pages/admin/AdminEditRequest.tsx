@@ -255,9 +255,9 @@ const AdminEditRequest: React.FC = () => {
                  <div>
                    <h3 className={styles.sectionTitle}>รูปภาพก่อนซ่อม</h3>
                    <div className={styles.photoGrid}>
-                     {images.filter((img) => img.image_type === "REQUEST" || img.image_type === "OTHER").length > 0 ? (
+                     {images.length > 0 ? (
                        images
-                         .filter((img) => img.image_type === "REQUEST" || img.image_type === "OTHER")
+                         .filter((img) => img.image_type === "REQUEST" || img.image_type === "ON_HOLD" || img.image_type === "OTHER")
                          .map((image) => (
                            <div 
                              key={image.id} 

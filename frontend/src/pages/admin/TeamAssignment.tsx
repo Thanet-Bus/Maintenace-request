@@ -216,7 +216,7 @@ const TeamAssignment: React.FC = () => {
                   <div className={styles.photoGrid}>
                     {images && images.length > 0 ? (
                       images
-                        .filter((img) => img.image_type === "REQUEST" || img.image_type === "ON_HOLD" || img.image_type === "OTHER")
+                        .filter((img) => img.image_type === "REQUEST" || img.image_type === "OTHER")
                         .map(image => (
                           <img 
                             key={image.id}
