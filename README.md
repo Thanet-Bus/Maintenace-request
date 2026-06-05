@@ -157,16 +157,6 @@ docker compose exec backend alembic downgrade -1
 | Technician | ASSIGNED → IN_PROGRESS  |
 | Technician | IN_PROGRESS → COMPLETED |
 
-## Future Tables
-
-### repair_reviews
-
-- id PK
-- repair_request_id FK -> repair_requests.id
-- technician_id FK -> users.id
-- rating
-- comment
-- created_at
 
 ## Log Fields
 
