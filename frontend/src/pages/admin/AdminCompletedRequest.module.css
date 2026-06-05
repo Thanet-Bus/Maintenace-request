@@ -318,3 +318,73 @@
   border: 1px solid var(--color-outline-variant);
   margin-top: 0.5rem;
 }
+
+.reviewsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.reviewItem {
+  padding: 1rem;
+  background-color: var(--color-surface-container-lowest);
+  border-radius: 8px;
+  border: 1px solid rgba(187, 203, 184, 0.3);
+}
+
+.reviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.reviewTechInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reviewTechName {
+  font-weight: 600;
+  color: var(--color-on-surface);
+  font-size: 14px;
+}
+
+.leaderBadgeSmall {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.starDisplay {
+  display: flex;
+  gap: 0.125rem;
+}
+
+.starFilled {
+  color: #fbbf24;
+  font-size: 18px;
+}
+
+.starEmpty {
+  color: var(--color-outline-variant);
+  font-size: 18px;
+}
+
+.reviewComment {
+  font-size: 14px;
+  color: var(--color-on-surface-variant);
+  margin: 0.5rem 0 0 0;
+  line-height: 1.5;
+}
+
+.reviewDate {
+  font-size: 12px;
+  color: var(--color-outline);
+  margin: 0.5rem 0 0 0;
+}

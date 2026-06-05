@@ -51,6 +51,15 @@ export interface RepairImage {
   created_at: string;
 }
 
+export interface Review {
+  id: number;
+  repair_request_id: number;
+  technician_id: number;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+}
+
 export type TechnicianDetail = {
   id: number;
   name: string;

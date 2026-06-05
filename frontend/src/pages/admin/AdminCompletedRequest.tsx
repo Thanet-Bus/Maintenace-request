@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { API_BASE_URL } from '../../config';
-import type { RepairRequest, RepairImage, RepairLog } from '../../types/types';
+import type { RepairRequest, RepairImage, RepairLog, Review } from '../../types/types';
 import styles from './AdminCompletedRequest.module.css';
 import { getStatusBadge } from '../../utils/statusUtils';
 
@@ -12,6 +12,7 @@ const AdminCompletedRequest: React.FC = () => {
   const [request, setRequest] = useState<RepairRequest | null>(null);
   const [images, setImages] = useState<RepairImage[]>([]);
   const [logs, setLogs] = useState<RepairLog[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
@@ -32,12 +33,17 @@ const AdminCompletedRequest: React.FC = () => {
       fetch(`${API_BASE_URL}/logs/request/${id}`).then(res => {
         if (!res.ok) return []; // Ignore errors, return empty
         return res.json();
+      }),
+      fetch(`${API_BASE_URL}/reviews/request/${id}`).then(res => {
+        if (!res.ok) return []; // Ignore errors, return empty
+        return res.json();
       })
     ])
-    .then(([reqData, imgsData, logsData]) => {
+    .then(([reqData, imgsData, logsData, reviewsData]) => {
       setRequest(reqData);
       setImages(imgsData);
       setLogs(logsData);
+      setReviews(reviewsData);
     })
     .catch(err => {
       console.error(err);
@@ -80,15 +86,16 @@ const AdminCompletedRequest: React.FC = () => {
            <p style={{ textAlign: 'center', marginTop: "40px", color: 'var(--color-error)' }}>
              {error || "ไม่พบข้อมูลรายการ"}
            </p>
-           <div style={{ textAlign: 'center' }}>
-             <button className={styles.backButton} onClick={() => navigate('/admin/requests')} style={{ margin: '0 auto' }}>
-               <span className="material-symbols-outlined">arrow_back</span>
-             </button>
-           </div>
-         </div>
-       </AdminLayout>
-     );
-  }
+            <div style={{ textAlign: 'center' }}>
+              <button className={styles.backButton} onClick={() => navigate('/admin/requests')} style={{ margin: '0 auto' }}>
+                <span className="material-symbols-outlined">arrow_back</span>
+              </button>
+            </div>
+          </div>
+        </AdminLayout>
+      );
+    }
+
 
   // Group images by type
   const beforeImages = images.filter(img => img.image_type === 'REQUEST' || img.image_type === 'ON_HOLD');
@@ -170,6 +177,60 @@ const AdminCompletedRequest: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+            
+            {/* Reviews */}
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: "var(--color-primary)" }}
+                >
+                  star
+                </span>
+                ผลการประเมินจากลูกค้า
+              </h3>
+              {reviews.length === 0 ? (
+                <p style={{ fontSize: '14px', color: 'var(--color-on-surface-variant)' }}>ยังไม่มีการประเมิน</p>
+              ) : (
+                <div className={styles.reviewsContainer}>
+                  {reviews.map((review) => {
+                    const tech = request.technicians?.find(t => t.id === review.technician_id);
+                    return (
+                      <div key={review.id} className={styles.reviewItem}>
+                        <div className={styles.reviewHeader}>
+                          <div className={styles.reviewTechInfo}>
+                            <span className={styles.reviewTechName}>
+                              {tech?.name || `ช่าง ${review.technician_id}`}
+                            </span>
+                            {tech?.is_leader && <span className={styles.leaderBadgeSmall}>หัวหน้า</span>}
+                          </div>
+                          <div className={styles.starDisplay}>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <span
+                                key={star}
+                                className={`material-symbols-outlined ${star <= review.rating ? styles.starFilled : styles.starEmpty}`}
+                              >
+                                star
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        {review.comment && (
+                          <p className={styles.reviewComment}>{review.comment}</p>
+                        )}
+                        <p className={styles.reviewDate}>
+                          {new Date(review.created_at).toLocaleDateString('th-TH', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
             
             {/* Request Logs */}
