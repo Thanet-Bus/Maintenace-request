@@ -41,10 +41,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           
           <div className={styles.spacer}></div>
           
-          <NavLink to="/admin/settings" className={({ isActive }) => isActive ? styles.activeItem : styles.item}>
-            <span className="material-symbols-outlined">settings</span>
-            Settings
-          </NavLink>
         </div>
       </nav>
 
@@ -53,12 +49,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         <header className={styles.topHeader}>
           <div className={styles.headerLeft}>
             <span className={styles.appBrand}>Maintenance Pro</span>
-          </div>
-          <div className={styles.headerRight}>
-            <button className={styles.notificationButton}>
-              <span className="material-symbols-outlined">notifications</span>
-              <span className={styles.badge}></span>
-            </button>
           </div>
         </header>
         
