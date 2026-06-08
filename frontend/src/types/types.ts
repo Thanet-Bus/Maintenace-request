@@ -9,6 +9,7 @@ export interface RepairRequest {
   created_at: string;
   updated_at: string;
   technicians?: TechnicianDetail[];
+  images?: RepairImage[];
 }
 
 export interface RepairLog {
@@ -47,6 +48,15 @@ export interface RepairImage {
   uploaded_by: number | null;
   image_url: string;
   image_type: string;
+  created_at: string;
+}
+
+export interface Review {
+  id: number;
+  repair_request_id: number;
+  technician_id: number;
+  rating: number;
+  comment: string | null;
   created_at: string;
 }
 

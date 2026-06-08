@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
 import styles from "./OnHoldManagement.module.css";
 import { API_BASE_URL } from "../../config";
-import type { RepairRequest, RepairLog } from "../../types/types";
+import type { RepairRequest, RepairLog, RepairImage } from "../../types/types";
 import { getStatusBadge } from "../../utils/statusUtils";
 
 type Technician = {
@@ -20,13 +20,15 @@ const OnHoldManagement: React.FC = () => {
   const [request, setRequest] = useState<RepairRequest | null>(null);
   const [logs, setLogs] = useState<RepairLog[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [images, setImages] = useState<RepairImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Custom Alert / Modal State
   const [errorMessage, setErrorMessage] = useState("");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
   // Form State
   const [appointmentDate, setAppointmentDate] = useState("");
@@ -71,6 +73,19 @@ const OnHoldManagement: React.FC = () => {
     }
   }, []);
 
+  const fetchImages = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/repair-images/repair-request/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setImages(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch images", err);
+    }
+  }, [id]);
+
   useEffect(() => {
     if (!id) return;
 
@@ -81,7 +96,8 @@ const OnHoldManagement: React.FC = () => {
         await Promise.all([
           fetchRequestDetails(), 
           fetchLogs(),
-          fetchTechnicians()
+          fetchTechnicians(),
+          fetchImages()
         ]);
       } catch (err) {
         if (!cancelled) {
@@ -99,7 +115,7 @@ const OnHoldManagement: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [id, fetchRequestDetails, fetchLogs, fetchTechnicians]);
+  }, [id, fetchRequestDetails, fetchLogs, fetchTechnicians, fetchImages]);
 
   const handleTechToggle = (techId: number) => {
     setSelectedTechs(prev => {
@@ -344,6 +360,48 @@ const OnHoldManagement: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Request Images */}
+            <div className={styles.card}>
+              <h3 className={styles.cardTitle}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: "var(--color-primary)" }}
+                >
+                  photo_library
+                </span>
+                รูปภาพประกอบ
+              </h3>
+              {images.length > 0 ? (
+                <div className={styles.photoGrid}>
+                  {images
+                    .filter((img) => img.image_type === "REQUEST" || img.image_type === "ON_HOLD")
+                    .map((image) => (
+                      <div 
+                        key={image.id} 
+                        className={styles.photoItem}
+                        onClick={() => setSelectedImageUrl(`${API_BASE_URL.replace(/\/api$/, "")}${image.image_url}`)}
+                      >
+                        <img
+                          src={`${API_BASE_URL.replace(/\/api$/, "")}${image.image_url}`}
+                          alt="Request image"
+                        />
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <p
+                  style={{
+                    fontSize: "14px",
+                    textAlign: "center",
+                    color: "var(--color-on-surface-variant)",
+                    marginTop: "0.5rem",
+                  }}
+                >
+                  ไม่มีรูปภาพประกอบ
+                </p>
+              )}
             </div>
 
             {/* Request Logs */}
@@ -649,6 +707,27 @@ const OnHoldManagement: React.FC = () => {
                 {submitting ? 'กำลังยกเลิก...' : 'ยืนยันการยกเลิก'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {selectedImageUrl && (
+        <div 
+          className={styles.imageOverlay}
+          onClick={() => setSelectedImageUrl(null)}
+        >
+          <div className={styles.imageOverlayContent}>
+            <button 
+              className={styles.imageOverlayCloseButton}
+              onClick={() => setSelectedImageUrl(null)}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>close</span>
+            </button>
+            <img 
+              src={selectedImageUrl} 
+              alt="Fullscreen view" 
+              className={styles.imageOverlayImage}
+            />
           </div>
         </div>
       )}

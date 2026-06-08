@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './TeamAssignment.module.css';
 import { API_BASE_URL } from '../../config';
-import type { RepairRequest } from '../../types/types';
+import type { RepairRequest, RepairImage } from '../../types/types';
 
 type Technician = {
   id: number;
@@ -17,6 +17,7 @@ const TeamAssignment: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [request, setRequest] = useState<RepairRequest | null>(null);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [images, setImages] = useState<RepairImage[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Form State
@@ -28,6 +29,7 @@ const TeamAssignment: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
   const fetchRequestDetails = useCallback(() => {
     if (!id) return;
@@ -63,18 +65,24 @@ const TeamAssignment: React.FC = () => {
       .catch(err => console.error(err));
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
-    
-    fetchRequestDetails()?.catch(() => {
-      if (!isMounted) return;
-    });
-    fetchTechnicians();
+  const fetchImages = useCallback(() => {
+    if (!id) return;
+    fetch(`${API_BASE_URL}/repair-images/repair-request/${id}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch images");
+        return res.json();
+      })
+      .then(data => setImages(data))
+      .catch(err => console.error(err));
+  }, [id]);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [fetchRequestDetails, fetchTechnicians]);
+  useEffect(() => {
+    fetchRequestDetails()?.catch(() => {});
+    fetchTechnicians();
+    fetchImages();
+
+    return () => {};
+  }, [fetchRequestDetails, fetchTechnicians, fetchImages]);
 
   const handleTechToggle = (techId: number) => {
     setSelectedTechs(prev => {
@@ -111,7 +119,7 @@ const TeamAssignment: React.FC = () => {
           technician_id: techId,
           is_leader: techId === finalLeaderId
         })),
-        note: note.trim() || undefined,
+        note: note || "แอดมินกำหนดงานให้ช่าง",
     };
 
     setSubmitting(true);
@@ -202,20 +210,26 @@ const TeamAssignment: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Before Photos (Mocked for now as backend doesn't have photos yet) */}
+                {/* Before Photos */}
                 <div>
-                  <p className={styles.infoLabel}>รูปภาพประกอบ (2)</p>
+                  <p className={styles.infoLabel}>รูปภาพประกอบ ({images.length})</p>
                   <div className={styles.photoGrid}>
-                    <img 
-                      alt="Leaking AC" 
-                      className={styles.thumbnail}
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiAuNTvxwcPJ5KCvaTIm9by8oqN_Nlv0Sw6GVOMRBKBuNt5CXKAiIiis1Pfr6V3jYQxUIyBx9z_jHZRPuf8wmKX8s925jN8XdZzAJAzdk90yz2FMRBnrZMqQz1YDy1yODE_vnq63OB9Z1t0JZBBwdtP1CC4gdYmdKcsaRzEYBAXIA1X3PW7H1lCQB7JCeMmAaNviaU2LRX_0Vgs_AKEbmoMjLmFpxUTrz9Rxe1HO9MXgVvPTZP2pQwbA4k_SrzEsBuI3_ZO78n8oOY" 
-                    />
-                    <img 
-                      alt="Water puddle" 
-                      className={styles.thumbnail}
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQb5cXa4xSiSrvuAEul00EcCzLinGj9P4SX9yeYnHcz2S5aAwauyn-i4uA5TIh2JmyFt-vRado8_Di4vCDKKs4LFDLxYsW-hqx2sHSIEkV459d5f17YIEye0fX1yQduHydRRnAYbSqRd9tWs22Nv-IvXOhVMarvFtnNnilNk5xTcOp4y6ef1KfTQPaIj0V3OLy10t624hImCQ_X49ST-jJq8GAhDpPxnDYUvY8uljQfdy1EMu5x0t0jmp18o0sPRFxFKbZoj96eXe9" 
-                    />
+                    {images && images.length > 0 ? (
+                      images
+                        .filter((img) => img.image_type === "REQUEST" || img.image_type === "OTHER")
+                        .map(image => (
+                          <img 
+                            key={image.id}
+                            alt="Repair request image" 
+                            className={styles.thumbnail}
+                            src={`${API_BASE_URL.replace(/\/api$/, "")}${image.image_url}`}
+                            onClick={() => setSelectedImageUrl(`${API_BASE_URL.replace(/\/api$/, "")}${image.image_url}`)}
+                            style={{ cursor: 'pointer' }}
+                          />
+                        ))
+                    ) : (
+                      <p className={styles.infoSubValue}>ไม่มีรูปภาพประกอบ</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -390,6 +404,28 @@ const TeamAssignment: React.FC = () => {
                 {submitting ? 'กำลังมอบหมาย...' : 'ยืนยัน'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {selectedImageUrl && (
+        <div 
+          className={styles.modalOverlay}
+          onClick={() => setSelectedImageUrl(null)}
+        >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <button
+              className={styles.modalCancelButton}
+              onClick={() => setSelectedImageUrl(null)}
+              style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10 }}
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+            <img 
+              src={selectedImageUrl} 
+              alt="Fullscreen" 
+              style={{ width: '100%', borderRadius: '8px' }}
+            />
           </div>
         </div>
       )}

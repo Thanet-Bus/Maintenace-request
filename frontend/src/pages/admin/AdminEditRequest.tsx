@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './AdminEditRequest.module.css';
 import { API_BASE_URL } from '../../config';
-import type { RepairRequest, TechnicianDetail, RepairLog } from '../../types/types';
+import type { RepairRequest, TechnicianDetail, RepairLog, RepairImage } from '../../types/types';
 import { getStatusBadge } from '../../utils/statusUtils';
 
 const AdminEditRequest: React.FC = () => {
@@ -12,12 +12,14 @@ const AdminEditRequest: React.FC = () => {
   
   const [request, setRequest] = useState<RepairRequest | null>(null);
   const [logs, setLogs] = useState<RepairLog[]>([]);
+  const [images, setImages] = useState<RepairImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
   // Custom Alert / Modal State
   const [errorMessage, setErrorMessage] = useState('');
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   
   // Form state
   const [title, setTitle] = useState('');
@@ -64,6 +66,19 @@ const AdminEditRequest: React.FC = () => {
     }
   }, [id]);
 
+  const fetchImages = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/repair-images/repair-request/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setImages(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch images", err);
+    }
+  }, [id]);
+
   const fetchAssignments = useCallback(async () => {
     if (!id) return;
     try {
@@ -101,12 +116,15 @@ const AdminEditRequest: React.FC = () => {
 
     let cancelled = false;
 
+    window.scrollTo(0, 0);
+
     async function loadInitialData() {
       try {
         await Promise.all([
           fetchRequestDetails(),
           fetchAssignments(),
           fetchLogs(),
+          fetchImages(),
         ]);
       } catch (err) {
         if (!cancelled) {
@@ -124,7 +142,7 @@ const AdminEditRequest: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [id, fetchRequestDetails, fetchAssignments, fetchLogs]);
+  }, [id, fetchRequestDetails, fetchAssignments, fetchLogs, fetchImages]);
 
   const handlePreSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -224,16 +242,50 @@ const AdminEditRequest: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Problem Description */}
-                <div className={styles.problemSection}>
-                  <p className={styles.infoLabel}>หัวข้อปัญหา</p>
-                  <p className={styles.problemTitle}>{request.title}</p>
-                  <div className={styles.descriptionBox}>
-                    {request.description || "ไม่มีรายละเอียดเพิ่มเติม"}
-                  </div>
-                </div>
+                 {/* Problem Description */}
+                 <div className={styles.problemSection}>
+                   <p className={styles.infoLabel}>หัวข้อปัญหา</p>
+                   <p className={styles.problemTitle}>{request.title}</p>
+                   <div className={styles.descriptionBox}>
+                     {request.description || "ไม่มีรายละเอียดเพิ่มเติม"}
+                   </div>
+                 </div>
 
-                {/* Date Info */}
+                 {/* Problem Photos */}
+                 <div>
+                   <h3 className={styles.sectionTitle}>รูปภาพก่อนซ่อม</h3>
+                   <div className={styles.photoGrid}>
+                     {images.length > 0 ? (
+                       images
+                         .filter((img) => img.image_type === "REQUEST" || img.image_type === "ON_HOLD" || img.image_type === "OTHER")
+                         .map((image) => (
+                           <div 
+                             key={image.id} 
+                             className={styles.photoItem}
+                             onClick={() => setSelectedImageUrl(`${API_BASE_URL.replace(/\/api$/, "")}${image.image_url}`)}
+                             style={{ cursor: 'pointer' }}
+                           >
+                             <img
+                               src={`${API_BASE_URL.replace(/\/api$/, "")}${image.image_url}`}
+                               alt="Problem"
+                             />
+                           </div>
+                         ))
+                     ) : (
+                       <p
+                         style={{
+                           fontSize: "14px",
+                           textAlign: "center",
+                           color: "var(--color-on-surface-variant)",
+                         }}
+                       >
+                         ไม่มีรูปภาพประกอบ
+                       </p>
+                     )}
+                   </div>
+                 </div>
+
+                 {/* Date Info */}
                 <div>
                     <p className={styles.infoLabel}>วันที่แจ้ง</p>
                     <p className={styles.infoValue}>{formatDateTime(request.created_at)}</p>
@@ -450,6 +502,27 @@ const AdminEditRequest: React.FC = () => {
                 {submitting ? 'กำลังบันทึก...' : 'ยืนยันการบันทึก'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {selectedImageUrl && (
+        <div 
+          className={styles.imageOverlay}
+          onClick={() => setSelectedImageUrl(null)}
+        >
+          <div className={styles.imageOverlayContent}>
+            <button 
+              className={styles.imageOverlayCloseButton}
+              onClick={() => setSelectedImageUrl(null)}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>close</span>
+            </button>
+            <img 
+              src={selectedImageUrl} 
+              alt="Fullscreen view" 
+              className={styles.imageOverlayImage}
+            />
           </div>
         </div>
       )}

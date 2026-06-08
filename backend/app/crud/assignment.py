@@ -51,7 +51,7 @@ def create_assignments(
         repair_request_id=data.repair_request_id,
         changed_by=2,
         status_to=RepairStatus.ASSIGNED,
-        note=data.note or "แอดมินกำหนดงานให้ช่าง",
+        note=data.note
     )
     db.add(log_entry)
 

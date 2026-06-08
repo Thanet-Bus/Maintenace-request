@@ -185,6 +185,7 @@ const AdminRequests: React.FC = () => {
                     const badge = getStatusBadge(req.status);
                     const isPending = req.status === 'PENDING';
                     const isOnHold = req.status === 'ON_HOLD';
+                    const isComplete = req.status === 'COMPLETED';
                     return (
                       <tr key={req.id} className={styles.row}>
                         <td>
@@ -259,6 +260,15 @@ const AdminRequests: React.FC = () => {
                               >
                                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_clock</span>
                                 จัดการงานที่พักไว้
+                              </button>
+                            )}
+                            {isComplete && (
+                              <button 
+                                className={styles.completeButton}
+                                onClick={() => navigate(`/admin/request/complete/${req.id}`)}
+                              >
+                                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_clock</span>
+                                รายละเอียด
                               </button>
                             )}
                           </div>
