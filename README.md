@@ -185,3 +185,28 @@ docker compose exec backend alembic downgrade -1
 ## Refactor Tasks
 
 - Refactor code like in jobdetail implement
+
+
+LINE Login
+→ get LINE user id/profile
+→ find/create users row
+→ issue your own app token/JWT
+→ frontend uses your token for API
+
+1. Implement LINE Login
+2. Add employee number completion page
+3. Add admin page to set user role = TECHNICIAN
+4. Add image upload using current_user.id as uploaded_by
+
+GET  /api/auth/line/login
+POST /api/auth/line/callback
+GET  /api/auth/me
+
+Frontend clicks Login with LINE
+→ redirect to LINE authorization URL
+→ LINE redirects back with code
+→ frontend sends code to backend
+→ backend exchanges code for token
+→ backend verifies ID token
+→ backend find/create user by line_user_id
+→ backend returns your app JWT

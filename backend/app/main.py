@@ -11,6 +11,7 @@ from app.api.logs import router as logs_router
 from app.api.users import router as users_router
 from app.api.images import router as images_router
 from app.api.reviews import router as reviews_router
+from app.api.auth import router as auth_router
 from app.service.storage import UPLOAD_DIR
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -35,6 +36,7 @@ app.include_router(logs_router)
 app.include_router(users_router)
 app.include_router(images_router)
 app.include_router(reviews_router)
+app.include_router(auth_router)
 
 @app.get("/")
 async def root():

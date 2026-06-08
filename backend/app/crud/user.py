@@ -18,6 +18,34 @@ def create_user(db: Session, data: UserCreate) -> User:
 def get_user_by_line_id(db: Session, line_user_id: str) -> User | None:
     return db.query(User).filter(User.line_user_id == line_user_id).first()
 
+def get_or_create_line_user(
+    db: Session,
+    line_user_id: str,
+    display_name: str | None,
+    profile_image_url: str | None,
+) -> User:
+    user = get_user_by_line_id(db, line_user_id)
+
+    if user:
+        user.name = display_name
+        user.profile_image_url = profile_image_url
+        db.commit()
+        db.refresh(user)
+        return user
+
+    user = User(
+        line_user_id=line_user_id,
+        name=display_name,
+        profile_image_url=profile_image_url,
+        role=UserRole.USER,
+    )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return user
+
 def get_user_by_id(db: Session, id: int) -> User | None:
     return db.query(User).filter(User.id == id).first()
 
