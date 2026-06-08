@@ -188,7 +188,7 @@ const AdminCompletedRequest: React.FC = () => {
                 >
                   star
                 </span>
-                ผลการประเมินจากลูกค้า
+                ผลการประเมิน
               </h3>
               {reviews.length === 0 ? (
                 <p style={{ fontSize: '14px', color: 'var(--color-on-surface-variant)' }}>ยังไม่มีการประเมิน</p>
