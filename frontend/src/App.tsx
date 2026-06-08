@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
+import Callback from './pages/Callback';
+import CompleteProfile from './pages/CompleteProfile';
 import UserDashboard from './pages/UserDashboard';
 import History from './pages/History';
 import CreateRequest from './pages/CreateRequest';
@@ -20,6 +22,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/auth/line/callback" element={<Callback />} />
+        <Route path="/complete-profile" element={<CompleteProfile />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/requests" element={<AdminRequests />} />
         <Route path="/admin/technicians" element={<Technicians />} />

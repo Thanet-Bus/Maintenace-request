@@ -13,8 +13,8 @@ class TokenResponse(BaseModel):
 class CurrentUserResponse(BaseModel):
     id: int
     line_user_id: str | None
-    employee_number: str | None
-    display_name: str | None
+    emp_id: str | None
+    name: str | None
     profile_image_url: str | None
     role: str
 

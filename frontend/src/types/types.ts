@@ -67,3 +67,12 @@ export type TechnicianDetail = {
   profile_image_url?: string | null;
   is_leader: boolean;
 };
+
+export interface User {
+  id: number;
+  line_user_id: string | null;
+  emp_id: string | null;
+  name: string | null;
+  profile_image_url: string | null;
+  role: string;
+}

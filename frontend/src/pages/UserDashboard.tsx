@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import type { RepairRequest, RepairLog, AssignmentDetail} from '../types/types';
+import type { RepairRequest, RepairLog, AssignmentDetail, User} from '../types/types';
 import styles from './UserDashboard.module.css';
 import { API_BASE_URL } from "../config";
 import { getStatusBadge } from '../utils/statusUtils';
@@ -14,46 +14,73 @@ const UserDashboard: React.FC = () => {
   const [requestLogs, setRequestLogs] = useState<{ [key: number]: RepairLog[] }>({});
   const [logsLoading, setLogsLoading] = useState<{ [key: number]: boolean }>({});
   const [requestAssignments, setRequestAssignments] = useState<{ [key: number]: AssignmentDetail[] }>({});
+  const [userInfo, setUserInfo] = useState<User>(null);
 
   useEffect(() => {
-    // Fetch requests for user 1
-    let isMounted = true;
-    fetch(`${API_BASE_URL}/repair-requests/requester/1`)
-      .then((res) => {
+    let cancelled = false;
+
+    async function loadData() {
+      const token = localStorage.getItem('access_token');
+      const userStr = localStorage.getItem('user');
+
+      if (!token || !userStr) {
+        if (!cancelled) navigate('/login');
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      if (!cancelled) setUserInfo(user);
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/repair-requests/requester/${user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
+          if (!cancelled) navigate('/login');
+          throw new Error("Unauthorized");
+        }
         if (!res.ok) throw new Error("API failed");
-        return res.json();
-      })
-      .then((data: RepairRequest[]) => {
-        if (isMounted) {
+
+        const data: RepairRequest[] = await res.json();
+
+        if (!cancelled) {
           setRequests(data);
-          setLoading(false);
           
-          // Fetch assignments and images for all returned requests
+          // Fetch assignments for all returned requests
           data.forEach(req => {
-            // Fetch assignments
             fetch(`${API_BASE_URL}/assignments/repair-request/${req.id}`)
-              .then(res => res.ok ? res.json() : null)
+              .then(assignRes => assignRes.ok ? assignRes.json() : null)
               .then(assignData => {
-                if (isMounted && assignData && assignData.technicians) {
+                if (!cancelled && assignData && assignData.technicians) {
                   setRequestAssignments(prev => ({ ...prev, [req.id]: assignData.technicians }));
                 }
               })
               .catch(err => console.error("Failed to fetch assignments", err));
           });
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Failed to fetch API", err);
-        if (isMounted) {
+        if (!cancelled) {
           setRequests([]);
+        }
+      } finally {
+        if (!cancelled) {
           setLoading(false);
         }
-      });
-      
-      return () => {
-        isMounted = false;
-      };
-  }, []);
+      }
+    }
+
+    loadData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const toggleLogs = async (requestId: number) => {
     if (expandedRequestId === requestId) {
@@ -108,20 +135,22 @@ const UserDashboard: React.FC = () => {
     <Layout title="ระบบแจ้งซ่อม">
       <div className={styles.container}>
         {/* User Profile Card */}
-        <section className={styles.profileCard}>
-          <img 
-            alt="User Profile" 
-            className={styles.profileImage}
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCilI4NljP5DignL-ar7WIqo2cCvYJhMe8_6DD6X8zUy4ypdyyoksNjAiYPP2Aq3IDh4ijuTki9w0XMYjHKHMXnKwjTx3Pb7exJ0F8VnyCSv9EsdP-0K4RJnD7Loj641hK-Gupxl7lmWfJt9LaU6VEifbkCkODmF4MAgM50QudMdbM7NZMkpWU7F-m7KrreA8a4DMXDqvOzASDfMyNmaxXq9KuOFgF-6HpIVNpwaSX3G4VP_b840to3BqqarO0JxiR6t6_lVYOQuTXc" 
-          />
-          <div className={styles.profileInfo}>
-            <h2 className={styles.userName}>คุณสมชาย ใจดี</h2>
-            <p className={styles.userId}>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>badge</span>
-              ID: smch_2024
-            </p>
-          </div>
-        </section>
+        {userInfo && (
+          <section className={styles.profileCard}>
+            <img 
+              alt="User Profile" 
+              className={styles.profileImage}
+              src={userInfo.profile_image_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuCilI4NljP5DignL-ar7WIqo2cCvYJhMe8_6DD6X8zUy4ypdyyoksNjAiYPP2Aq3IDh4ijuTki9w0XMYjHKHMXnKwjTx3Pb7exJ0F8VnyCSv9EsdP-0K4RJnD7Loj641hK-Gupxl7lmWfJt9LaU6VEifbkCkODmF4MAgM50QudMdbM7NZMkpWU7F-m7KrreA8a4DMXDqvOzASDfMyNmaxXq9KuOFgF-6HpIVNpwaSX3G4VP_b840to3BqqarO0JxiR6t6_lVYOQuTXc"} 
+            />
+            <div className={styles.profileInfo}>
+              <h2 className={styles.userName}>{userInfo.name || 'ไม่ระบุชื่อ'}</h2>
+              <p className={styles.userId}>
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>badge</span>
+                ID: {userInfo.emp_id || userInfo.id}
+              </p>
+            </div>
+          </section>
+        )}
 
         {/* Main Action Button */}
         <button className={styles.newRequestButton} onClick={() => navigate('/create-request')}>

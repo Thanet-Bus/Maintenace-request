@@ -3,8 +3,10 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import create_access_token
+from app.core.dependencies import get_current_user
 from app.crud.user import get_or_create_line_user
-from app.schemas.auth import LineCallbackRequest, TokenResponse
+from app.model.users import User
+from app.schemas.auth import LineCallbackRequest, TokenResponse, CurrentUserResponse
 from app.service.line_auth import exchange_code_for_token, verify_line_id_token
 
 
@@ -48,3 +50,9 @@ async def line_callback(
             status_code=401,
             detail="LINE login failed",
         )
+
+@router.get("/me", response_model=CurrentUserResponse)
+def get_me(
+    current_user: User = Depends(get_current_user),
+):
+    return current_user
