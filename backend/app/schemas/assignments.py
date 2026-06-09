@@ -32,4 +32,5 @@ class AssignmentLeaderUpdate(BaseModel):
 class AssignmentStatusResponse(BaseModel):
     repair_request_id: int
     status: RepairStatus
+    appointment_date: datetime | None = None
     technicians: list[TechnicianAssignmentDetail]

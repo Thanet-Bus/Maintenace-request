@@ -6,7 +6,7 @@ from app.crud.user import (
     create_user,
     get_user_by_id,
     get_user_by_line_id,
-    get_user_by_emp_id,
+    # get_user_by_emp_id,
     get_users,
     get_technicians,
     update_user,

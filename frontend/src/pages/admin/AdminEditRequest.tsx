@@ -169,7 +169,7 @@ const AdminEditRequest: React.FC = () => {
           location,
           description,
           status,
-          note: note || `Admin edited request details`
+          note: note || `แอดมินแก้ไขใบงาน`
         }),
       });
 

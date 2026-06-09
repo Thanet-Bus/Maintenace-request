@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import type { RepairRequest, RepairLog, AssignmentDetail} from '../types/types';
 import styles from './UserDashboard.module.css'; // Reusing dashboard styles for consistency
@@ -9,6 +10,8 @@ const INITIAL_LOAD_COUNT = 5;
 const LOAD_MORE_COUNT = 5;
 
 const History: React.FC = () => {
+  const navigate = useNavigate();
+
   const [requests, setRequests] = useState<RepairRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedRequestId, setExpandedRequestId] = useState<number | null>(null);
@@ -21,9 +24,25 @@ const History: React.FC = () => {
   const observerTarget = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Fetch all requests for user 1
     let isMounted = true;
-    fetch(`${API_BASE_URL}/repair-requests/requester/1`)
+    
+    const token = localStorage.getItem('access_token');
+    const userStr = localStorage.getItem('user');
+    
+    if (!token || !userStr) {
+      // Assuming navigate is imported and used, but History doesn't have it defined yet.
+      // Need to add useNavigate hook.
+      navigate('/login');
+      return; 
+    }
+    
+    const user = JSON.parse(userStr);
+
+    fetch(`${API_BASE_URL}/repair-requests/requester/${user.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
       .then((res) => {
         if (!res.ok) throw new Error("API failed");
         return res.json();
@@ -55,7 +74,7 @@ const History: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

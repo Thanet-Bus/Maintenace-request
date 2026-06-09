@@ -111,6 +111,16 @@ const JobDetail: React.FC = () => {
   const handleOnHoldConfirm = async (reason: string, notes: string, photo: File | null) => {
     if (!id) return;
 
+    const token = localStorage.getItem('access_token');
+    const userStr = localStorage.getItem('user');
+    
+    if (!token || !userStr) {
+      navigate('/login');
+      return;
+    }
+    
+    const user = JSON.parse(userStr);
+
     const fullNote = `พักงาน: ${reason}${notes ? ` - ${notes}` : ""}`;
 
     try {
@@ -119,6 +129,7 @@ const JobDetail: React.FC = () => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
           status: "ON_HOLD",
@@ -134,11 +145,14 @@ const JobDetail: React.FC = () => {
         const formData = new FormData();
         formData.append("repair_request_id", id.toString());
         formData.append("image_type", "ON_HOLD");
-        formData.append("uploaded_by", "3"); // Assuming user ID 1 for now
+        formData.append("uploaded_by", user.id.toString());
         formData.append("file", photo);
 
         const photoRes = await fetch(`${API_BASE_URL}/repair-images`, {
           method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
           body: formData,
         });
 

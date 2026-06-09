@@ -12,6 +12,29 @@ type Technician = {
   profile_image_url?: string | null;
 };
 
+function generateTimeOptions(start, end, intervalMinutes) {
+  const options: string[] = [];
+
+  const [startHour, startMinute] = start.split(":").map(Number);
+  const [endHour, endMinute] = end.split(":").map(Number);
+
+  const current = new Date();
+  current.setHours(startHour, startMinute, 0, 0);
+
+  const last = new Date();
+  last.setHours(endHour, endMinute, 0, 0);
+
+  while (current <= last) {
+    const hour = String(current.getHours()).padStart(2, "0");
+    const minute = String(current.getMinutes()).padStart(2, "0");
+
+    options.push(`${hour}:${minute}`);
+    current.setMinutes(current.getMinutes() + intervalMinutes);
+  }
+
+  return options;
+}
+
 const TeamAssignment: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -29,7 +52,11 @@ const TeamAssignment: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [conflictingTechs, setConflictingTechs] = useState<number[]>([]);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+
+  const today = new Date().toLocaleDateString("en-CA", {timeZone: "Asia/Bangkok",});
+  const timeOptions = generateTimeOptions("07:00", "19:00", 30);
 
   const fetchRequestDetails = useCallback(() => {
     if (!id) return;
@@ -83,6 +110,44 @@ const TeamAssignment: React.FC = () => {
 
     return () => {};
   }, [fetchRequestDetails, fetchTechnicians, fetchImages]);
+
+  useEffect(() => {
+    const checkConflicts = async () => {
+      if (selectedTechs.length === 0 || !appointmentDate || !appointmentTime) {
+        setConflictingTechs([]);
+        return;
+      }
+
+      const isoDateTime = new Date(`${appointmentDate}T${appointmentTime}:00+07:00`).toISOString();
+      const proposedTime = new Date(isoDateTime).getTime();
+
+      const newConflicts: number[] = [];
+
+      try {
+        for (const techId of selectedTechs) {
+          const res = await fetch(`${API_BASE_URL}/assignments/technician/${techId}`);
+          if (res.ok) {
+            const assignments = await res.json();
+            for (const assignment of assignments) {
+              if (assignment.appointment_date) {
+                 const assignedTime = new Date(assignment.appointment_date).getTime();
+                 if (assignedTime === proposedTime) {
+                   newConflicts.push(techId);
+                   break;
+                 }
+              }
+            }
+          }
+        }
+      } catch (err) {
+         console.error("Error checking conflicts:", err);
+      }
+      
+      setConflictingTechs(newConflicts);
+    };
+
+    checkConflicts();
+  }, [selectedTechs, appointmentDate, appointmentTime]);
 
   const handleTechToggle = (techId: number) => {
     setSelectedTechs(prev => {
@@ -256,19 +321,27 @@ const TeamAssignment: React.FC = () => {
                         className={styles.input} 
                         type="date" 
                         value={appointmentDate}
+                        min={today}
                         onChange={(e) => setAppointmentDate(e.target.value)}
                         required
                       />
                     </div>
                     <div className={styles.inputWithIcon}>
                       <span className={`material-symbols-outlined ${styles.prefixIcon}`}>schedule</span>
-                      <input 
-                        className={styles.input} 
-                        type="time" 
+                      <select
+                        className={styles.input}
                         value={appointmentTime}
                         onChange={(e) => setAppointmentTime(e.target.value)}
                         required
-                      />
+                      >
+                        <option value="">เลือกเวลา</option>
+
+                        {timeOptions.map((time) => (
+                          <option key={time} value={time}>
+                            {time}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -284,10 +357,12 @@ const TeamAssignment: React.FC = () => {
                     {technicians.map((tech) => {
                       const isSelected = selectedTechs.includes(tech.id);
                       const isLeader = leaderId === tech.id;
+                      const hasConflict = conflictingTechs.includes(tech.id);
                       return (
                         <div 
                           key={tech.id} 
-                          className={`${styles.techItem} ${isSelected ? styles.techItemSelected : ''}`}
+                          className={`${styles.techItem} ${isSelected ? styles.techItemSelected : ''} ${hasConflict ? styles.techItemConflict : ''}`}
+                          style={hasConflict ? { border: '1px solid var(--color-error)' } : {}}
                         >
                           <div className={styles.techMainInfo}>
                             <input 
@@ -304,6 +379,12 @@ const TeamAssignment: React.FC = () => {
                             <div>
                               <p className={styles.techName}>{tech.name}</p>
                               {tech.phone && <p className={styles.techDesc}>{tech.phone}</p>}
+                              {hasConflict && (
+                                <p style={{ color: 'var(--color-error)', fontSize: '12px', marginTop: '4px' }}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: '12px', verticalAlign: 'middle', marginRight: '2px' }}>warning</span>
+                                  มีงานอื่นในเวลาเดียวกัน
+                                </p>
+                              )}
                             </div>
                           </div>
                           {isSelected && (
@@ -362,7 +443,7 @@ const TeamAssignment: React.FC = () => {
                     className={styles.confirmButton} 
                     type="button" 
                     onClick={() => setIsModalOpen(true)}
-                    disabled={submitting || selectedTechs.length === 0 || !appointmentDate || !appointmentTime}
+                    disabled={submitting || selectedTechs.length === 0 || !appointmentDate || !appointmentTime || conflictingTechs.length > 0}
                   >
                     <span className="material-symbols-outlined">check_circle</span>
                     ยืนยันการมอบหมาย

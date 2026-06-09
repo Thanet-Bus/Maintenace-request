@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime
 
 from app.model.assignments import Assignment
 from app.schemas.assignments import AssignmentCreate
@@ -95,9 +96,9 @@ def get_assignments_by_repair_request(
 def get_assignments_by_technician(
     db: Session,
     technician_id: int,
-) -> list[tuple[Assignment, RepairStatus]]:
+) -> list[tuple[Assignment, RepairStatus, datetime]]:
     return (
-        db.query(Assignment, RepairRequests.status)
+        db.query(Assignment, RepairRequests.status, RepairRequests.appointment_date)
         .join(RepairRequests, RepairRequests.id == Assignment.repair_request_id)
         .filter(
             Assignment.technician_id == technician_id,

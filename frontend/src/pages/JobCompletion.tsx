@@ -134,11 +134,25 @@ const JobCompletion: React.FC = () => {
     if (!isFormValid || !id) return;
 
     setIsSubmitting(true);
+    
+    const token = localStorage.getItem('access_token');
+    const userStr = localStorage.getItem('user');
+    
+    if (!token || !userStr) {
+      navigate('/login');
+      return;
+    }
+    
+    const user = JSON.parse(userStr);
+
     try {
       // 1. Update Request Status to COMPLETED
       const statusRes = await fetch(`${API_BASE_URL}/repair-requests/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           status: "COMPLETED",
           note: `ปิดงาน: ${summary}`,
@@ -152,11 +166,14 @@ const JobCompletion: React.FC = () => {
         const formData = new FormData();
         formData.append("repair_request_id", id.toString());
         formData.append("image_type", "COMPLETE");
-        formData.append("uploaded_by", "3"); // Use actual user id if available
+        formData.append("uploaded_by", user.id.toString());
         formData.append("file", photo);
 
         const photoRes = await fetch(`${API_BASE_URL}/repair-images`, {
           method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
           body: formData,
         });
         if (!photoRes.ok) console.warn("Failed to upload complete photo");
@@ -174,11 +191,14 @@ const JobCompletion: React.FC = () => {
           const sigFormData = new FormData();
           sigFormData.append("repair_request_id", id.toString());
           sigFormData.append("image_type", "SIGNATURE");
-          sigFormData.append("uploaded_by", "3"); // Use actual user id if available
+          sigFormData.append("uploaded_by", user.id.toString());
           sigFormData.append("file", signatureFile);
 
           const sigRes = await fetch(`${API_BASE_URL}/repair-images`, {
             method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`
+            },
             body: sigFormData,
           });
           if (!sigRes.ok) console.warn("Failed to upload signature");
@@ -191,7 +211,10 @@ const JobCompletion: React.FC = () => {
         .map((r) =>
           fetch(`${API_BASE_URL}/reviews`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
             body: JSON.stringify({
               repair_request_id: parseInt(id),
               technician_id: r.technician_id,

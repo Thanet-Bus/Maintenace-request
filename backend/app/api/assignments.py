@@ -74,23 +74,21 @@ def list_assignments_by_technician(
 ):
     assignments = get_assignments_by_technician(db, technician_id)
     if not assignments:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Not found for this technician",
-        )
+        return []
     
-    # Structure: dict[req_id, dict] => {"status": RepairStatus, "technicians": list[Assignment]}
+    # Structure: dict[req_id, dict] => {"status": RepairStatus, "appointment_date": datetime, "technicians": list[Assignment]}
     grouped_data = {}
-    for assignment, status_val in assignments:
+    for assignment, status_val, appointment_date in assignments:
         req_id = assignment.repair_request_id
         if req_id not in grouped_data:
-            grouped_data[req_id] = {"status": status_val, "technicians": []}
+            grouped_data[req_id] = {"status": status_val, "appointment_date": appointment_date, "technicians": []}
         grouped_data[req_id]["technicians"].append(assignment)
-        
+
     return [
         AssignmentStatusResponse(
             repair_request_id=req_id, 
             status=data["status"],
+            appointment_date=data["appointment_date"],
             technicians=data["technicians"]
         )
         for req_id, data in grouped_data.items()

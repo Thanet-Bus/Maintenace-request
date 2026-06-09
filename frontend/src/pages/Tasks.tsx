@@ -11,23 +11,55 @@ const Tasks: React.FC = () => {
   const [requests, setRequests] = useState<RepairRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-
   useEffect(() => {
-    // Fetch all requests for user 1 (mocking current user)
-    fetch(`${API_BASE_URL}/repair-requests`)
-      .then((res) => {
+    let cancelled = false;
+
+    async function loadTasks() {
+      const token = localStorage.getItem('access_token');
+      const userStr = localStorage.getItem('user');
+
+      if (!token || !userStr) {
+        if (!cancelled) navigate('/login');
+        return;
+      }
+
+      try {
+        // Fetch all requests
+        const res = await fetch(`${API_BASE_URL}/repair-requests`, {
+           headers: {
+             'Authorization': `Bearer ${token}`
+           }
+        });
+        
+        if (res.status === 401) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
+          if (!cancelled) navigate('/login');
+          throw new Error("Unauthorized");
+        }
+
         if (!res.ok) throw new Error("API failed");
-        return res.json();
-      })
-      .then((data) => {
-        setRequests(data.filter((req: RepairRequest) => req.status !== "PENDING" && req.status !== "COMPLETED"));
-        setLoading(false);
-      })
-      .catch((err) => {
+        
+        const data = await res.json();
+        
+        if (!cancelled) {
+          setRequests(data.filter((req: RepairRequest) => req.status !== "PENDING" && req.status !== "COMPLETED"));
+        }
+      } catch (err) {
         console.error("Failed to fetch API", err);
-        setLoading(false);
-      });
-  });
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadTasks();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   return (
     <Layout title="รายการแจ้งซ่อม">

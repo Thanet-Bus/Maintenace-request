@@ -15,14 +15,18 @@ from app.schemas.repair_requests import (
     RepairRequestResponse,
 )
 
+from app.core.dependencies import get_current_user
+from app.model.users import User
+
 router = APIRouter(prefix="/repair-requests", tags=["repair requests"])
 
 @router.post("", response_model=RepairRequestResponse)
 def create_request(
     data: RepairRequestCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    return create_repair_request(db, data, requester_id=1)
+    return create_repair_request(db, data, requester_id=current_user.id)
 
 
 @router.get("", response_model=list[RepairRequestResponse])

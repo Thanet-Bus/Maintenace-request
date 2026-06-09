@@ -39,10 +39,20 @@ const CreateRequest: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
+
+    const token = localStorage.getItem('access_token');
+    const userStr = localStorage.getItem('user');
+    
+    if (!token || !userStr) {
+      navigate('/login');
+      return;
+    }
+    
+    const user = JSON.parse(userStr);
 
     // Combine some of the form details that don't have dedicated backend fields into the description
     const fullDescription = `หมวดหมู่: ${category}\nเบอร์ติดต่อ: ${phone}\nรายละเอียด: ${details}`;
@@ -58,6 +68,7 @@ const CreateRequest: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(requestData),
       });
@@ -73,11 +84,14 @@ const CreateRequest: React.FC = () => {
         const formData = new FormData();
         formData.append('repair_request_id', createdRequest.id.toString());
         formData.append('image_type', 'REQUEST');
-        formData.append('uploaded_by', '1'); // Mock user id for demo_user
+        formData.append('uploaded_by', user.id.toString());
         formData.append('file', imageFile);
 
         const imageResponse = await fetch(`${API_BASE_URL}/repair-images`, {
           method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
           body: formData,
         });
 
