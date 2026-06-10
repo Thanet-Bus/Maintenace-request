@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
 import styles from "./OnHoldManagement.module.css";
-import { API_BASE_URL } from "../../config";
-import type { RepairRequest, RepairLog, RepairImage } from "../../types/types";
+import { API_BASE_URL, generateTimeOptions } from "../../config";
+import type { RepairRequest, RepairLog, RepairImage, TechnicianDetail } from "../../types/types";
 import { getStatusBadge } from "../../utils/statusUtils";
 
 type Technician = {
@@ -12,6 +12,8 @@ type Technician = {
   phone?: string | null;
   profile_image_url?: string | null;
 };
+  
+const timeOptions = generateTimeOptions("07:00", "19:00", 30);
 
 const OnHoldManagement: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +22,7 @@ const OnHoldManagement: React.FC = () => {
   const [request, setRequest] = useState<RepairRequest | null>(null);
   const [logs, setLogs] = useState<RepairLog[]>([]);
   const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [assignedTechs, setAssignedTechs] = useState<TechnicianDetail[]>([]);
   const [images, setImages] = useState<RepairImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -86,6 +89,19 @@ const OnHoldManagement: React.FC = () => {
     }
   }, [id]);
 
+  const fetchAssignedTechs = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/assignments/repair-request/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAssignedTechs(data.technicians || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch assigned technicians", err);
+    }
+  }, [id]);
+
   useEffect(() => {
     if (!id) return;
 
@@ -97,7 +113,8 @@ const OnHoldManagement: React.FC = () => {
           fetchRequestDetails(), 
           fetchLogs(),
           fetchTechnicians(),
-          fetchImages()
+          fetchImages(),
+          fetchAssignedTechs()
         ]);
       } catch (err) {
         if (!cancelled) {
@@ -115,7 +132,7 @@ const OnHoldManagement: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [id, fetchRequestDetails, fetchLogs, fetchTechnicians, fetchImages]);
+  }, [id, fetchRequestDetails, fetchLogs, fetchTechnicians, fetchImages, fetchAssignedTechs]);
 
   const handleTechToggle = (techId: number) => {
     setSelectedTechs(prev => {
@@ -312,6 +329,39 @@ const OnHoldManagement: React.FC = () => {
               </p>
             </div>
 
+            {assignedTechs.length > 0 && (
+              <div className={styles.card}>
+                <h3 className={styles.cardTitle}>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ color: "var(--color-primary)" }}
+                  >
+                    engineering
+                  </span>
+                  ช่างที่ได้รับมอบหมาย
+                </h3>
+                <div className={styles.techList}>
+                  {assignedTechs.map((tech) => (
+                    <div key={tech.id} className={styles.techItem}>
+                      <div className={styles.techMainInfo}>
+                        {tech.profile_image_url ? (
+                          <img className={styles.techAvatar} src={tech.profile_image_url} alt={tech.name} />
+                        ) : (
+                          <div className={styles.initialAvatar}>{tech.name?.charAt(0)}</div>
+                        )}
+                        <div>
+                          <p className={styles.techName}>
+                            {tech.name} {tech.is_leader && <span style={{ fontSize: "12px", color: "var(--color-primary)" }}>(หัวหน้าทีม)</span>}
+                          </p>
+                          {tech.phone && <p className={styles.techDesc}>{tech.phone}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className={styles.card}>
               <h3 className={styles.cardTitle}>
                 <span
@@ -482,13 +532,14 @@ const OnHoldManagement: React.FC = () => {
                       >
                         calendar_today
                       </span>
-                      <input
-                        className={styles.input}
-                        type="date"
-                        value={appointmentDate}
-                        onChange={(e) => setAppointmentDate(e.target.value)}
-                        required
-                      />
+                       <input
+                         className={styles.input}
+                         type="date"
+                         value={appointmentDate}
+                         min={request.appointment_date ? new Date(request.appointment_date).toISOString().split("T")[0] : undefined}
+                         onChange={(e) => setAppointmentDate(e.target.value)}
+                         required
+                       />
                     </div>
                     <div className={styles.inputWithIcon}>
                       <span
@@ -496,13 +547,20 @@ const OnHoldManagement: React.FC = () => {
                       >
                         schedule
                       </span>
-                      <input
+                      <select
                         className={styles.input}
-                        type="time"
                         value={appointmentTime}
                         onChange={(e) => setAppointmentTime(e.target.value)}
                         required
-                      />
+                      >
+                        <option value="">เลือกเวลา</option>
+
+                        {timeOptions.map((time) => (
+                          <option key={time} value={time}>
+                            {time}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>

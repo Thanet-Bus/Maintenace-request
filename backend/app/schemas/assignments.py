@@ -17,6 +17,9 @@ class TechnicianAssignmentDetail(BaseModel):
     technician_id: int
     is_leader: bool
     assigned_at: datetime
+    name: str | None = None
+    phone: str | None = None
+    profile_image_url: str | None = None
 
     model_config = {
         "from_attributes": True

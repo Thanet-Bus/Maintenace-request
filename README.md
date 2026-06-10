@@ -187,7 +187,7 @@ docker compose exec backend alembic downgrade -1
 - Refactor code like in jobdetail implement
 
 
-LINE Login
+LINE Login (change to use Authentik)
 → get LINE user id/profile
 → find/create users row
 → issue your own app token/JWT
@@ -198,9 +198,9 @@ LINE Login
 3. Add admin page to set user role = TECHNICIAN
 4. Add image upload using current_user.id as uploaded_by
 
-GET  /api/auth/line/login
-POST /api/auth/line/callback
-GET  /api/auth/me
+GET  /auth/line/login
+POST /auth/line/callback
+GET  /auth/me
 
 Frontend clicks Login with LINE
 → redirect to LINE authorization URL

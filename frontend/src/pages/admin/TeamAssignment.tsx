@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './TeamAssignment.module.css';
-import { API_BASE_URL } from '../../config';
+import { API_BASE_URL, generateTimeOptions } from '../../config';
 import type { RepairRequest, RepairImage } from '../../types/types';
 
 type Technician = {
@@ -11,29 +11,6 @@ type Technician = {
   phone?: string | null;
   profile_image_url?: string | null;
 };
-
-function generateTimeOptions(start, end, intervalMinutes) {
-  const options: string[] = [];
-
-  const [startHour, startMinute] = start.split(":").map(Number);
-  const [endHour, endMinute] = end.split(":").map(Number);
-
-  const current = new Date();
-  current.setHours(startHour, startMinute, 0, 0);
-
-  const last = new Date();
-  last.setHours(endHour, endMinute, 0, 0);
-
-  while (current <= last) {
-    const hour = String(current.getHours()).padStart(2, "0");
-    const minute = String(current.getMinutes()).padStart(2, "0");
-
-    options.push(`${hour}:${minute}`);
-    current.setMinutes(current.getMinutes() + intervalMinutes);
-  }
-
-  return options;
-}
 
 const TeamAssignment: React.FC = () => {
   const navigate = useNavigate();

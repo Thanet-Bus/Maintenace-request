@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 
 from app.model.assignments import Assignment
+from app.model.users import User
 from app.schemas.assignments import AssignmentCreate
 from app.model.logs import RepairLogs
 from app.model.repair_requests import RepairRequests
@@ -84,14 +85,17 @@ def get_assignment_by_request_and_tech(
         .first()
     )
 
-
 def get_assignments_by_repair_request(
     db: Session,
     repair_request_id: int,
-) -> list[Assignment]:
-    return db.query(Assignment).filter(
-        Assignment.repair_request_id == repair_request_id
-    ).order_by(Assignment.assigned_at.desc()).all()
+) -> list:
+    return (
+        db.query(Assignment, User)
+        .join(User, Assignment.technician_id == User.id)
+        .filter(Assignment.repair_request_id == repair_request_id)
+        .order_by(Assignment.assigned_at.desc())
+        .all()
+    )
 
 def get_assignments_by_technician(
     db: Session,
