@@ -149,6 +149,14 @@ const OnHoldManagement: React.FC = () => {
     });
   };
 
+  const isInvalidTime = () => {
+    if (!request?.appointment_date || !appointmentDate || !appointmentTime) return false;
+    const oldDateObj = new Date(request.appointment_date);
+    const oldDateStr = oldDateObj.toISOString().split("T")[0];
+    const oldTimeStr = oldDateObj.toTimeString().slice(0, 5);
+    return appointmentDate === oldDateStr && appointmentTime <= oldTimeStr;
+  };
+
   const handlePreReschedule = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage("");
@@ -156,6 +164,12 @@ const OnHoldManagement: React.FC = () => {
       setErrorMessage("กรุณาระบุวันและเวลาที่นัดหมายใหม่");
       return;
     }
+
+    if (isInvalidTime()) {
+      setErrorMessage("เวลาที่นัดหมายใหม่ต้องมากกว่าเวลาเดิม");
+      return;
+    }
+
     setIsRescheduleModalOpen(true);
   };
 
@@ -563,6 +577,12 @@ const OnHoldManagement: React.FC = () => {
                       </select>
                     </div>
                   </div>
+
+                  {isInvalidTime() && (
+                    <span style={{ color: 'var(--color-error)', fontSize: '13px', marginTop: '8px', display: 'block' }}>
+                      เวลาที่นัดหมายใหม่ต้องมากกว่าเวลาเดิม
+                    </span>
+                  )}
                 </div>
 
                 <div className={styles.fieldGroup}>
@@ -639,7 +659,7 @@ const OnHoldManagement: React.FC = () => {
                   <button
                     className={styles.confirmButton}
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || isInvalidTime()}
                   >
                     <span className="material-symbols-outlined">
                       check_circle
