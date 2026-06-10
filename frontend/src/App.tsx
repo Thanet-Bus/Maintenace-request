@@ -25,7 +25,7 @@ function App() {
         <Route path="/auth/line/callback" element={<Callback />} />
         <Route path="/complete-profile" element={<CompleteProfile />} />
         <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/requests" element={<AdminRequests />} />
+        <Route path="/admin" element={<AdminRequests />} />
         <Route path="/admin/technicians" element={<Technicians />} />
         <Route path="/admin/request/edit/:id" element={<AdminEditRequest />} />
         <Route path="/admin/request/complete/:id" element={<AdminCompletedRequest />} />

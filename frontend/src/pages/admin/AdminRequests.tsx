@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './AdminRequests.module.css';
 import { API_BASE_URL } from '../../config';
-import type { RepairRequest } from '../../types/types';
+import type { RepairRequest, User } from '../../types/types';
 import { getStatusBadge as getBaseStatusBadge } from '../../utils/statusUtils';
 
 const INITIAL_LOAD_COUNT = 15;
@@ -12,56 +12,90 @@ const LOAD_MORE_COUNT = 10;
 const AdminRequests: React.FC = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<RepairRequest[]>([]);
+  const [users, setUsers] = useState<Record<number, User>>({});
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [dateFilter, setDateFilter] = useState<string>('');
   
   // Lazy loading state
   const [visibleCount, setVisibleCount] = useState(INITIAL_LOAD_COUNT);
   const observerTarget = useRef<HTMLTableRowElement | null>(null);
 
-  const fetchRequests = useCallback( async () => {
-    return new Promise<void>((resolve, reject) => {
-      setLoading(true);
-      fetch(`${API_BASE_URL}/repair-requests`)
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch requests');
-          return res.json();
-        })
-        .then(data => {
-          setRequests(data);
-          resolve();
-        })
-        .catch(error => {
-          console.error('Error fetching requests:', error);
-          reject(error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    });
+  const fetchRequests = useCallback(async () => {
+    const res = await fetch(`${API_BASE_URL}/repair-requests`);
+    if (!res.ok) throw new Error('Failed to fetch requests');
+    const data = await res.json();
+    setRequests(data);
+  }, []);
+
+  const fetchUsers = useCallback(async () => {
+    const res = await fetch(`${API_BASE_URL}/users`);
+    if (!res.ok) throw new Error('Failed to fetch users');
+    const data: User[] = await res.json();
+    
+    const userMap = data.reduce((acc, user) => {
+      acc[user.id] = user;
+      return acc;
+    }, {} as Record<number, User>);
+    
+    setUsers(userMap);
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    
-    fetchRequests().catch(() => {
-        if (!isMounted) return;
-    });
+    let cancelled = false;
+
+    async function loadInitialData() {
+      try {
+        setLoading(true);
+        await Promise.all([
+          fetchRequests(),
+          fetchUsers()
+        ]);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Error loading page data", err);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadInitialData();
 
     return () => {
-      isMounted = false;
+      cancelled = true;
     };
-  }, [fetchRequests]);
+  }, [fetchRequests, fetchUsers]);
 
   const filteredRequests = requests.filter(req => {
     const matchesStatus = statusFilter === '' || req.status === statusFilter;
+    const userName = users[req.requester_id]?.name || `User ${req.requester_id}`;
+    
     const matchesSearch = searchQuery === '' || 
       req.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
       req.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       `#REQ-${req.id.toString().padStart(4, '0')}`.toLowerCase().includes(searchQuery.toLowerCase());
+      
+    let matchesDate = true;
+    if (dateFilter) {
+      // YYYY-MM-DD local representation
+      const createdDate = new Date(req.created_at);
+      const createdDateStr = new Date(createdDate.getTime() - (createdDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      
+      let apptDateStr = null;
+      if (req.appointment_date) {
+        const apptDate = new Date(req.appointment_date);
+        apptDateStr = new Date(apptDate.getTime() - (apptDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      }
+      
+      matchesDate = (createdDateStr === dateFilter) || (apptDateStr === dateFilter);
+    }
     
-    return matchesStatus && matchesSearch;
+    return matchesStatus && matchesSearch && matchesDate;
   });
 
   useEffect(() => {
@@ -142,13 +176,30 @@ const AdminRequests: React.FC = () => {
           <option value="CANCELLED">ยกเลิก</option>
         </select>
         <div className={styles.dateInputWrapper}>
+          <span className={`material-symbols-outlined ${styles.dateIcon}`}>search</span>
+          <input 
+            className={styles.dateInput} 
+            placeholder="ค้นหา..." 
+            type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className={styles.dateInputWrapper}>
           <span className={`material-symbols-outlined ${styles.dateIcon}`}>calendar_month</span>
-          <input className={styles.dateInput} placeholder="ช่วงวันที่" type="text" />
+          <input 
+            className={styles.dateInput} 
+            type="date" 
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+          />
         </div>
         <button className={styles.resetButton} onClick={() => {
             setSearchQuery('');
             setStatusFilter('');
-            fetchRequests();
+            setDateFilter('');
+            setLoading(true);
+            Promise.all([fetchRequests(), fetchUsers()]).finally(() => setLoading(false));
         }}>
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>restart_alt</span>
           รีเซ็ต
@@ -186,6 +237,7 @@ const AdminRequests: React.FC = () => {
                     const isPending = req.status === 'PENDING';
                     const isOnHold = req.status === 'ON_HOLD';
                     const isComplete = req.status === 'COMPLETED';
+                    const user = users[req.requester_id];
                     return (
                       <tr key={req.id} className={styles.row}>
                         <td>
@@ -204,10 +256,14 @@ const AdminRequests: React.FC = () => {
                         </td>
                         <td>
                           <div className={styles.requesterInfo}>
-                            <div className={`${styles.smallAvatar} ${styles.initialAvatar}`}>
-                              ID
-                            </div>
-                            <span>User {req.requester_id}</span>
+                            {user?.profile_image_url ? (
+                              <img src={user.profile_image_url} alt={user.name} className={styles.smallAvatar} />
+                            ) : (
+                              <div className={`${styles.smallAvatar} ${styles.initialAvatar}`}>
+                                {user?.name?.charAt(0) || 'U'}
+                              </div>
+                            )}
+                            <span>{user?.name || `User ${req.requester_id}`}</span>
                           </div>
                         </td>
                         <td>

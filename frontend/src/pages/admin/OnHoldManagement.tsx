@@ -192,7 +192,7 @@ const OnHoldManagement: React.FC = () => {
         body: JSON.stringify({
           appointment_date: isoDateTime,
           status: "ASSIGNED", // Move back to Assigned when rescheduled
-          note: `แอดมินกำหนดวันนัดหมายใหม่: ${appointmentDate} ${appointmentTime} น.`,
+          note: `แอดมินกำหนดวันนัดหมายใหม่`,
         }),
       });
 
@@ -338,7 +338,13 @@ const OnHoldManagement: React.FC = () => {
               >
                 วันเวลานัดหมายเดิม:{" "}
                 {request.appointment_date
-                  ? new Date(request.appointment_date).toLocaleString("th-TH") + ' น.'
+                  ? new Date(request.appointment_date).toLocaleString("th-TH", {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }) + ' น.'
                   : "-"}
               </p>
             </div>
