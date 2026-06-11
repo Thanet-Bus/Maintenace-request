@@ -14,6 +14,7 @@ const UserDashboard: React.FC = () => {
   const [requestLogs, setRequestLogs] = useState<{ [key: number]: RepairLog[] }>({});
   const [logsLoading, setLogsLoading] = useState<{ [key: number]: boolean }>({});
   const [requestAssignments, setRequestAssignments] = useState<{ [key: number]: AssignmentDetail[] }>({});
+  const [users, setUsers] = useState<Record<number, User>>({});
   const [userInfo, setUserInfo] = useState<User>(null);
 
   useEffect(() => {
@@ -32,21 +33,34 @@ const UserDashboard: React.FC = () => {
       if (!cancelled) setUserInfo(user);
 
       try {
-        const res = await fetch(`${API_BASE_URL}/repair-requests/requester/${user.id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const [requestsRes, usersRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/repair-requests/requester/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }),
+          fetch(`${API_BASE_URL}/users/technicians`)
+        ]);
 
-        if (res.status === 401) {
+        if (requestsRes.status === 401) {
           localStorage.removeItem('access_token');
           localStorage.removeItem('user');
           if (!cancelled) navigate('/login');
           throw new Error("Unauthorized");
         }
-        if (!res.ok) throw new Error("API failed");
+        if (!requestsRes.ok) throw new Error("API failed");
+        
+        let userMap: Record<number, User> = {};
+        if (usersRes.ok) {
+           const techData: User[] = await usersRes.json();
+           userMap = techData.reduce((acc, tech) => {
+             acc[tech.id] = tech;
+             return acc;
+           }, {} as Record<number, User>);
+           if (!cancelled) setUsers(userMap);
+        }
 
-        const data: RepairRequest[] = await res.json();
+        const data: RepairRequest[] = await requestsRes.json();
 
         if (!cancelled) {
           setRequests(data);
@@ -261,23 +275,32 @@ const UserDashboard: React.FC = () => {
                         <div className={styles.techAndImagesSection}>
                           <p className={styles.sectionSubtitle}>ทีมช่างที่รับผิดชอบ</p>
                           <div className={styles.techList}>
-                            {requestAssignments[request.id].map(assignment => (
-                              <div key={assignment.technician_id} className={styles.techItem}>
-                                <div className={`${styles.techAvatar} ${assignment.is_leader ? styles.techAvatarLead : styles.techAvatarRegular}`}>
-                                  <img 
-                                    src={assignment.is_leader 
-                                      ? "https://lh3.googleusercontent.com/aida-public/AB6AXuDUZ7iULgAMP6dKL_DqVDPds7OJ50FFD5IctlX8TWg6j1hb3VQ1vJch6F4a5Fi-MjdEDYZLU8NVSxs9SS_4KPQe8KE0WQsUykE5v-DrJnDuHgmt166WbFCfknyPiZSfsCIy-STkqR47fxUDhx9bD9y9Zfv0vIE8oDJa4z4yUTVeOC0PYdZvb_kzmYTQGRAfunQOL6KVnZityhTkgbOmdIzE-aTGkVv3D0HjvVLLfCpi8ftaSXMFLENCqoYwoCNIbArGbJAWwXunlwj0"
-                                      : "https://lh3.googleusercontent.com/aida-public/AB6AXuDv_yiorjYzWFH3zNQvWbU-zz-bc6Eo0cnrnayY2fCXWJWMQo7au5MVEHAHD9XnZ78u_i_-l_x3fGggWfJzUsFDAwe1rYZe5dNmtKCWyY2BCqbpWEn4LEOjYwDCySWxg7kJurYEJjxbF8PysPjeKQJVHEP5ZQ45VU1NAQwDax4hPnWOn-fYHAJ-clGLMWvIFtOacJRVm5XlJtxVAkF_H0Byez-2_MFBbcP8bVCD9-QluqvmLldN2PPtC2dJzRE4PCOZNdZOevn0g78-"
-                                    } 
-                                    alt="Tech" 
-                                  />
+                            {requestAssignments[request.id].map(assignment => {
+                              const techUser = users[assignment.technician_id];
+                              return (
+                                <div key={assignment.technician_id} className={styles.techItem}>
+                                  <div className={`${styles.techAvatar} ${assignment.is_leader ? styles.techAvatarLead : styles.techAvatarRegular}`}>
+                                    {techUser?.profile_image_url ? (
+                                      <img src={techUser.profile_image_url} alt="Tech" />
+                                    ) : (
+                                      <img 
+                                        src={assignment.is_leader 
+                                          ? "https://lh3.googleusercontent.com/aida-public/AB6AXuDUZ7iULgAMP6dKL_DqVDPds7OJ50FFD5IctlX8TWg6j1hb3VQ1vJch6F4a5Fi-MjdEDYZLU8NVSxs9SS_4KPQe8KE0WQsUykE5v-DrJnDuHgmt166WbFCfknyPiZSfsCIy-STkqR47fxUDhx9bD9y9Zfv0vIE8oDJa4z4yUTVeOC0PYdZvb_kzmYTQGRAfunQOL6KVnZityhTkgbOmdIzE-aTGkVv3D0HjvVLLfCpi8ftaSXMFLENCqoYwoCNIbArGbJAWwXunlwj0"
+                                          : "https://lh3.googleusercontent.com/aida-public/AB6AXuDv_yiorjYzWFH3zNQvWbU-zz-bc6Eo0cnrnayY2fCXWJWMQo7au5MVEHAHD9XnZ78u_i_-l_x3fGggWfJzUsFDAwe1rYZe5dNmtKCWyY2BCqbpWEn4LEOjYwDCySWxg7kJurYEJjxbF8PysPjeKQJVHEP5ZQ45VU1NAQwDax4hPnWOn-fYHAJ-clGLMWvIFtOacJRVm5XlJtxVAkF_H0Byez-2_MFBbcP8bVCD9-QluqvmLldN2PPtC2dJzRE4PCOZNdZOevn0g78-"
+                                        } 
+                                        alt="Tech Default" 
+                                      />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <span className={assignment.is_leader ? styles.techNameLead : styles.techNameRegular}>
+                                      {techUser?.name || assignment.technician_name || `ช่างเทคนิค ID: ${assignment.technician_id}`}
+                                    </span>
+                                    {assignment.is_leader && <span className={styles.leadBadge}>หัวหน้า</span>}
+                                  </div>
                                 </div>
-                                <div>
-                                  <span className={assignment.is_leader ? styles.techNameLead : styles.techNameRegular}>{assignment.technician_name || `ช่างเทคนิค ID: ${assignment.technician_id}`}</span>
-                                  {assignment.is_leader && <span className={styles.leadBadge}>หัวหน้า</span>}
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       )}

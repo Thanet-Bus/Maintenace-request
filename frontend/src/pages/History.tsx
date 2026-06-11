@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import type { RepairRequest, RepairLog, AssignmentDetail} from '../types/types';
+import type { RepairRequest, RepairLog, AssignmentDetail, User} from '../types/types';
 import styles from './UserDashboard.module.css'; // Reusing dashboard styles for consistency
 import { API_BASE_URL } from "../config";
 import { getStatusBadge } from '../utils/statusUtils';
@@ -18,6 +18,7 @@ const History: React.FC = () => {
   const [requestLogs, setRequestLogs] = useState<{ [key: number]: RepairLog[] }>({});
   const [logsLoading, setLogsLoading] = useState<{ [key: number]: boolean }>({});
   const [requestAssignments, setRequestAssignments] = useState<{ [key: number]: AssignmentDetail[] }>({});
+  const [users, setUsers] = useState<Record<number, User>>({});
 
   // Lazy loading state
   const [visibleCount, setVisibleCount] = useState(INITIAL_LOAD_COUNT);
@@ -30,22 +31,33 @@ const History: React.FC = () => {
     const userStr = localStorage.getItem('user');
     
     if (!token || !userStr) {
-      // Assuming navigate is imported and used, but History doesn't have it defined yet.
-      // Need to add useNavigate hook.
       navigate('/login');
       return; 
     }
     
     const user = JSON.parse(userStr);
 
-    fetch(`${API_BASE_URL}/repair-requests/requester/${user.id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("API failed");
-        return res.json();
+    Promise.all([
+      fetch(`${API_BASE_URL}/repair-requests/requester/${user.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${API_BASE_URL}/users/technicians`)
+    ])
+      .then(async ([requestsRes, usersRes]) => {
+        if (!requestsRes.ok) throw new Error("API failed");
+        
+        // let userMap: Record<number, User> = {};
+        if (usersRes.ok) {
+           const techData: User[] = await usersRes.json();
+           const techMap = techData.reduce((acc, tech) => {
+             acc[tech.id] = tech;
+             return acc;
+           }, {} as Record<number, User>);
+           if (isMounted) setUsers(techMap);
+        }
+
+        const data: RepairRequest[] = await requestsRes.json();
+        return data;
       })
       .then((data: RepairRequest[]) => {
         if (isMounted) {
@@ -223,23 +235,32 @@ const History: React.FC = () => {
                         <div className={styles.techAndImagesSection}>
                           <p className={styles.sectionSubtitle}>ทีมช่างที่รับผิดชอบ</p>
                           <div className={styles.techList}>
-                            {requestAssignments[request.id].map(assignment => (
-                              <div key={assignment.technician_id} className={styles.techItem}>
-                                <div className={`${styles.techAvatar} ${assignment.is_leader ? styles.techAvatarLead : styles.techAvatarRegular}`}>
-                                  <img 
-                                    src={assignment.is_leader 
-                                      ? "https://lh3.googleusercontent.com/aida-public/AB6AXuDUZ7iULgAMP6dKL_DqVDPds7OJ50FFD5IctlX8TWg6j1hb3VQ1vJch6F4a5Fi-MjdEDYZLU8NVSxs9SS_4KPQe8KE0WQsUykE5v-DrJnDuHgmt166WbFCfknyPiZSfsCIy-STkqR47fxUDhx9bD9y9Zfv0vIE8oDJa4z4yUTVeOC0PYdZvb_kzmYTQGRAfunQOL6KVnZityhTkgbOmdIzE-aTGkVv3D0HjvVLLfCpi8ftaSXMFLENCqoYwoCNIbArGbJAWwXunlwj0"
-                                      : "https://lh3.googleusercontent.com/aida-public/AB6AXuDv_yiorjYzWFH3zNQvWbU-zz-bc6Eo0cnrnayY2fCXWJWMQo7au5MVEHAHD9XnZ78u_i_-l_x3fGggWfJzUsFDAwe1rYZe5dNmtKCWyY2BCqbpWEn4LEOjYwDCySWxg7kJurYEJjxbF8PysPjeKQJVHEP5ZQ45VU1NAQwDax4hPnWOn-fYHAJ-clGLMWvIFtOacJRVm5XlJtxVAkF_H0Byez-2_MFBbcP8bVCD9-QluqvmLldN2PPtC2dJzRE4PCOZNdZOevn0g78-"
-                                    } 
-                                    alt="Tech" 
-                                  />
+                            {requestAssignments[request.id].map(assignment => {
+                              const techUser = users[assignment.technician_id];
+                              return (
+                                <div key={assignment.technician_id} className={styles.techItem}>
+                                  <div className={`${styles.techAvatar} ${assignment.is_leader ? styles.techAvatarLead : styles.techAvatarRegular}`}>
+                                    {techUser?.profile_image_url ? (
+                                      <img src={techUser.profile_image_url} alt="Tech" />
+                                    ) : (
+                                      <img 
+                                        src={assignment.is_leader 
+                                          ? "https://lh3.googleusercontent.com/aida-public/AB6AXuDUZ7iULgAMP6dKL_DqVDPds7OJ50FFD5IctlX8TWg6j1hb3VQ1vJch6F4a5Fi-MjdEDYZLU8NVSxs9SS_4KPQe8KE0WQsUykE5v-DrJnDuHgmt166WbFCfknyPiZSfsCIy-STkqR47fxUDhx9bD9y9Zfv0vIE8oDJa4z4yUTVeOC0PYdZvb_kzmYTQGRAfunQOL6KVnZityhTkgbOmdIzE-aTGkVv3D0HjvVLLfCpi8ftaSXMFLENCqoYwoCNIbArGbJAWwXunlwj0"
+                                          : "https://lh3.googleusercontent.com/aida-public/AB6AXuDv_yiorjYzWFH3zNQvWbU-zz-bc6Eo0cnrnayY2fCXWJWMQo7au5MVEHAHD9XnZ78u_i_-l_x3fGggWfJzUsFDAwe1rYZe5dNmtKCWyY2BCqbpWEn4LEOjYwDCySWxg7kJurYEJjxbF8PysPjeKQJVHEP5ZQ45VU1NAQwDax4hPnWOn-fYHAJ-clGLMWvIFtOacJRVm5XlJtxVAkF_H0Byez-2_MFBbcP8bVCD9-QluqvmLldN2PPtC2dJzRE4PCOZNdZOevn0g78-"
+                                        } 
+                                        alt="Tech Default" 
+                                      />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <span className={assignment.is_leader ? styles.techNameLead : styles.techNameRegular}>
+                                      {techUser?.name || assignment.technician_name || `ช่างเทคนิค ID: ${assignment.technician_id}`}
+                                    </span>
+                                    {assignment.is_leader && <span className={styles.leadBadge}>หัวหน้า</span>}
+                                  </div>
                                 </div>
-                                <div>
-                                  <span className={assignment.is_leader ? styles.techNameLead : styles.techNameRegular}>{assignment.technician_name || `ช่างเทคนิค ID: ${assignment.technician_id}`}</span>
-                                  {assignment.is_leader && <span className={styles.leadBadge}>หัวหน้า</span>}
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       )}
