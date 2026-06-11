@@ -1,123 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './Technicians.module.css';
-import { API_BASE_URL } from '../../config';
 import JobCard from '../../components/JobCard';
-import type { RepairRequest, AssignmentResponse } from '../../types/types';
-
-type Technician = {
-  id: number;
-  username: string;
-  name: string;
-  phone?: string | null;
-  profile_image_url?: string | null;
-  activeJobsCount?: number;
-  avgRating?: number;
-};
+import { useTechnicians } from '../../hooks/admin/useTechnicians';
 
 const Technicians: React.FC = () => {
-  const [technicians, setTechnicians] = useState<Technician[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // History Modal State
-  const [selectedTech, setSelectedTech] = useState<Technician | null>(null);
-  const [techRequests, setTechRequests] = useState<RepairRequest[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const fetchTechnicians = useCallback(async () => {
-    const res = await fetch(`${API_BASE_URL}/users/technicians`);
-    if (!res.ok) throw new Error("Failed to fetch technicians");
-    const data = await res.json();
-    
-    const techsWithStats = await Promise.all(data.map(async (tech: Technician) => {
-      let activeJobsCount = 0;
-      let avgRating = 0;
-      
-      try {
-        const [asRes, revRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/assignments/technician/${tech.id}`),
-          fetch(`${API_BASE_URL}/reviews/technician/${tech.id}`)
-        ]);
-        
-        if (asRes.ok) {
-          const assignments = await asRes.json();
-          activeJobsCount = assignments.length;
-        }
-        
-        if (revRes.ok) {
-          const reviews = await revRes.json();
-          if (reviews.length > 0) {
-            avgRating = reviews.reduce((sum: number, r: {rating: number}) => sum + r.rating, 0) / reviews.length;
-          }
-        }
-      } catch (err) {
-         console.error(`Failed to fetch stats for tech ${tech.id} ${err}`);
-      }
-      
-      return { ...tech, activeJobsCount, avgRating };
-    }));
-    
-    setTechnicians(techsWithStats);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadInitialData() {
-      try {
-        await Promise.all([
-          fetchTechnicians(),
-        ]);
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Error loading page data", err);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadInitialData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchTechnicians]);
-
-  const handleViewHistory = useCallback(async (tech: Technician) => {
-    setSelectedTech(tech);
-    setIsModalOpen(true);
-    setHistoryLoading(true);
-    setTechRequests([]);
-
-    try {
-      // 1. Get assignments for this technician
-      const res = await fetch(`${API_BASE_URL}/assignments/technician/${tech.id}`);
-      if (!res.ok) throw new Error("Failed to fetch assignments");
-      const assignments: AssignmentResponse[] = await res.json(); 
-
-      // 2. Fetch full details for each unique request
-      const requestIds = assignments.map((a: AssignmentResponse) => a.repair_request_id);
-      const uniqueIds = Array.from(new Set(requestIds));
-
-      const requestDetails = await Promise.all(
-        uniqueIds.map(async (id) => {
-          const rRes = await fetch(`${API_BASE_URL}/repair-requests/${id}`);
-          if (rRes.ok) return rRes.json();
-          return null;
-        })
-      );
-
-      setTechRequests(requestDetails.filter(r => r !== null));
-    } catch (err) {
-      console.error("Error loading technician history", err);
-    } finally {
-      setHistoryLoading(false);
-    }
-  }, []);
+  const {
+    technicians,
+    loading,
+    selectedTech,
+    techRequests,
+    historyLoading,
+    isModalOpen, setIsModalOpen,
+    handleViewHistory
+  } = useTechnicians();
 
   return (
     <AdminLayout>

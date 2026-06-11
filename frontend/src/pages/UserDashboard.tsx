@@ -1,125 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import type { RepairRequest, RepairLog, AssignmentDetail, User} from '../types/types';
 import styles from './UserDashboard.module.css';
-import { API_BASE_URL } from "../config";
 import { getStatusBadge } from '../utils/statusUtils';
+import { useUserDashboard } from '../hooks/useUserDashboard';
 
 const UserDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [requests, setRequests] = useState<RepairRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [expandedRequestId, setExpandedRequestId] = useState<number | null>(null);
-  const [requestLogs, setRequestLogs] = useState<{ [key: number]: RepairLog[] }>({});
-  const [logsLoading, setLogsLoading] = useState<{ [key: number]: boolean }>({});
-  const [requestAssignments, setRequestAssignments] = useState<{ [key: number]: AssignmentDetail[] }>({});
-  const [users, setUsers] = useState<Record<number, User>>({});
-  const [userInfo, setUserInfo] = useState<User>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadData() {
-      const token = localStorage.getItem('access_token');
-      const userStr = localStorage.getItem('user');
-
-      if (!token || !userStr) {
-        if (!cancelled) navigate('/login');
-        return;
-      }
-
-      const user = JSON.parse(userStr);
-      if (!cancelled) setUserInfo(user);
-
-      try {
-        const [requestsRes, usersRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/repair-requests/requester/${user.id}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }),
-          fetch(`${API_BASE_URL}/users/technicians`)
-        ]);
-
-        if (requestsRes.status === 401) {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('user');
-          if (!cancelled) navigate('/login');
-          throw new Error("Unauthorized");
-        }
-        if (!requestsRes.ok) throw new Error("API failed");
-        
-        let userMap: Record<number, User> = {};
-        if (usersRes.ok) {
-           const techData: User[] = await usersRes.json();
-           userMap = techData.reduce((acc, tech) => {
-             acc[tech.id] = tech;
-             return acc;
-           }, {} as Record<number, User>);
-           if (!cancelled) setUsers(userMap);
-        }
-
-        const data: RepairRequest[] = await requestsRes.json();
-
-        if (!cancelled) {
-          setRequests(data);
-          
-          // Fetch assignments for all returned requests
-          data.forEach(req => {
-            fetch(`${API_BASE_URL}/assignments/repair-request/${req.id}`)
-              .then(assignRes => assignRes.ok ? assignRes.json() : null)
-              .then(assignData => {
-                if (!cancelled && assignData && assignData.technicians) {
-                  setRequestAssignments(prev => ({ ...prev, [req.id]: assignData.technicians }));
-                }
-              })
-              .catch(err => console.error("Failed to fetch assignments", err));
-          });
-        }
-      } catch (err) {
-        console.error("Failed to fetch API", err);
-        if (!cancelled) {
-          setRequests([]);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [navigate]);
-
-  const toggleLogs = async (requestId: number) => {
-    if (expandedRequestId === requestId) {
-      setExpandedRequestId(null);
-      return;
-    }
-
-    setExpandedRequestId(requestId);
-
-    // Only fetch if not already loaded
-    if (!requestLogs[requestId]) {
-      setLogsLoading(prev => ({ ...prev, [requestId]: true }));
-      try {
-        const response = await fetch(`${API_BASE_URL}/logs/request/${requestId}`);
-        if (!response.ok) throw new Error('Failed to fetch logs');
-        const data = await response.json();
-        setRequestLogs(prev => ({ ...prev, [requestId]: data }));
-      } catch (err) {
-        console.error("Failed to fetch logs", err);
-        setRequestLogs(prev => ({ ...prev, [requestId]: [] }));
-      } finally {
-        setLogsLoading(prev => ({ ...prev, [requestId]: false }));
-      }
-    }
-  };
+  const {
+    userInfo,
+    requests,
+    loading,
+    expandedRequestId,
+    requestLogs,
+    logsLoading,
+    requestAssignments,
+    users,
+    toggleLogs
+  } = useUserDashboard();
 
   const totalCount = requests.length;
   const pendingCount = requests.filter(r => r.status === 'PENDING' || r.status === 'ON_HOLD').length;

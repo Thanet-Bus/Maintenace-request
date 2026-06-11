@@ -1,32 +1,33 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './AdminEditRequest.module.css';
 import { API_BASE_URL } from '../../config';
-import type { RepairRequest, TechnicianDetail, RepairLog, RepairImage } from '../../types/types';
 import { getStatusBadge } from '../../utils/statusUtils';
+import { useAdminEditRequest } from '../../hooks/admin/useAdminEditRequest';
 
 const AdminEditRequest: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  const [request, setRequest] = useState<RepairRequest | null>(null);
-  const [logs, setLogs] = useState<RepairLog[]>([]);
-  const [images, setImages] = useState<RepairImage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const {
+    request,
+    logs,
+    images,
+    loading,
+    submitting,
+    title, setTitle,
+    location, setLocation,
+    description, setDescription,
+    status, setStatus,
+    note, setNote,
+    executeSubmit
+  } = useAdminEditRequest(id);
   
   // Custom Alert / Modal State
   const [errorMessage, setErrorMessage] = useState('');
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-  
-  // Form state
-  const [title, setTitle] = useState('');
-  const [location, setLocation] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('');
-  const [note, setNote] = useState('');
 
   const formatDateTime = (isoString: string) => {
     return new Date(isoString).toLocaleString('th-TH', {
@@ -38,111 +39,6 @@ const AdminEditRequest: React.FC = () => {
       timeZone: 'Asia/Bangkok'
     }) + ' น.';
   };
-
-  const fetchRequestDetails = useCallback(async () => {
-    if (!id) return;
-    const res = await fetch(`${API_BASE_URL}/repair-requests/${id}`);
-    if (!res.ok) {
-      throw new Error('Failed to fetch request');
-    }
-    const data = await res.json();
-    setRequest(data);
-    setTitle(data.title);
-    setLocation(data.location);
-    setDescription(data.description || '');
-    setStatus(data.status);
-  }, [id]);
-
-  const fetchLogs = useCallback(async () => {
-    if (!id) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/logs/request/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setLogs(data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch logs", err);
-    }
-  }, [id]);
-
-  const fetchImages = useCallback(async () => {
-    if (!id) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/repair-images/repair-request/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setImages(data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch images", err);
-    }
-  }, [id]);
-
-  const fetchAssignments = useCallback(async () => {
-    if (!id) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/assignments/repair-request/${id}`);
-      const data = await res.json();
-      if (data.technicians) {
-        const techDetails: TechnicianDetail[] = await Promise.all(
-          data.technicians.map(async (t: { technician_id: number; is_leader: boolean }) => {
-            try {
-              const userRes = await fetch(`${API_BASE_URL}/users/${t.technician_id}`);
-              const userData = await userRes.json();
-              return {
-                id: t.technician_id,
-                name: userData.name || `Technician ${t.technician_id}`,
-                is_leader: t.is_leader,
-              };
-            } catch {
-              return {
-                id: t.technician_id,
-                name: `Technician ${t.technician_id}`,
-                is_leader: t.is_leader,
-              };
-            }
-          })
-        );
-        setRequest(prev => prev ? { ...prev, technicians: techDetails } : prev);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    if (!id) return;
-
-    let cancelled = false;
-
-    window.scrollTo(0, 0);
-
-    async function loadInitialData() {
-      try {
-        await Promise.all([
-          fetchRequestDetails(),
-          fetchAssignments(),
-          fetchLogs(),
-          fetchImages(),
-        ]);
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Error loading page data", err);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadInitialData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id, fetchRequestDetails, fetchAssignments, fetchLogs, fetchImages]);
 
   const handlePreSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -156,33 +52,14 @@ const AdminEditRequest: React.FC = () => {
     setIsConfirmModalOpen(true);
   };
 
-  const executeSubmit = async () => {
-    if (!id) return;
-
-    setSubmitting(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/repair-requests/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          location,
-          description,
-          status,
-          note: note || `แอดมินแก้ไขใบงาน`
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to update request');
-
-      navigate('/admin/requests');
-    } catch (err) {
-      console.error(err);
-      setErrorMessage('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-      setIsConfirmModalOpen(false);
-    } finally {
-      setSubmitting(false);
-    }
+  const handleExecuteSubmit = () => {
+    executeSubmit(
+      () => {}, // navigation is handled inside the hook on success
+      () => {
+        setErrorMessage('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        setIsConfirmModalOpen(false);
+      }
+    );
   };
 
   if (loading) {
@@ -496,7 +373,7 @@ const AdminEditRequest: React.FC = () => {
               </button>
               <button 
                 className={styles.modalConfirmButton} 
-                onClick={executeSubmit}
+                onClick={handleExecuteSubmit}
                 disabled={submitting}
               >
                 {submitting ? 'กำลังบันทึก...' : 'ยืนยันการบันทึก'}

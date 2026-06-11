@@ -1,0 +1,50 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../utils/apiClient';
+import type { RepairRequest } from '../types/types';
+
+export function useTasks() {
+  const navigate = useNavigate();
+  const [requests, setRequests] = useState<RepairRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTasks() {
+      const userStr = localStorage.getItem('user');
+
+      if (!userStr) {
+        if (!cancelled) navigate('/login');
+        return;
+      }
+
+      try {
+        const data = await apiClient('/repair-requests');
+        
+        if (!cancelled) {
+          setRequests((data as RepairRequest[]).filter((req: RepairRequest) => req.status !== "PENDING" && req.status !== "COMPLETED"));
+        }
+      } catch (err: unknown) {
+        console.error("Failed to fetch API", err);
+        if (err instanceof Error && err.message.includes('401')) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
+          if (!cancelled) navigate('/login');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadTasks();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+
+  return { requests, loading };
+}

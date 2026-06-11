@@ -1,208 +1,32 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import OnHoldReport from "../components/OnHoldReport";
-import type {
-  RepairRequest,
-  RepairLog,
-  AssignmentResponse,
-  AssignmentDetail,
-  RepairImage,
-} from "../types/types";
 import styles from "./JobDetail.module.css";
 import { API_BASE_URL } from "../config";
 import { getStatusBadge } from "../utils/statusUtils";
+import { useJobDetail } from "../hooks/useJobDetail";
 
 const JobDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const {
+    request,
+    logs,
+    assignments,
+    images,
+    requester,
+    requestLoading,
+    logsLoading,
+    assignmentsLoading,
+    imagesLoading,
+    requesterLoading,
+    refreshing,
+    handleOnHoldConfirm,
+    handleAcceptWork
+  } = useJobDetail(id);
 
-  const [request, setRequest] = useState<RepairRequest | null>(null);
-  const [logs, setLogs] = useState<RepairLog[]>([]);
-  const [assignments, setAssignments] = useState<AssignmentDetail[]>([]);
-  const [images, setImages] = useState<RepairImage[]>([]);
-
-  const [requestLoading, setRequestLoading] = useState(true);
-  const [logsLoading, setLogsLoading] = useState(true);
-  const [assignmentsLoading, setAssignmentsLoading] = useState(true);
-  const [imagesLoading, setImagesLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [isOnHoldReportOpen, setIsOnHoldReportOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-
-  const fetchRequestDetails = useCallback(async () => {
-    if (!id) return;
-    const res = await fetch(`${API_BASE_URL}/repair-requests/${id}`);
-    if (!res.ok) {
-      throw new Error("Failed to fetch request");
-    }
-    const data = await res.json();
-    setRequest(data);
-  }, [id]);
-
-  const fetchLogs = useCallback(async () => {
-    if (!id) return;
-    const res = await fetch(`${API_BASE_URL}/logs/request/${id}`);
-    if (!res.ok) {
-      throw new Error("Failed to fetch logs");
-    }
-    const data = await res.json();
-    setLogs(data);
-  }, [id]);
-
-  const fetchAssignments = useCallback(async () => {
-    if (!id) return;
-    const res = await fetch(`${API_BASE_URL}/assignments/repair-request/${id}`);
-    if (!res.ok) {
-      throw new Error("Failed to fetch assignments");
-    }
-    const data: AssignmentResponse = await res.json();
-    setAssignments(data.technicians);
-  }, [id]);
-
-  const fetchImages = useCallback(async () => {
-    if (!id) return;
-    const res = await fetch(
-      `${API_BASE_URL}/repair-images/repair-request/${id}`,
-    );
-    if (!res.ok) {
-      throw new Error("Failed to fetch images");
-    }
-    const data = await res.json();
-    setImages(data);
-  }, [id]);
-
-  useEffect(() => {
-    if (!id) return;
-
-    let cancelled = false;
-
-    window.scrollTo(0, 0);
-
-    async function loadInitialData() {
-      try {
-        await Promise.all([
-          fetchRequestDetails(),
-          fetchLogs(),
-          fetchAssignments(),
-          fetchImages(),
-        ]);
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Error loading page data", err);
-        }
-      } finally {
-        if (!cancelled) {
-          setRequestLoading(false);
-          setLogsLoading(false);
-          setAssignmentsLoading(false);
-          setImagesLoading(false);
-        }
-      }
-    }
-
-    loadInitialData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id, fetchRequestDetails, fetchLogs, fetchAssignments, fetchImages]);
-
-  const handleOnHoldConfirm = async (reason: string, notes: string, photo: File | null) => {
-    if (!id) return;
-
-    const token = localStorage.getItem('access_token');
-    const userStr = localStorage.getItem('user');
-    
-    if (!token || !userStr) {
-      navigate('/login');
-      return;
-    }
-    
-    const user = JSON.parse(userStr);
-
-    const fullNote = `พักงาน: ${reason}${notes ? ` - ${notes}` : ""}`;
-
-    try {
-      setRefreshing(true);
-      const response = await fetch(`${API_BASE_URL}/repair-requests/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          status: "ON_HOLD",
-          note: fullNote,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update status to ON_HOLD");
-      }
-
-      if (photo) {
-        const formData = new FormData();
-        formData.append("repair_request_id", id.toString());
-        formData.append("image_type", "ON_HOLD");
-        formData.append("uploaded_by", user.id.toString());
-        formData.append("file", photo);
-
-        const photoRes = await fetch(`${API_BASE_URL}/repair-images`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${token}`
-          },
-          body: formData,
-        });
-
-        if (!photoRes.ok) {
-          console.warn("Failed to upload ON_HOLD photo");
-        }
-      }
-
-      await Promise.all([fetchRequestDetails(), fetchLogs(), fetchImages()]);
-    } catch (error) {
-      console.error("Error confirming on hold:", error);
-      throw error;
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  const handleAcceptWork = async () => {
-    if (!id || !request) return;
-
-    if (request.status === "ASSIGNED" || request.status === "ON_HOLD") {
-      try {
-        setRefreshing(true);
-        const response = await fetch(`${API_BASE_URL}/repair-requests/${id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            status: "IN_PROGRESS",
-            note: "รับงาน: ช่างเทคนิคกำลังเดินทางไปตรวจสอบ",
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to update status to IN_PROGRESS");
-        }
-
-        // Navigate to completion page after successfully accepting
-        navigate(`/request/${id}/complete`);
-      } catch (error) {
-        console.error("Error accepting work:", error);
-        alert("เกิดข้อผิดพลาดในการรับงาน กรุณาลองอีกครั้ง");
-        setRefreshing(false);
-      }
-    } else {
-      // If already in progress, just go to completion page
-      navigate(`/request/${id}/complete`);
-    }
-  };
 
   if (requestLoading) {
     return (
@@ -225,7 +49,7 @@ const JobDetail: React.FC = () => {
           </p>
           <button
             className={styles.primaryButton}
-            onClick={() => navigate("/tasks")}
+            onClick={() => window.history.back()}
           >
             กลับไปหน้ารวมงาน
           </button>
@@ -284,16 +108,29 @@ const JobDetail: React.FC = () => {
             <div className={styles.divider}></div>
             <div className={styles.requesterBox}>
               <div className={styles.avatar}>
-                <img
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9X0kH8DY9cT8ZRH8rm0kww-0Fkj10u_ytZaEhfg_xy-PdO3yeSirWrUUG_p5W-PsIiQPn4zIw3QSLmVIYebRrq0wIq-SYZfIpiUo3LFLwB0e7sZgFERGbGXNWIw_2QuA5gTiklg52v_cTpyuqBhGRqwD8KqLBOIvRD1zP2edEuDxI4MWRloIdWDgUR_LD6srgXKtcZ71SfZh4smalvP7HfNBUqlflCtSf-ZnSCrN_uFpLj9Ax3VCyzEzy7bQPeBid8CDL9dDaeROv"
-                  alt="Requester"
-                />
+                {requesterLoading ? (
+                  <span className="material-symbols-outlined text-outline" style={{ fontSize: "32px" }}>person</span>
+                ) : requester?.profile_image_url ? (
+                  <img
+                    src={requester.profile_image_url}
+                    alt="Requester"
+                  />
+                ) : (
+                  <span className="material-symbols-outlined text-outline" style={{ fontSize: "32px" }}>person</span>
+                )}
               </div>
               <div className={styles.requesterInfo}>
                 <span className={styles.requesterLabel}>
                   ผู้แจ้ง (Requester)
                 </span>
-                <span className={styles.requesterName}>คุณวิภาดา</span>
+                <span className={styles.requesterName}>
+                  {requesterLoading ? "กำลังโหลด..." : requester?.name || `ผู้ใช้ ID: ${request.requester_id}`}
+                </span>
+                <div className={styles.speechBubble}>
+                  <span className={styles.speechBubbleText}>
+                    {requesterLoading ? "กำลังโหลด..." : request?.description || 'ไม่ระบุ'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -337,10 +174,6 @@ const JobDetail: React.FC = () => {
                 ไม่มีรูปภาพประกอบ
               </p>
             )}
-            {/* <button className={styles.addPhotoButton}>
-              <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>add_photo_alternate</span>
-              <span style={{ fontSize: '12px', fontWeight: '600' }}>เพิ่มรูปภาพ</span>
-            </button> */}
           </div>
         </section>
 
@@ -397,7 +230,7 @@ const JobDetail: React.FC = () => {
           )}
         </section>
 
-        {/* Logs Section (Maintaining for User tracking) */}
+        {/* Logs Section */}
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>ประวัติการดำเนินการ (Logs)</h3>
           <div

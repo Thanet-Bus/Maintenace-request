@@ -1,98 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import styles from './CompleteProfile.module.css';
-import { API_BASE_URL } from '../config';
-import type { User } from '../types/types';
+import { useCompleteProfile } from '../hooks/useCompleteProfile';
 
 const CompleteProfile: React.FC = () => {
-  const navigate = useNavigate();
   const [empId, setEmpId] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const { user, loading, error, setError, completeProfile } = useCompleteProfile();
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadUserData() {
-      try {
-        const tokenStr = localStorage.getItem('access_token');
-        const userStr = localStorage.getItem('user');
-
-        if (!tokenStr || !userStr) {
-          if (!cancelled) navigate('/login');
-          return;
-        }
-
-        const userData = JSON.parse(userStr);
-        
-        if (userData.emp_id) {
-          if (!cancelled) navigate('/dashboard');
-          return;
-        }
-
-        if (!cancelled) {
-          setToken(tokenStr);
-          setUser(userData);
-        }
-      } catch (err) {
-        console.error("Error loading user data from local storage", err);
-        // If JSON.parse fails, clear corrupted data and force re-login
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
-        if (!cancelled) navigate('/login');
-      }
-    }
-
-    loadUserData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [navigate]);
-
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!empId.trim()) {
       setError('กรุณากรอกรหัสพนักงาน (Please enter Employee ID)');
       return;
     }
-
-    if (!user || !token) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ emp_id: empId }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.detail || 'Failed to update profile');
-      }
-
-      const updatedUser = await response.json();
-      
-      // Update local storage with the new user data
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      
-      // Navigate to dashboard
-      navigate('/dashboard', { replace: true });
-    } catch (err: unknown) {
-      console.error(err);
-      const message = err instanceof Error ? err.message : 'An error occurred while updating your profile.';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
+    await completeProfile(empId);
   };
 
   if (!user) return null; // Or a loading spinner
@@ -114,7 +34,10 @@ const CompleteProfile: React.FC = () => {
               id="empId"
               className={styles.input}
               value={empId}
-              onChange={(e) => setEmpId(e.target.value)}
+              onChange={(e) => {
+                setEmpId(e.target.value);
+                if (error) setError(null);
+              }}
               placeholder="เช่น EMP12345"
               disabled={loading}
             />

@@ -1,73 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { API_BASE_URL } from '../../config';
-import type { RepairRequest, RepairImage, RepairLog, Review } from '../../types/types';
 import styles from './AdminCompletedRequest.module.css';
 import { getStatusBadge } from '../../utils/statusUtils';
+import { useAdminCompletedRequest } from '../../hooks/admin/useAdminCompletedRequest';
 
 const AdminCompletedRequest: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [request, setRequest] = useState<RepairRequest | null>(null);
-  const [images, setImages] = useState<RepairImage[]>([]);
-  const [logs, setLogs] = useState<RepairLog[]>([]);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  const { request, images, logs, reviews, loading, error } = useAdminCompletedRequest(id);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-
-  const fetchRequestData = useCallback(() => {
-    if (!id) return;
-    setLoading(true);
-    
-    Promise.all([
-      fetch(`${API_BASE_URL}/repair-requests/${id}`).then(res => {
-        if (!res.ok) throw new Error("Failed to fetch request details");
-        return res.json();
-      }),
-      fetch(`${API_BASE_URL}/repair-images/repair-request/${id}`).then(res => {
-        if (!res.ok) return []; // Ignore errors, return empty
-        return res.json();
-      }),
-      fetch(`${API_BASE_URL}/logs/request/${id}`).then(res => {
-        if (!res.ok) return []; // Ignore errors, return empty
-        return res.json();
-      }),
-      fetch(`${API_BASE_URL}/reviews/request/${id}`).then(res => {
-        if (!res.ok) return []; // Ignore errors, return empty
-        return res.json();
-      })
-    ])
-    .then(([reqData, imgsData, logsData, reviewsData]) => {
-      setRequest(reqData);
-      setImages(imgsData);
-      setLogs(logsData);
-      setReviews(reviewsData);
-    })
-    .catch(err => {
-      console.error(err);
-      setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
-    })
-    .finally(() => {
-      setLoading(false);
-    });
-  }, [id]);
-
-  useEffect(() => {
-    let isMounted = true;
-    
-    const loadData = async () => {
-        if (!isMounted) return;
-        await fetchRequestData();
-    };
-    
-    loadData();
-
-    return () => {
-        isMounted = false;
-    };
-  }, [fetchRequestData]);
 
   if (loading) {
      return (
@@ -95,7 +38,6 @@ const AdminCompletedRequest: React.FC = () => {
         </AdminLayout>
       );
     }
-
 
   // Group images by type
   const beforeImages = images.filter(img => img.image_type === 'REQUEST' || img.image_type === 'ON_HOLD');

@@ -1,135 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import Layout from '../components/Layout';
-import type { RepairRequest, RepairLog, AssignmentDetail, User} from '../types/types';
 import styles from './UserDashboard.module.css'; // Reusing dashboard styles for consistency
-import { API_BASE_URL } from "../config";
 import { getStatusBadge } from '../utils/statusUtils';
-
-const INITIAL_LOAD_COUNT = 5;
-const LOAD_MORE_COUNT = 5;
+import { useHistory } from '../hooks/useHistory';
 
 const History: React.FC = () => {
-  const navigate = useNavigate();
-
-  const [requests, setRequests] = useState<RepairRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [expandedRequestId, setExpandedRequestId] = useState<number | null>(null);
-  const [requestLogs, setRequestLogs] = useState<{ [key: number]: RepairLog[] }>({});
-  const [logsLoading, setLogsLoading] = useState<{ [key: number]: boolean }>({});
-  const [requestAssignments, setRequestAssignments] = useState<{ [key: number]: AssignmentDetail[] }>({});
-  const [users, setUsers] = useState<Record<number, User>>({});
-
-  // Lazy loading state
-  const [visibleCount, setVisibleCount] = useState(INITIAL_LOAD_COUNT);
-  const observerTarget = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    
-    const token = localStorage.getItem('access_token');
-    const userStr = localStorage.getItem('user');
-    
-    if (!token || !userStr) {
-      navigate('/login');
-      return; 
-    }
-    
-    const user = JSON.parse(userStr);
-
-    Promise.all([
-      fetch(`${API_BASE_URL}/repair-requests/requester/${user.id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      }),
-      fetch(`${API_BASE_URL}/users/technicians`)
-    ])
-      .then(async ([requestsRes, usersRes]) => {
-        if (!requestsRes.ok) throw new Error("API failed");
-        
-        // let userMap: Record<number, User> = {};
-        if (usersRes.ok) {
-           const techData: User[] = await usersRes.json();
-           const techMap = techData.reduce((acc, tech) => {
-             acc[tech.id] = tech;
-             return acc;
-           }, {} as Record<number, User>);
-           if (isMounted) setUsers(techMap);
-        }
-
-        const data: RepairRequest[] = await requestsRes.json();
-        return data;
-      })
-      .then((data: RepairRequest[]) => {
-        if (isMounted) {
-          setRequests(data);
-          setLoading(false);
-
-          data.forEach(req => {
-            fetch(`${API_BASE_URL}/assignments/repair-request/${req.id}`)
-              .then(res => res.ok ? res.json() : null)
-              .then(assignData => {
-                if (isMounted && assignData && assignData.technicians) {
-                  setRequestAssignments(prev => ({ ...prev, [req.id]: assignData.technicians }));
-                }
-              })
-              .catch(err => console.error("Failed to fetch assignments", err));
-          });
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to fetch API", err);
-        if (isMounted) {
-          setLoading(false);
-        }
-      });
-      
-    return () => {
-      isMounted = false;
-    };
-  }, [navigate]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, requests.length));
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => observer.disconnect();
-  }, [requests.length]);
+  const {
+    requests,
+    loading,
+    expandedRequestId,
+    requestLogs,
+    logsLoading,
+    requestAssignments,
+    users,
+    visibleCount,
+    observerTarget,
+    toggleLogs
+  } = useHistory();
 
   const visibleRequests = requests.slice(0, visibleCount);
-
-  const toggleLogs = async (requestId: number) => {
-    if (expandedRequestId === requestId) {
-      setExpandedRequestId(null);
-      return;
-    }
-
-    setExpandedRequestId(requestId);
-
-    if (!requestLogs[requestId]) {
-      setLogsLoading(prev => ({ ...prev, [requestId]: true }));
-      try {
-        const response = await fetch(`${API_BASE_URL}/logs/request/${requestId}`);
-        if (!response.ok) throw new Error('Failed to fetch logs');
-        const data = await response.json();
-        setRequestLogs(prev => ({ ...prev, [requestId]: data }));
-      } catch (err) {
-        console.error("Failed to fetch logs", err);
-        setRequestLogs(prev => ({ ...prev, [requestId]: [] }));
-      } finally {
-        setLogsLoading(prev => ({ ...prev, [requestId]: false }));
-      }
-    }
-  };
 
   const formatDate = (isoString: string) => {
     return new Date(isoString).toLocaleDateString('th-TH', {

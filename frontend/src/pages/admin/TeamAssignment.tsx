@@ -1,188 +1,52 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './TeamAssignment.module.css';
 import { API_BASE_URL, generateTimeOptions } from '../../config';
-import type { RepairRequest, RepairImage } from '../../types/types';
-
-type Technician = {
-  id: number;
-  name: string;
-  phone?: string | null;
-  profile_image_url?: string | null;
-};
+import { useTeamAssignment } from '../../hooks/admin/useTeamAssignment';
 
 const TeamAssignment: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [request, setRequest] = useState<RepairRequest | null>(null);
-  const [technicians, setTechnicians] = useState<Technician[]>([]);
-  const [images, setImages] = useState<RepairImage[]>([]);
-  const [loading, setLoading] = useState(true);
   
-  // Form State
-  const [appointmentDate, setAppointmentDate] = useState('');
-  const [appointmentTime, setAppointmentTime] = useState('');
-  const [selectedTechs, setSelectedTechs] = useState<number[]>([]);
-  const [leaderId, setLeaderId] = useState<number | null>(null);
-  const [note, setNote] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const {
+    request,
+    technicians,
+    images,
+    loading,
+    submitting,
+    appointmentDate, setAppointmentDate,
+    appointmentTime, setAppointmentTime,
+    selectedTechs,
+    leaderId, setLeaderId,
+    note, setNote,
+    conflictingTechs,
+    handleTechToggle,
+    executeSubmit
+  } = useTeamAssignment(id);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [conflictingTechs, setConflictingTechs] = useState<number[]>([]);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
   const today = new Date().toLocaleDateString("en-CA", {timeZone: "Asia/Bangkok",});
   const timeOptions = generateTimeOptions("07:00", "19:00", 30);
 
-  const fetchRequestDetails = useCallback(() => {
-    if (!id) return;
-    
-    return new Promise<void>((resolve, reject) => {
-      setLoading(true);
-      fetch(`${API_BASE_URL}/repair-requests/${id}`)
-        .then(res => {
-          if (!res.ok) throw new Error("Failed to fetch request");
-          return res.json();
-        })
-        .then(data => {
-          setRequest(data);
-          resolve();
-        })
-        .catch(err => {
-          console.error(err);
-          reject(err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    });
-  }, [id]);
-
-  const fetchTechnicians = useCallback(() => {
-    fetch(`${API_BASE_URL}/users/technicians`)
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch technicians");
-        return res.json();
-      })
-      .then(data => setTechnicians(data))
-      .catch(err => console.error(err));
-  }, []);
-
-  const fetchImages = useCallback(() => {
-    if (!id) return;
-    fetch(`${API_BASE_URL}/repair-images/repair-request/${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch images");
-        return res.json();
-      })
-      .then(data => setImages(data))
-      .catch(err => console.error(err));
-  }, [id]);
-
-  useEffect(() => {
-    fetchRequestDetails()?.catch(() => {});
-    fetchTechnicians();
-    fetchImages();
-
-    return () => {};
-  }, [fetchRequestDetails, fetchTechnicians, fetchImages]);
-
-  useEffect(() => {
-    const checkConflicts = async () => {
-      if (selectedTechs.length === 0 || !appointmentDate || !appointmentTime) {
-        setConflictingTechs([]);
-        return;
-      }
-
-      const isoDateTime = new Date(`${appointmentDate}T${appointmentTime}:00+07:00`).toISOString();
-      const proposedTime = new Date(isoDateTime).getTime();
-
-      const newConflicts: number[] = [];
-
-      try {
-        for (const techId of selectedTechs) {
-          const res = await fetch(`${API_BASE_URL}/assignments/technician/${techId}`);
-          if (res.ok) {
-            const assignments = await res.json();
-            for (const assignment of assignments) {
-              if (assignment.appointment_date) {
-                 const assignedTime = new Date(assignment.appointment_date).getTime();
-                 if (assignedTime === proposedTime) {
-                   newConflicts.push(techId);
-                   break;
-                 }
-              }
-            }
-          }
-        }
-      } catch (err) {
-         console.error("Error checking conflicts:", err);
-      }
-      
-      setConflictingTechs(newConflicts);
-    };
-
-    checkConflicts();
-  }, [selectedTechs, appointmentDate, appointmentTime]);
-
-  const handleTechToggle = (techId: number) => {
-    setSelectedTechs(prev => {
-      const isSelected = prev.includes(techId);
-      if (isSelected) {
-        // If removing the leader, reset leaderId
-        if (leaderId === techId) setLeaderId(null);
-        return prev.filter(id => id !== techId);
-      } else {
-        // If it's the first tech selected, make them the leader automatically
-        if (prev.length === 0) setLeaderId(techId);
-        return [...prev, techId];
-      }
-    });
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     setErrorMessage('');
     if (!id || selectedTechs.length === 0 || !appointmentDate || !appointmentTime) {
       setErrorMessage("กรุณากรอกข้อมูลให้ครบถ้วน (วันเวลา และเลือกช่างอย่างน้อย 1 คน)");
       setIsModalOpen(false);
       return;
     }
-
-    // Ensure we have a leader if techs are selected
-    const finalLeaderId = leaderId || selectedTechs[0];
-
-    const isoDateTime = new Date(`${appointmentDate}T${appointmentTime}:00+07:00`).toISOString();
-
-    const payload = {
-        repair_request_id: parseInt(id, 10),
-        appointment_date: isoDateTime,
-        technicians: selectedTechs.map(techId => ({
-          technician_id: techId,
-          is_leader: techId === finalLeaderId
-        })),
-        note: note || "แอดมินกำหนดงานให้ช่าง",
-    };
-
-    setSubmitting(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/assignments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error("Failed to assign team");
-
-      setNote('');
-      navigate('/admin/requests');
-    } catch (err) {
-      console.error(err);
-      setErrorMessage("เกิดข้อผิดพลาดในการมอบหมายงาน");
-      setIsModalOpen(false);
-    } finally {
-      setSubmitting(false);
-    }
+    
+    executeSubmit(
+      () => {},
+      () => {
+        setErrorMessage("เกิดข้อผิดพลาดในการมอบหมายงาน");
+        setIsModalOpen(false);
+      }
+    );
   };
 
   if (loading) {

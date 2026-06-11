@@ -1,161 +1,41 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
 import styles from "./OnHoldManagement.module.css";
 import { API_BASE_URL, generateTimeOptions } from "../../config";
-import type { RepairRequest, RepairLog, RepairImage, TechnicianDetail } from "../../types/types";
 import { getStatusBadge } from "../../utils/statusUtils";
+import { useOnHoldManagement } from "../../hooks/admin/useOnHoldManagement";
 
-type Technician = {
-  id: number;
-  name: string;
-  phone?: string | null;
-  profile_image_url?: string | null;
-};
-  
 const timeOptions = generateTimeOptions("07:00", "19:00", 30);
 
 const OnHoldManagement: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [request, setRequest] = useState<RepairRequest | null>(null);
-  const [logs, setLogs] = useState<RepairLog[]>([]);
-  const [technicians, setTechnicians] = useState<Technician[]>([]);
-  const [assignedTechs, setAssignedTechs] = useState<TechnicianDetail[]>([]);
-  const [images, setImages] = useState<RepairImage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const {
+    request,
+    logs,
+    technicians,
+    assignedTechs,
+    images,
+    loading,
+    submitting,
+    appointmentDate, setAppointmentDate,
+    appointmentTime, setAppointmentTime,
+    selectedTechs,
+    leaderId, setLeaderId,
+    note, setNote,
+    handleTechToggle,
+    isInvalidTime,
+    executeReschedule,
+    executeTerminate
+  } = useOnHoldManagement(id);
 
   // Custom Alert / Modal State
   const [errorMessage, setErrorMessage] = useState("");
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-
-  // Form State
-  const [appointmentDate, setAppointmentDate] = useState("");
-  const [appointmentTime, setAppointmentTime] = useState("");
-  const [selectedTechs, setSelectedTechs] = useState<number[]>([]);
-  const [leaderId, setLeaderId] = useState<number | null>(null);
-  const [note, setNote] = useState("");
-
-  const fetchRequestDetails = useCallback(async () => {
-    if (!id) return;
-    const res = await fetch(`${API_BASE_URL}/repair-requests/${id}`);
-    if (!res.ok) {
-      throw new Error("Failed to fetch request");
-    }
-    const data = await res.json();
-    setRequest(data);
-    if (data.appointment_date) {
-      const dateObj = new Date(data.appointment_date);
-      setAppointmentDate(dateObj.toISOString().split("T")[0]);
-      setAppointmentTime(dateObj.toTimeString().slice(0, 5));
-    }
-  }, [id]);
-
-  const fetchLogs = useCallback(async () => {
-    if (!id) return;
-    const res = await fetch(`${API_BASE_URL}/logs/request/${id}`);
-    if (!res.ok) {
-      throw new Error("Failed to fetch logs");
-    }
-    const data = await res.json();
-    setLogs(data);
-  }, [id]);
-
-  const fetchTechnicians = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/users/technicians`);
-      if (!res.ok) throw new Error("Failed to fetch technicians");
-      const data = await res.json();
-      setTechnicians(data);
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
-
-  const fetchImages = useCallback(async () => {
-    if (!id) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/repair-images/repair-request/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setImages(data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch images", err);
-    }
-  }, [id]);
-
-  const fetchAssignedTechs = useCallback(async () => {
-    if (!id) return;
-    try {
-      const res = await fetch(`${API_BASE_URL}/assignments/repair-request/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setAssignedTechs(data.technicians || []);
-      }
-    } catch (err) {
-      console.error("Failed to fetch assigned technicians", err);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    if (!id) return;
-
-    let cancelled = false;
-
-    async function loadInitialData() {
-      try {
-        await Promise.all([
-          fetchRequestDetails(), 
-          fetchLogs(),
-          fetchTechnicians(),
-          fetchImages(),
-          fetchAssignedTechs()
-        ]);
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Error loading page data", err);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadInitialData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id, fetchRequestDetails, fetchLogs, fetchTechnicians, fetchImages, fetchAssignedTechs]);
-
-  const handleTechToggle = (techId: number) => {
-    setSelectedTechs(prev => {
-      const isSelected = prev.includes(techId);
-      if (isSelected) {
-        // If removing the leader, reset leaderId
-        if (leaderId === techId) setLeaderId(null);
-        return prev.filter(id => id !== techId);
-      } else {
-        // If it's the first tech selected, make them the leader automatically
-        if (prev.length === 0) setLeaderId(techId);
-        return [...prev, techId];
-      }
-    });
-  };
-
-  const isInvalidTime = () => {
-    if (!request?.appointment_date || !appointmentDate || !appointmentTime) return false;
-    const oldDateObj = new Date(request.appointment_date);
-    const oldDateStr = oldDateObj.toISOString().split("T")[0];
-    const oldTimeStr = oldDateObj.toTimeString().slice(0, 5);
-    return appointmentDate === oldDateStr && appointmentTime <= oldTimeStr;
-  };
 
   const handlePreReschedule = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -173,55 +53,14 @@ const OnHoldManagement: React.FC = () => {
     setIsRescheduleModalOpen(true);
   };
 
-  const executeReschedule = async () => {
-    if (!id || !appointmentDate || !appointmentTime) return;
-
-    // Ensure we have a leader if techs are selected
-    const finalLeaderId = leaderId || (selectedTechs.length > 0 ? selectedTechs[0] : null);
-
-    setSubmitting(true);
-    try {
-      const isoDateTime = new Date(
-        `${appointmentDate}T${appointmentTime}:00+07:00`,
-      ).toISOString();
-
-      // 1. Update Request appointment date
-      const patchRes = await fetch(`${API_BASE_URL}/repair-requests/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          appointment_date: isoDateTime,
-          status: "ASSIGNED", // Move back to Assigned when rescheduled
-          note: `แอดมินกำหนดวันนัดหมายใหม่`,
-        }),
-      });
-
-      if (!patchRes.ok) throw new Error("Failed to update request");
-
-      // 2. If technicians were selected, update assignments
-      if (selectedTechs.length > 0) {
-        await fetch(`${API_BASE_URL}/assignments`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            repair_request_id: parseInt(id, 10),
-            appointment_date: isoDateTime,
-            technicians: selectedTechs.map(techId => ({
-              technician_id: techId,
-              is_leader: techId === finalLeaderId
-            })),
-          }),
-        });
+  const handleExecuteReschedule = () => {
+    executeReschedule(
+      () => {},
+      () => {
+        setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลการนัดหมาย");
+        setIsRescheduleModalOpen(false);
       }
-
-      navigate("/admin/requests");
-    } catch (err) {
-      console.error(err);
-      setErrorMessage("เกิดข้อผิดพลาดในการบันทึกข้อมูลการนัดหมาย");
-      setIsRescheduleModalOpen(false);
-    } finally {
-      setSubmitting(false);
-    }
+    );
   };
 
   const handleTerminateClick = () => {
@@ -233,28 +72,14 @@ const OnHoldManagement: React.FC = () => {
     setIsCancelModalOpen(true);
   };
 
-  const executeTerminate = async () => {
-    if (!id) return;
-    setSubmitting(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/repair-requests/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: "CANCELLED",
-          note: note,
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to cancel request");
-
-      navigate("/admin/requests");
-    } catch (err) {
-      console.error(err);
-      setErrorMessage("เกิดข้อผิดพลาดในการยกเลิกรายการ");
-      setIsCancelModalOpen(false);
-    } finally {
-      setSubmitting(false);
-    }
+  const handleExecuteTerminate = () => {
+    executeTerminate(
+      () => {},
+      () => {
+        setErrorMessage("เกิดข้อผิดพลาดในการยกเลิกรายการ");
+        setIsCancelModalOpen(false);
+      }
+    );
   };
 
   if (loading) {
@@ -365,13 +190,13 @@ const OnHoldManagement: React.FC = () => {
                     <div key={tech.id} className={styles.techItem}>
                       <div className={styles.techMainInfo}>
                         {tech.profile_image_url ? (
-                          <img className={styles.techAvatar} src={tech.profile_image_url} alt={tech.name} />
+                          <img className={styles.techAvatar} src={tech.profile_image_url} alt={tech.technician_name || 'ช่างเทคนิค'} />
                         ) : (
-                          <div className={styles.initialAvatar}>{tech.name?.charAt(0)}</div>
+                          <div className={styles.initialAvatar}>{tech.technician_name?.charAt(0) || '?'}</div>
                         )}
                         <div>
                           <p className={styles.techName}>
-                            {tech.name} {tech.is_leader && <span style={{ fontSize: "12px", color: "var(--color-primary)" }}>(หัวหน้าทีม)</span>}
+                            {tech.technician_name || `ช่างเทคนิค ID: ${tech.technician_id}`} {tech.is_leader && <span style={{ fontSize: "12px", color: "var(--color-primary)" }}>(หัวหน้าทีม)</span>}
                           </p>
                           {tech.phone && <p className={styles.techDesc}>{tech.phone}</p>}
                         </div>
@@ -744,7 +569,7 @@ const OnHoldManagement: React.FC = () => {
               </button>
               <button 
                 className={styles.modalConfirmButton} 
-                onClick={executeReschedule}
+                onClick={handleExecuteReschedule}
                 disabled={submitting}
               >
                 {submitting ? 'กำลังบันทึก...' : 'ยืนยัน'}
@@ -785,7 +610,7 @@ const OnHoldManagement: React.FC = () => {
               <button 
                 className={styles.modalConfirmButton} 
                 style={{ backgroundColor: 'var(--color-error)' }}
-                onClick={executeTerminate}
+                onClick={handleExecuteTerminate}
                 disabled={submitting}
               >
                 {submitting ? 'กำลังยกเลิก...' : 'ยืนยันการยกเลิก'}

@@ -29,11 +29,13 @@ export interface Technician {
 }
 
 export interface AssignmentDetail {
-  // id: number;
+  id: number;
   technician_id: number;
   is_leader: boolean;
   assigned_at: string;
   technician_name?: string;
+  profile_image_url?: string;
+  phone?: string;
 }
 
 export interface AssignmentResponse {
