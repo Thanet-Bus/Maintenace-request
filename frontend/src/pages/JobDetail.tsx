@@ -215,7 +215,7 @@ const JobDetail: React.FC = () => {
                   </div>
                   <div className={styles.memberInfo}>
                     <span className={styles.memberName}>
-                      {assignment.technician_name ||
+                      {assignment.name ||
                         `ช่างเทคนิค ID: ${assignment.technician_id}`}
                     </span>
                     <span className={styles.memberRole}>

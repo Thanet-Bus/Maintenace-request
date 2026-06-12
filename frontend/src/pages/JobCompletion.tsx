@@ -153,7 +153,7 @@ const JobCompletion: React.FC = () => {
                   </div>
                   <div>
                     <h3 className={styles.techName}>
-                      {tech.technician_name ||
+                      {tech.name ||
                         `ช่างเทคนิค ID: ${tech.technician_id}`}
                     </h3>
                     <span className={styles.techRoleBadge}>

@@ -53,23 +53,22 @@ def list_assignments_by_repair_request(
     db: Session = Depends(get_db),
 ):
     results = get_assignments_by_repair_request(db, repair_request_id)
-    if not results:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Not found for this repair request",
-        )
-    technicians = [
-        TechnicianAssignmentDetail(
-            id=assignment.id,
-            technician_id=assignment.technician_id,
-            is_leader=assignment.is_leader,
-            assigned_at=assignment.assigned_at,
-            name=user.name,
-            phone=user.phone,
-            profile_image_url=user.profile_image_url,
-        )
-        for assignment, user in results
-    ]
+    
+    technicians = []
+    if results:
+        technicians = [
+            TechnicianAssignmentDetail(
+                id=assignment.id,
+                technician_id=assignment.technician_id,
+                is_leader=assignment.is_leader,
+                assigned_at=assignment.assigned_at,
+                name=user.name,
+                phone=user.phone,
+                profile_image_url=user.profile_image_url,
+            )
+            for assignment, user in results
+        ]
+
     return AssignmentResponse(
         repair_request_id=repair_request_id,
         technicians=technicians

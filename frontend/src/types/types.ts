@@ -33,7 +33,7 @@ export interface AssignmentDetail {
   technician_id: number;
   is_leader: boolean;
   assigned_at: string;
-  technician_name?: string;
+  name?: string;
   profile_image_url?: string;
   phone?: string;
 }

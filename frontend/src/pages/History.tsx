@@ -143,7 +143,7 @@ const History: React.FC = () => {
                                   </div>
                                   <div>
                                     <span className={assignment.is_leader ? styles.techNameLead : styles.techNameRegular}>
-                                      {techUser?.name || assignment.technician_name || `ช่างเทคนิค ID: ${assignment.technician_id}`}
+                                      { assignment.name || `ช่างเทคนิค ID: ${assignment.technician_id}`}
                                     </span>
                                     {assignment.is_leader && <span className={styles.leadBadge}>หัวหน้า</span>}
                                   </div>

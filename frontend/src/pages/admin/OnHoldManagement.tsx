@@ -190,13 +190,13 @@ const OnHoldManagement: React.FC = () => {
                     <div key={tech.id} className={styles.techItem}>
                       <div className={styles.techMainInfo}>
                         {tech.profile_image_url ? (
-                          <img className={styles.techAvatar} src={tech.profile_image_url} alt={tech.technician_name || 'ช่างเทคนิค'} />
+                          <img className={styles.techAvatar} src={tech.profile_image_url} alt={tech.name || 'ช่างเทคนิค'} />
                         ) : (
-                          <div className={styles.initialAvatar}>{tech.technician_name?.charAt(0) || '?'}</div>
+                          <div className={styles.initialAvatar}>{tech.name?.charAt(0) || '?'}</div>
                         )}
                         <div>
                           <p className={styles.techName}>
-                            {tech.technician_name || `ช่างเทคนิค ID: ${tech.technician_id}`} {tech.is_leader && <span style={{ fontSize: "12px", color: "var(--color-primary)" }}>(หัวหน้าทีม)</span>}
+                            {tech.name || `ช่างเทคนิค ID: ${tech.technician_id}`} {tech.is_leader && <span style={{ fontSize: "12px", color: "var(--color-primary)" }}>(หัวหน้าทีม)</span>}
                           </p>
                           {tech.phone && <p className={styles.techDesc}>{tech.phone}</p>}
                         </div>
