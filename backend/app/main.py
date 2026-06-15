@@ -13,6 +13,7 @@ from app.api.images import router as images_router
 from app.api.reviews import router as reviews_router
 from app.api.auth import router as auth_router
 from app.service.storage import UPLOAD_DIR
+from app.core.dependencies import get_current_user
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -30,12 +31,17 @@ app.add_middleware(
 # Mount the uploads directory so images can be served directly
 app.mount("/uploads/images", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
-app.include_router(repair_requests_router)
-app.include_router(assignments_router)
-app.include_router(logs_router)
-app.include_router(users_router)
-app.include_router(images_router)
-app.include_router(reviews_router)
+# Protect all API routes by requiring a valid JWT token
+protected_dependencies = [Depends(get_current_user)]
+
+app.include_router(repair_requests_router, dependencies=protected_dependencies)
+app.include_router(assignments_router, dependencies=protected_dependencies)
+app.include_router(logs_router, dependencies=protected_dependencies)
+app.include_router(users_router, dependencies=protected_dependencies)
+app.include_router(images_router, dependencies=protected_dependencies)
+app.include_router(reviews_router, dependencies=protected_dependencies)
+
+# Auth router remains public for LINE login
 app.include_router(auth_router)
 
 @app.get("/")
