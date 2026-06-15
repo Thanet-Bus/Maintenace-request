@@ -34,8 +34,6 @@ export function useCompleteProfile() {
         }
       } catch (err) {
         console.error("Error loading user data from local storage", err);
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
         if (!cancelled) navigate('/login');
       }
     }

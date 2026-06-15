@@ -37,7 +37,18 @@ export async function apiClient(endpoint: string, options: FetchOptions = {}) {
 
   // Depending on what the backend returns for 401s, we could handle forced logout here
   if (response.status === 401) {
-    // Optionally trigger a redirect to login or clear token here.
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('line_oauth_state');
+
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith('/admin') && currentPath !== '/admin/login') {
+      window.location.href = '/admin/login';
+    } else if (!currentPath.startsWith('/admin') && currentPath !== '/login') {
+      window.location.href = '/login';
+    }
+    
+    throw new Error('401 Unauthorized');
   }
 
   // Some endpoints might return empty body (e.g. 204 No Content), so handle JSON parsing carefully

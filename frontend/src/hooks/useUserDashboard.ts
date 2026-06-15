@@ -57,11 +57,6 @@ export function useUserDashboard() {
         }
       } catch (err: unknown) {
         console.error("Failed to fetch API", err);
-        if (err instanceof Error && err.message.includes('401')) {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('user');
-          if (!cancelled) navigate('/login');
-        }
         if (!cancelled) {
           setRequests([]);
         }
