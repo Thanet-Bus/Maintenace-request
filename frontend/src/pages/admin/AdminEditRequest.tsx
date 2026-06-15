@@ -12,6 +12,7 @@ const AdminEditRequest: React.FC = () => {
   
   const {
     request,
+    requester,
     logs,
     images,
     loading,
@@ -109,12 +110,20 @@ const AdminEditRequest: React.FC = () => {
               <div className={styles.detailsList}>
                 {/* Requester Info */}
                 <div className={styles.infoBox}>
-                  <div className={styles.infoIcon}>
-                    <span className="material-symbols-outlined">person</span>
-                  </div>
+                  {requester?.profile_image_url ? (
+                    <img 
+                      src={requester.profile_image_url} 
+                      alt="Requester" 
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} 
+                    />
+                  ) : (
+                    <div className={styles.infoIcon}>
+                      <span className="material-symbols-outlined">person</span>
+                    </div>
+                  )}
                   <div>
                     <p className={styles.infoLabel}>ผู้แจ้งซ่อม</p>
-                    <p className={styles.infoValue}>User {request.requester_id}</p>
+                    <p className={styles.infoValue}>{requester?.name || `User ${request.requester_id}`}</p>
                     <p className={styles.infoSubValue}>{request.location}</p>
                   </div>
                 </div>

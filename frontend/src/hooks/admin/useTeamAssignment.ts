@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../utils/apiClient';
-import type { RepairRequest, RepairImage } from '../../types/types';
+import type { RepairRequest, RepairImage, User } from '../../types/types';
 
 type Technician = {
   id: number;
@@ -13,6 +13,7 @@ type Technician = {
 export function useTeamAssignment(id: string | undefined) {
   const navigate = useNavigate();
   const [request, setRequest] = useState<RepairRequest | null>(null);
+  const [requester, setRequester] = useState<User | null>(null)
   const [technicians, setTechnicians] = useState<Technician[]>([]);
   const [images, setImages] = useState<RepairImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +34,11 @@ export function useTeamAssignment(id: string | undefined) {
       setLoading(true);
       apiClient(`/repair-requests/${id}`)
         .then(data => {
-          setRequest(data as RepairRequest);
+          const reqData = data as RepairRequest;
+          setRequest(reqData);
+          return apiClient(`/users/${reqData.requester_id}`);
+        }).then(userData => {
+          setRequester(userData as User)
           resolve();
         })
         .catch(err => {
@@ -161,6 +166,7 @@ export function useTeamAssignment(id: string | undefined) {
 
   return {
     request,
+    requester,
     technicians,
     images,
     loading,

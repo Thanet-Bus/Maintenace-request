@@ -7,6 +7,7 @@ export function useAdminEditRequest(id: string | undefined) {
   const navigate = useNavigate();
   
   const [request, setRequest] = useState<RepairRequest | null>(null);
+  const [requester, setRequester] = useState<User | null>(null);
   const [logs, setLogs] = useState<RepairLog[]>([]);
   const [images, setImages] = useState<RepairImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +29,13 @@ export function useAdminEditRequest(id: string | undefined) {
     setLocation(reqData.location);
     setDescription(reqData.description || '');
     setStatus(reqData.status);
+
+    try {
+      const userData = await apiClient(`/users/${reqData.requester_id}`);
+      setRequester(userData as User);
+    } catch (err) {
+      console.error("Failed to fetch requester", err);
+    }
   }, [id]);
 
   const fetchLogs = useCallback(async () => {
@@ -140,6 +148,7 @@ export function useAdminEditRequest(id: string | undefined) {
 
   return {
     request,
+    requester,
     logs,
     images,
     loading,

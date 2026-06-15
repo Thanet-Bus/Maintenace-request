@@ -30,9 +30,9 @@ const TopAppBar: React.FC<TopAppBarProps> = ({ title, showBackButton }) => {
           )}
           <h1 className={styles.title}>{title}</h1>
         </div>
-        <button className={styles.iconButton}>
+        {/* <button className={styles.iconButton}>
           <span className="material-symbols-outlined">notifications</span>
-        </button>
+        </button> */}
       </div>
     </header>
   );
