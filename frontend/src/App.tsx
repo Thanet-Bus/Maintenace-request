@@ -8,13 +8,14 @@ import CreateRequest from './pages/CreateRequest';
 import Tasks from './pages/Tasks';
 import JobDetail from './pages/JobDetail';
 import JobCompletion from './pages/JobCompletion';
-import AdminLogin from './pages/admin/AdminLogin';
+import AdminGuard from './components/AdminGuard';
 import AdminRequests from './pages/admin/AdminRequests';
 import AdminEditRequest from './pages/admin/AdminEditRequest';
 import TeamAssignment from './pages/admin/TeamAssignment';
 import OnHoldManagement from './pages/admin/OnHoldManagement';
 import AdminCompletedRequest from './pages/admin/AdminCompletedRequest';
 import Technicians from './pages/admin/Technicians';
+import Users from './pages/admin/Users';
 import './styles/theme.css';
 
 function App() {
@@ -24,13 +25,63 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/auth/line/callback" element={<Callback />} />
         <Route path="/complete-profile" element={<CompleteProfile />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/requests" element={<AdminRequests />} />
-        <Route path="/admin/technicians" element={<Technicians />} />
-        <Route path="/admin/request/edit/:id" element={<AdminEditRequest />} />
-        <Route path="/admin/request/complete/:id" element={<AdminCompletedRequest />} />
-        <Route path="/admin/assign-team/:id" element={<TeamAssignment />} />
-        <Route path="/admin/on-hold/:id" element={<OnHoldManagement />} />
+        <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+        <Route
+          path="/admin/requests"
+          element={
+            <AdminGuard>
+              <AdminRequests />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/technicians"
+          element={
+            <AdminGuard>
+              <Technicians />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <AdminGuard>
+              <Users />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/request/edit/:id"
+          element={
+            <AdminGuard>
+              <AdminEditRequest />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/request/complete/:id"
+          element={
+            <AdminGuard>
+              <AdminCompletedRequest />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/assign-team/:id"
+          element={
+            <AdminGuard>
+              <TeamAssignment />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/on-hold/:id"
+          element={
+            <AdminGuard>
+              <OnHoldManagement />
+            </AdminGuard>
+          }
+        />
         <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/tasks" element={<Tasks />} />
         <Route path="/history" element={<History />} />

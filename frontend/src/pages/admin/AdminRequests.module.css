@@ -5,6 +5,29 @@
   margin-bottom: 2rem;
 }
 
+.createRequestButton {
+  width: fit-content;
+  border: none;
+  border-radius: 12px;
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  padding: 0.875rem 1.25rem;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.createRequestButton:hover {
+  background-color: color-mix(in srgb, var(--color-primary) 88%, black);
+  transform: translateY(-1px);
+}
+
 @media (min-width: 1024px) {
   .headerRow {
     flex-direction: row;

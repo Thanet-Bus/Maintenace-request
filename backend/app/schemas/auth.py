@@ -1,8 +1,16 @@
+from datetime import datetime
 from pydantic import BaseModel
 
 
 class LineCallbackRequest(BaseModel):
     code: str
+    invite_token: str | None = None
+
+
+class TechnicianInviteResponse(BaseModel):
+    token: str
+    expires_in_seconds: int
+    expires_at: datetime
 
 
 class TokenResponse(BaseModel):

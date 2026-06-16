@@ -77,4 +77,5 @@ export interface User {
   name: string | null;
   profile_image_url: string | null;
   role: string;
+  phone: string;
 }

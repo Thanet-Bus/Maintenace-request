@@ -30,13 +30,13 @@ const BottomNavBar: React.FC = () => {
           <span className={styles.label}>History</span>
         </NavLink>
         
-        <NavLink 
+        {/* <NavLink 
           to="/profile" 
           className={({ isActive }) => isActive ? styles.activeItem : styles.item}
         >
           <span className="material-symbols-outlined">person</span>
           <span className={styles.label}>Profile</span>
-        </NavLink>
+        </NavLink> */}
       </div>
     </nav>
   );

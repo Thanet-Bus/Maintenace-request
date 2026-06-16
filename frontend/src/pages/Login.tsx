@@ -6,6 +6,15 @@ const LINE_REDIRECT_URI = import.meta.env.VITE_LINE_REDIRECT_URI;
 
 const Login: React.FC = () => {
   const loginWithLine = () => {
+    const inviteToken = new URLSearchParams(window.location.search).get('invite_token');
+
+    if (inviteToken) {
+      localStorage.setItem('pending_invite_token', inviteToken);
+      window.history.replaceState({}, document.title, '/login');
+    } else {
+      localStorage.removeItem('pending_invite_token');
+    }
+
     const state = crypto.randomUUID();
 
     localStorage.setItem("line_oauth_state", state);
