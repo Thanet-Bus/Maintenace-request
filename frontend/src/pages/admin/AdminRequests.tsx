@@ -60,10 +60,16 @@ const AdminRequests: React.FC = () => {
           <h1 className={styles.pageTitle}>การจัดการใบแจ้งซ่อม</h1>
           <p className={styles.pageSubtitle}>Manage, assign, and track maintenance requests efficiently.</p>
         </div>
-        <button className={styles.createRequestButton} onClick={() => navigate('/create-request')}>
-          <span className="material-symbols-outlined">add_circle</span>
-          สร้างใบแจ้งซ่อม
-        </button>
+        <div className={styles.headerActions}>
+          <button className={styles.reportButton} onClick={() => navigate('/admin/reports')}>
+            <span className="material-symbols-outlined">analytics</span>
+            รายงานสถิติ
+          </button>
+          <button className={styles.createRequestButton} onClick={() => navigate('/create-request')}>
+            <span className="material-symbols-outlined">add_circle</span>
+            สร้างใบแจ้งซ่อม
+          </button>
+        </div>
       </div>
 
       {/* Filter Bar */}

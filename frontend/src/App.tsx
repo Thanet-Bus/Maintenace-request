@@ -14,6 +14,7 @@ import AdminEditRequest from './pages/admin/AdminEditRequest';
 import TeamAssignment from './pages/admin/TeamAssignment';
 import OnHoldManagement from './pages/admin/OnHoldManagement';
 import AdminCompletedRequest from './pages/admin/AdminCompletedRequest';
+import AdminReports from './pages/admin/AdminReports';
 import Technicians from './pages/admin/Technicians';
 import Users from './pages/admin/Users';
 import './styles/theme.css';
@@ -47,6 +48,14 @@ function App() {
           element={
             <AdminGuard>
               <Users />
+            </AdminGuard>
+          }
+        />
+        <Route
+          path="/admin/reports"
+          element={
+            <AdminGuard>
+              <AdminReports />
             </AdminGuard>
           }
         />

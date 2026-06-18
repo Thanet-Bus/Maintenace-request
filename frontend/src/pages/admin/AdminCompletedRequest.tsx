@@ -50,6 +50,10 @@ const AdminCompletedRequest: React.FC = () => {
       return `${API_BASE_URL.replace(/\/api$/, "")}${path}`;
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <AdminLayout>
       <div className={styles.container}>
@@ -65,7 +69,13 @@ const AdminCompletedRequest: React.FC = () => {
               รายละเอียดงานซ่อม (#REQ-{request.id.toString().padStart(4, "0")})
             </h2>
           </div>
-          <span className={styles.headerBadge}>เสร็จสิ้น (COMPLETED)</span>
+          <div className={styles.headerActions}>
+            <span className={styles.headerBadge}>เสร็จสิ้น (COMPLETED)</span>
+            <button className={styles.printButton} type="button" onClick={handlePrint}>
+              <span className="material-symbols-outlined">print</span>
+              พิมพ์ PDF
+            </button>
+          </div>
         </div>
 
         <div className={styles.mainGrid}>

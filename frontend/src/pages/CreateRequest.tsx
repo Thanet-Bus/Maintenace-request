@@ -136,12 +136,13 @@ const CreateRequest: React.FC = () => {
 
           {/* Details Textarea */}
           <div className={styles.fieldGroup}>
-            <label className={styles.label} htmlFor="details">รายละเอียดปัญหา</label>
+            <label className={styles.label} htmlFor="details">รายละเอียดปัญหา <span className={styles.required}>*</span></label>
             <textarea 
               className={styles.textarea} 
               id="details" 
               placeholder="อธิบายอาการเบื้องต้น หรือข้อมูลเพิ่มเติม..." 
               rows={3} 
+              required
               value={details}
               onChange={(e) => {
                 setDetails(e.target.value);
