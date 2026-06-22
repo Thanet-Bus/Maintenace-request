@@ -9,7 +9,7 @@ import { useAdminCompletedRequest } from '../../hooks/admin/useAdminCompletedReq
 const AdminCompletedRequest: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { request, images, logs, reviews, loading, error } = useAdminCompletedRequest(id);
+  const { request, requester, images, logs, reviews, loading, error } = useAdminCompletedRequest(id);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
   if (loading) {
@@ -99,7 +99,7 @@ const AdminCompletedRequest: React.FC = () => {
                   <div>
                     <p className={styles.infoLabel}>ผู้แจ้งซ่อม</p>
                     <p className={styles.infoValue}>
-                      User {request.requester_id}
+                      {requester?.name || `User ${request.requester_id}`}
                     </p>
                   </div>
                 </div>
