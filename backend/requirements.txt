@@ -8,3 +8,4 @@ pydantic-settings==2.14.1 #for config settings like env with pydantic
 httpx==0.28.1             #for calling external API
 python-multipart==0.0.29  #for take uploaded images
 PyJWT==2.13.0             #for user login
+openpyxl==3.1.5           #excel plugin

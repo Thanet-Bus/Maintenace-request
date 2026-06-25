@@ -1,7 +1,7 @@
 from app.core.database import Base
 from datetime import datetime
 from sqlalchemy import String, Text, DateTime, ForeignKey, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.model.status import RepairStatus, repair_status_enum
 
 class RepairRequests(Base):
@@ -29,3 +29,5 @@ class RepairRequests(Base):
         server_default=func.now(),
         server_onupdate=func.now(),
         nullable=False)
+
+    requester: Mapped["User"] = relationship("User", back_populates="repair_requests")  # noqa: F821

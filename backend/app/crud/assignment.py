@@ -68,6 +68,19 @@ def create_assignments(
 
     return assignments
 
+
+def get_assignments_by_repair_requests(
+    db: Session,
+    repair_request_ids: list[int],
+) -> list[tuple[Assignment, User]]:
+    return (
+        db.query(Assignment, User)
+        .join(User, Assignment.technician_id == User.id)
+        .filter(Assignment.repair_request_id.in_(repair_request_ids))
+        .order_by(Assignment.assigned_at.desc())
+        .all()
+    )
+
 def get_assignments(db: Session) -> list[Assignment]:
     return db.query(Assignment).order_by(Assignment.assigned_at.desc()).all()
 

@@ -2,7 +2,7 @@ from app.core.database import Base
 from datetime import datetime
 from enum import Enum
 from sqlalchemy import String, Text, DateTime, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Enum as SQLEnum
 
 class UserRole(str, Enum):
@@ -27,3 +27,5 @@ class User(Base):
         DateTime(timezone=True),
         server_default=func.now(), 
         nullable=False)
+
+    repair_requests: Mapped[list["RepairRequests"]] = relationship("RepairRequests", back_populates="requester") # noqa: F821
