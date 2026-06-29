@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import require_admin
 from app.crud.user import (
     create_user,
     get_user_by_id,
     get_user_by_line_id,
-    get_user_by_emp_id,
+    # get_user_by_emp_id,
     get_users,
     get_technicians,
     update_user,
@@ -15,14 +16,14 @@ from app.schemas.user import UserCreate, UserUpdate, UserResponse
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-@router.post("", response_model=UserResponse)
+@router.post("", response_model=UserResponse, dependencies=[Depends(require_admin)])
 def create_new_user(
     data: UserCreate,
     db: Session = Depends(get_db),
 ):
     return create_user(db, data)
 
-@router.get("", response_model=list[UserResponse])
+@router.get("", response_model=list[UserResponse], dependencies=[Depends(require_admin)])
 def list_users(
     skip: int = 0,
     limit: int = 100,
@@ -60,7 +61,7 @@ def get_user_by_line(
         )
     return user
 
-@router.patch("/{user_id}", response_model=UserResponse)
+@router.patch("/{user_id}", response_model=UserResponse, dependencies=[Depends(require_admin)])
 def update_existing_user(
     user_id: int,
     data: UserUpdate,

@@ -31,8 +31,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             All Requests
           </NavLink>
           <NavLink to="/admin/technicians" className={({ isActive }) => isActive ? styles.activeItem : styles.item}>
-            <span className="material-symbols-outlined">group</span>
+            <span className="material-symbols-outlined">engineering</span>
             Technicians
+          </NavLink>
+          <NavLink to="/admin/users" className={({ isActive }) => isActive ? styles.activeItem : styles.item}>
+            <span className="material-symbols-outlined">group</span>
+            Users
           </NavLink>
           <NavLink to="/admin/reports" className={({ isActive }) => isActive ? styles.activeItem : styles.item}>
             <span className="material-symbols-outlined">analytics</span>

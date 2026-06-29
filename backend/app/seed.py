@@ -4,7 +4,7 @@ from app.core.database import SessionLocal
 from app.model.users import User, UserRole
 
 def seed_users(db: Session) -> None:
-    existing_user = db.query(User).filter(User.id == 1).first()
+    existing_user = db.query(User).filter(User.emp_id == "EMP001").first()
 
     if existing_user:
         print("Mock users already exist")
@@ -12,7 +12,6 @@ def seed_users(db: Session) -> None:
 
     users = [
         User(
-            id=1,
             line_user_id="mock-line-user-1",
             name="demo_user",
             emp_id="EMP001",
@@ -21,7 +20,6 @@ def seed_users(db: Session) -> None:
             profile_image_url=None,
         ),
         User(
-            id=2,
             line_user_id="mock-line-admin-1",
             name="demo_admin",
             emp_id="EMP002",
@@ -30,7 +28,6 @@ def seed_users(db: Session) -> None:
             profile_image_url=None,
         ),
         User(
-            id=3,
             line_user_id="mock-line-tech-1",
             name="demo_tech",
             emp_id="EMP003",

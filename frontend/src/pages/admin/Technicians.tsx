@@ -1,123 +1,86 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './Technicians.module.css';
-import { API_BASE_URL } from '../../config';
 import JobCard from '../../components/JobCard';
-import type { RepairRequest, AssignmentResponse } from '../../types/types';
+import { useTechnicians } from '../../hooks/admin/useTechnicians';
+import { apiClient } from '../../utils/apiClient';
 
-type Technician = {
-  id: number;
-  username: string;
-  name: string;
-  phone?: string | null;
-  profile_image_url?: string | null;
-  activeJobsCount?: number;
-  avgRating?: number;
-};
+interface TechnicianInviteResponse {
+  token: string;
+  expires_in_seconds: number;
+  expires_at: string;
+}
 
 const Technicians: React.FC = () => {
-  const [technicians, setTechnicians] = useState<Technician[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    technicians,
+    loading,
+    selectedTech,
+    techRequests,
+    historyLoading,
+    isModalOpen, setIsModalOpen,
+    handleViewHistory
+  } = useTechnicians();
 
-  // History Modal State
-  const [selectedTech, setSelectedTech] = useState<Technician | null>(null);
-  const [techRequests, setTechRequests] = useState<RepairRequest[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [inviteUrl, setInviteUrl] = useState('');
+  const [inviteMessage, setInviteMessage] = useState('');
+  const [inviteError, setInviteError] = useState('');
+  const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
 
-  const fetchTechnicians = useCallback(async () => {
-    const res = await fetch(`${API_BASE_URL}/users/technicians`);
-    if (!res.ok) throw new Error("Failed to fetch technicians");
-    const data = await res.json();
-    
-    const techsWithStats = await Promise.all(data.map(async (tech: Technician) => {
-      let activeJobsCount = 0;
-      let avgRating = 0;
-      
-      try {
-        const [asRes, revRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/assignments/technician/${tech.id}`),
-          fetch(`${API_BASE_URL}/reviews/technician/${tech.id}`)
-        ]);
-        
-        if (asRes.ok) {
-          const assignments = await asRes.json();
-          activeJobsCount = assignments.length;
-        }
-        
-        if (revRes.ok) {
-          const reviews = await revRes.json();
-          if (reviews.length > 0) {
-            avgRating = reviews.reduce((sum: number, r: {rating: number}) => sum + r.rating, 0) / reviews.length;
-          }
-        }
-      } catch (err) {
-         console.error(`Failed to fetch stats for tech ${tech.id} ${err}`);
-      }
-      
-      return { ...tech, activeJobsCount, avgRating };
-    }));
-    
-    setTechnicians(techsWithStats);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadInitialData() {
-      try {
-        await Promise.all([
-          fetchTechnicians(),
-        ]);
-      } catch (err) {
-        if (!cancelled) {
-          console.error("Error loading page data", err);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
+  const copyText = async (text: string) => {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
     }
 
-    loadInitialData();
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  };
 
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchTechnicians]);
+  const buildInviteUrl = (token: string) => {
+    return `${window.location.origin}/login?invite_token=${encodeURIComponent(token)}`;
+  };
 
-  const handleViewHistory = useCallback(async (tech: Technician) => {
-    setSelectedTech(tech);
-    setIsModalOpen(true);
-    setHistoryLoading(true);
-    setTechRequests([]);
+  const handleCopyInvite = async () => {
+    if (!inviteUrl) return;
 
     try {
-      // 1. Get assignments for this technician
-      const res = await fetch(`${API_BASE_URL}/assignments/technician/${tech.id}`);
-      if (!res.ok) throw new Error("Failed to fetch assignments");
-      const assignments: AssignmentResponse[] = await res.json(); 
-
-      // 2. Fetch full details for each unique request
-      const requestIds = assignments.map((a: AssignmentResponse) => a.repair_request_id);
-      const uniqueIds = Array.from(new Set(requestIds));
-
-      const requestDetails = await Promise.all(
-        uniqueIds.map(async (id) => {
-          const rRes = await fetch(`${API_BASE_URL}/repair-requests/${id}`);
-          if (rRes.ok) return rRes.json();
-          return null;
-        })
-      );
-
-      setTechRequests(requestDetails.filter(r => r !== null));
-    } catch (err) {
-      console.error("Error loading technician history", err);
-    } finally {
-      setHistoryLoading(false);
+      await copyText(inviteUrl);
+      setInviteMessage('คัดลอกลิงก์เชิญเรียบร้อยแล้ว');
+      setInviteError('');
+    } catch {
+      setInviteError('ไม่สามารถคัดลอกลิงก์ได้ กรุณาลองใหม่อีกครั้ง');
     }
-  }, []);
+  };
+
+  const handleGenerateInvite = async () => {
+    setIsGeneratingInvite(true);
+    setInviteMessage('');
+    setInviteError('');
+
+    try {
+      const invite = await apiClient('/auth/technician-invites', {
+        method: 'POST',
+      }) as TechnicianInviteResponse;
+
+      const url = buildInviteUrl(invite.token);
+      setInviteUrl(url);
+      await copyText(url);
+      setInviteMessage(`สร้างลิงก์เชิญเรียบร้อยแล้ว ลิงก์หมดอายุใน ${invite.expires_in_seconds / 60} นาที`);
+    } catch (err: unknown) {
+      console.error(err);
+      setInviteError(err instanceof Error ? err.message : 'ไม่สามารถสร้างลิงก์เชิญได้');
+    } finally {
+      setIsGeneratingInvite(false);
+    }
+  };
 
   return (
     <AdminLayout>
@@ -127,14 +90,38 @@ const Technicians: React.FC = () => {
             <h1 className={styles.pageTitle}>รายชื่อช่างเทคนิค</h1>
             <p className={styles.pageSubtitle}>Manage and monitor your maintenance team.</p>
           </div>
-          <button className={styles.addBtn}>
+          <button className={styles.addBtn} onClick={handleGenerateInvite} disabled={isGeneratingInvite}>
             <span className="material-symbols-outlined">person_add</span>
-            เพิ่มช่างใหม่
+            {isGeneratingInvite ? 'กำลังสร้างลิงก์...' : 'เพิ่มช่างใหม่'}
           </button>
         </div>
 
+        {inviteMessage && (
+          <div className={styles.invitePanel}>
+            <p className={styles.inviteMessage}>{inviteMessage}</p>
+            {inviteUrl && (
+              <div className={styles.inviteLinkRow}>
+                <input
+                  className={styles.inviteLinkInput}
+                  value={inviteUrl}
+                  readOnly
+                  onFocus={(e) => e.target.select()}
+                />
+                <button className={styles.copyBtn} type="button" onClick={handleCopyInvite}>
+                  คัดลอกอีกครั้ง
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {inviteError && <p className={styles.inviteError}>{inviteError}</p>}
+
         {loading ? (
-          <p style={{ textAlign: 'center', marginTop: '3rem' }}>กำลังโหลดข้อมูล...</p>
+          <div>
+            <span className="material-symbols-outlined">sync</span>
+            <p style={{ textAlign: 'center', marginTop: '3rem' }}>กำลังโหลดข้อมูล...</p>
+          </div>
         ) : technicians.length === 0 ? (
           <p style={{ textAlign: 'center', marginTop: '3rem' }}>ไม่พบรายชื่อช่างเทคนิค</p>
         ) : (

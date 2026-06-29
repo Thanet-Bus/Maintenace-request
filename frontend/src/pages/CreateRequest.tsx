@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './CreateRequest.module.css';
-import { API_BASE_URL } from "../config";
+import { useCreateRequest } from '../hooks/useCreateRequest';
 
 const CreateRequest: React.FC = () => {
   const navigate = useNavigate();
@@ -17,8 +17,7 @@ const CreateRequest: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { createRequest, isSubmitting, error, setError } = useCreateRequest();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -41,64 +40,7 @@ const CreateRequest: React.FC = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-
-    // Combine some of the form details that don't have dedicated backend fields into the description
-    const fullDescription = `หมวดหมู่: ${category}\nเบอร์ติดต่อ: ${phone}\nรายละเอียด: ${details}`;
-
-    const requestData = {
-      title: title,
-      location: location,
-      description: fullDescription,
-    };
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/repair-requests`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create repair request');
-      }
-
-      const createdRequest = await response.json();
-
-      // Upload image if selected
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append('repair_request_id', createdRequest.id.toString());
-        formData.append('image_type', 'REQUEST');
-        formData.append('uploaded_by', '1'); // Mock user id for demo_user
-        formData.append('file', imageFile);
-
-        const imageResponse = await fetch(`${API_BASE_URL}/repair-images`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!imageResponse.ok) {
-          console.warn('Repair request created, but image upload failed');
-          // Continuing to dashboard anyway since the primary request succeeded
-        }
-      }
-
-      // Redirect to dashboard on success
-      navigate('/dashboard');
-      setIsSubmitting(false);
-    } catch (err) {
-      console.error(err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-      }
-      setIsSubmitting(false);
-    }
+    await createRequest({ category, title, location, details, phone, imageFile });
   };
 
   return (
@@ -131,8 +73,11 @@ const CreateRequest: React.FC = () => {
                 id="category" 
                 required
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              >
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  if (error) setError(null);
+                }}
+                >
                 <option value="" disabled>เลือกหมวดหมู่ปัญหา</option>
                 <option value="ไฟฟ้า">ไฟฟ้า</option>
                 <option value="ประปา">ประปา</option>
@@ -159,7 +104,10 @@ const CreateRequest: React.FC = () => {
               type="text" 
               required 
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (error) setError(null);
+              }}
             />
           </div>
 
@@ -178,21 +126,28 @@ const CreateRequest: React.FC = () => {
                 style={{ paddingLeft: '44px' }}
                 required 
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(e) => {
+                setLocation(e.target.value);
+                if (error) setError(null);
+              }}
               />
             </div>
           </div>
 
           {/* Details Textarea */}
           <div className={styles.fieldGroup}>
-            <label className={styles.label} htmlFor="details">รายละเอียดปัญหา</label>
+            <label className={styles.label} htmlFor="details">รายละเอียดปัญหา <span className={styles.required}>*</span></label>
             <textarea 
               className={styles.textarea} 
               id="details" 
               placeholder="อธิบายอาการเบื้องต้น หรือข้อมูลเพิ่มเติม..." 
               rows={3} 
+              required
               value={details}
-              onChange={(e) => setDetails(e.target.value)}
+              onChange={(e) => {
+                setDetails(e.target.value);
+                if (error) setError(null);
+              }}
             ></textarea>
           </div>
 
@@ -259,7 +214,10 @@ const CreateRequest: React.FC = () => {
                 style={{ paddingLeft: '44px' }}
                 required 
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                setPhone(e.target.value);
+                if (error) setError(null);
+              }}
               />
             </div>
           </div>

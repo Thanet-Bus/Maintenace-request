@@ -1,221 +1,35 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React from "react";
 import SignatureCanvas from 'react-signature-canvas' // third party plugin, might need to install for IDE sake
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Layout from "../components/Layout";
-import type {
-  RepairRequest,
-  AssignmentDetail,
-  AssignmentResponse,
-} from "../types/types";
 import styles from "./JobCompletion.module.css";
-import { API_BASE_URL } from "../config";
-
-interface TechnicianRating {
-  technician_id: number;
-  rating: number;
-  comment: string;
-}
+import { useJobCompletion } from "../hooks/useJobCompletion";
 
 const JobCompletion: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-
-  const [request, setRequest] = useState<RepairRequest | null>(null);
-  const [assignments, setAssignments] = useState<AssignmentDetail[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Form State
-  const [summary, setSummary] = useState("");
-  const [ratings, setRatings] = useState<Record<number, TechnicianRating>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const canvasRef = useRef<SignatureCanvas>(null);
-  const [hasSignature, setHasSignature] = useState(false);
-  const [isSignatureConfirmed, setIsSignatureConfirmed] = useState(false);
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
-      setPhoto(selectedFile);
-      setPhotoPreview(URL.createObjectURL(selectedFile));
-    }
-  };
-
-  const removePhoto = () => {
-    setPhoto(null);
-    if (photoPreview) URL.revokeObjectURL(photoPreview);
-    setPhotoPreview(null);
-  };
-
-  const fetchRequestDetails = useCallback(async () => {
-    if (!id) return;
-    const res = await fetch(`${API_BASE_URL}/repair-requests/${id}`);
-    if (!res.ok) throw new Error("Failed to fetch request");
-    const data = await res.json();
-    setRequest(data);
-  }, [id]);
-
-  const fetchAssignments = useCallback(async () => {
-    if (!id) return;
-    const res = await fetch(`${API_BASE_URL}/assignments/repair-request/${id}`);
-    if (!res.ok) throw new Error("Failed to fetch assignments");
-    const data: AssignmentResponse = await res.json();
-    setAssignments(data.technicians);
-
-    // Initialize ratings state
-    const initialRatings: Record<number, TechnicianRating> = {};
-    data.technicians.forEach((tech) => {
-      initialRatings[tech.technician_id] = {
-        technician_id: tech.technician_id,
-        rating: 0,
-        comment: "",
-      };
-    });
-    setRatings(initialRatings);
-  }, [id]);
-
-  useEffect(() => {
-    if (!id) return;
-
-    let cancelled = false;
-
-    window.scrollTo(0, 0);
-
-    async function loadData() {
-      try {
-        await Promise.all([fetchRequestDetails(), fetchAssignments()]);
-      } catch (err) {
-        if (!cancelled) console.error("Error loading data", err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    loadData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id, fetchRequestDetails, fetchAssignments]);
-
-  const clearSignature = () => {
-    canvasRef.current?.clear();
-    setHasSignature(false);
-    setIsSignatureConfirmed(false);
-  };
-
-  const confirmSignature = () => {
-    if (canvasRef.current && !canvasRef.current.isEmpty()) {
-      setIsSignatureConfirmed(true);
-    }
-  };
-
-  const handleRatingChange = (techId: number, rating: number) => {
-    setRatings((prev) => ({
-      ...prev,
-      [techId]: { ...prev[techId], rating },
-    }));
-  };
-
-  const handleCommentChange = (techId: number, comment: string) => {
-    setRatings((prev) => ({
-      ...prev,
-      [techId]: { ...prev[techId], comment },
-    }));
-  };
-
-  const isFormValid = summary.trim() !== "" && isSignatureConfirmed;
-
-  const handleSubmit = async () => {
-    if (!isFormValid || !id) return;
-
-    setIsSubmitting(true);
-    try {
-      // 1. Update Request Status to COMPLETED
-      const statusRes = await fetch(`${API_BASE_URL}/repair-requests/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: "COMPLETED",
-          note: `ปิดงาน: ${summary}`,
-        }),
-      });
-
-      if (!statusRes.ok) throw new Error("Failed to complete job");
-
-      // 2. Upload COMPLETE photo if available
-      if (photo) {
-        const formData = new FormData();
-        formData.append("repair_request_id", id.toString());
-        formData.append("image_type", "COMPLETE");
-        formData.append("uploaded_by", "3"); // Use actual user id if available
-        formData.append("file", photo);
-
-        const photoRes = await fetch(`${API_BASE_URL}/repair-images`, {
-          method: "POST",
-          body: formData,
-        });
-        if (!photoRes.ok) console.warn("Failed to upload complete photo");
-      }
-
-      // 3. Upload SIGNATURE image
-      if (canvasRef.current && hasSignature) {
-        const canvas = canvasRef.current.getCanvas();
-        const signatureBlob = await new Promise<Blob | null>((resolve) => {
-          canvas.toBlob((blob) => resolve(blob), "image/png");
-        });
-
-        if (signatureBlob) {
-          const signatureFile = new File([signatureBlob], "signature.png", { type: "image/png" });
-          const sigFormData = new FormData();
-          sigFormData.append("repair_request_id", id.toString());
-          sigFormData.append("image_type", "SIGNATURE");
-          sigFormData.append("uploaded_by", "3"); // Use actual user id if available
-          sigFormData.append("file", signatureFile);
-
-          const sigRes = await fetch(`${API_BASE_URL}/repair-images`, {
-            method: "POST",
-            body: sigFormData,
-          });
-          if (!sigRes.ok) console.warn("Failed to upload signature");
-        }
-      }
-
-      // 4. Submit ratings to the review API
-      const reviewPromises = Object.values(ratings)
-        .filter((r) => r.rating > 0)
-        .map((r) =>
-          fetch(`${API_BASE_URL}/reviews`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              repair_request_id: parseInt(id),
-              technician_id: r.technician_id,
-              rating: r.rating,
-              comment: r.comment || null,
-            }),
-          })
-        );
-
-      if (reviewPromises.length > 0) {
-        const reviewResults = await Promise.all(reviewPromises);
-        reviewResults.forEach((res, index) => {
-          if (!res.ok) console.warn(`Failed to submit review for tech index ${index}`);
-        });
-      }
-
-      navigate("/tasks", { replace: true });
-    } catch (error) {
-      console.error("Error completing job:", error);
-      alert("เกิดข้อผิดพลาดในการปิดงาน กรุณาลองอีกครั้ง");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const {
+    request,
+    assignments,
+    loading,
+    summary,
+    setSummary,
+    ratings,
+    isSubmitting,
+    photoPreview,
+    fileInputRef,
+    canvasRef,
+    hasSignature,
+    setHasSignature,
+    isSignatureConfirmed,
+    handlePhotoChange,
+    removePhoto,
+    clearSignature,
+    confirmSignature,
+    handleRatingChange,
+    handleCommentChange,
+    isFormValid,
+    handleSubmit
+  } = useJobCompletion(id);
 
   if (loading) {
     return (
@@ -339,7 +153,7 @@ const JobCompletion: React.FC = () => {
                   </div>
                   <div>
                     <h3 className={styles.techName}>
-                      {tech.technician_name ||
+                      {tech.name ||
                         `ช่างเทคนิค ID: ${tech.technician_id}`}
                     </h3>
                     <span className={styles.techRoleBadge}>

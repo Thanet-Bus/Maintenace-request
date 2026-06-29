@@ -1,85 +1,25 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './AdminRequests.module.css';
-import { API_BASE_URL } from '../../config';
-import type { RepairRequest } from '../../types/types';
 import { getStatusBadge as getBaseStatusBadge } from '../../utils/statusUtils';
-
-const INITIAL_LOAD_COUNT = 15;
-const LOAD_MORE_COUNT = 10;
+import { useAdminRequests } from '../../hooks/admin/useAdminRequests';
 
 const AdminRequests: React.FC = () => {
   const navigate = useNavigate();
-  const [requests, setRequests] = useState<RepairRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  
-  // Lazy loading state
-  const [visibleCount, setVisibleCount] = useState(INITIAL_LOAD_COUNT);
-  const observerTarget = useRef<HTMLTableRowElement | null>(null);
-
-  const fetchRequests = useCallback( async () => {
-    return new Promise<void>((resolve, reject) => {
-      setLoading(true);
-      fetch(`${API_BASE_URL}/repair-requests`)
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch requests');
-          return res.json();
-        })
-        .then(data => {
-          setRequests(data);
-          resolve();
-        })
-        .catch(error => {
-          console.error('Error fetching requests:', error);
-          reject(error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    });
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-    
-    fetchRequests().catch(() => {
-        if (!isMounted) return;
-    });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [fetchRequests]);
-
-  const filteredRequests = requests.filter(req => {
-    const matchesStatus = statusFilter === '' || req.status === statusFilter;
-    const matchesSearch = searchQuery === '' || 
-      req.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      req.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      `#REQ-${req.id.toString().padStart(4, '0')}`.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    return matchesStatus && matchesSearch;
-  });
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, filteredRequests.length));
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => observer.disconnect();
-  }, [filteredRequests.length]);
+  const {
+    users,
+    loading,
+    statusFilter, setStatusFilter,
+    searchQuery, setSearchQuery,
+    dateFilter, setDateFilter,
+    visibleCount,
+    observerTarget,
+    filteredRequests,
+    fetchRequests,
+    fetchUsers,
+    setLoading
+  } = useAdminRequests();
 
   const visibleRequests = filteredRequests.slice(0, visibleCount);
 
@@ -120,6 +60,16 @@ const AdminRequests: React.FC = () => {
           <h1 className={styles.pageTitle}>การจัดการใบแจ้งซ่อม</h1>
           <p className={styles.pageSubtitle}>Manage, assign, and track maintenance requests efficiently.</p>
         </div>
+        <div className={styles.headerActions}>
+          <button className={styles.reportButton} onClick={() => navigate('/admin/reports')}>
+            <span className="material-symbols-outlined">analytics</span>
+            รายงานสถิติ
+          </button>
+          <button className={styles.createRequestButton} onClick={() => navigate('/create-request')}>
+            <span className="material-symbols-outlined">add_circle</span>
+            สร้างใบแจ้งซ่อม
+          </button>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -142,13 +92,30 @@ const AdminRequests: React.FC = () => {
           <option value="CANCELLED">ยกเลิก</option>
         </select>
         <div className={styles.dateInputWrapper}>
+          <span className={`material-symbols-outlined ${styles.dateIcon}`}>search</span>
+          <input 
+            className={styles.dateInput} 
+            placeholder="ค้นหา..." 
+            type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className={styles.dateInputWrapper}>
           <span className={`material-symbols-outlined ${styles.dateIcon}`}>calendar_month</span>
-          <input className={styles.dateInput} placeholder="ช่วงวันที่" type="text" />
+          <input 
+            className={styles.dateInput} 
+            type="date" 
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+          />
         </div>
         <button className={styles.resetButton} onClick={() => {
             setSearchQuery('');
             setStatusFilter('');
-            fetchRequests();
+            setDateFilter('');
+            setLoading(true);
+            Promise.all([fetchRequests(), fetchUsers()]).finally(() => setLoading(false));
         }}>
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>restart_alt</span>
           รีเซ็ต
@@ -186,6 +153,7 @@ const AdminRequests: React.FC = () => {
                     const isPending = req.status === 'PENDING';
                     const isOnHold = req.status === 'ON_HOLD';
                     const isComplete = req.status === 'COMPLETED';
+                    const user = users[req.requester_id];
                     return (
                       <tr key={req.id} className={styles.row}>
                         <td>
@@ -204,10 +172,14 @@ const AdminRequests: React.FC = () => {
                         </td>
                         <td>
                           <div className={styles.requesterInfo}>
-                            <div className={`${styles.smallAvatar} ${styles.initialAvatar}`}>
-                              ID
-                            </div>
-                            <span>User {req.requester_id}</span>
+                            {user?.profile_image_url ? (
+                              <img src={user.profile_image_url} alt={user.name} className={styles.smallAvatar} />
+                            ) : (
+                              <div className={`${styles.smallAvatar} ${styles.initialAvatar}`}>
+                                {user?.name?.charAt(0) || 'U'}
+                              </div>
+                            )}
+                            <span>{user?.name || `User ${req.requester_id}`}</span>
                           </div>
                         </td>
                         <td>

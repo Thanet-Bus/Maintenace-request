@@ -1,146 +1,53 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import styles from './TeamAssignment.module.css';
-import { API_BASE_URL } from '../../config';
-import type { RepairRequest, RepairImage } from '../../types/types';
-
-type Technician = {
-  id: number;
-  name: string;
-  phone?: string | null;
-  profile_image_url?: string | null;
-};
+import { API_BASE_URL, generateTimeOptions } from '../../config';
+import { useTeamAssignment } from '../../hooks/admin/useTeamAssignment';
 
 const TeamAssignment: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [request, setRequest] = useState<RepairRequest | null>(null);
-  const [technicians, setTechnicians] = useState<Technician[]>([]);
-  const [images, setImages] = useState<RepairImage[]>([]);
-  const [loading, setLoading] = useState(true);
   
-  // Form State
-  const [appointmentDate, setAppointmentDate] = useState('');
-  const [appointmentTime, setAppointmentTime] = useState('');
-  const [selectedTechs, setSelectedTechs] = useState<number[]>([]);
-  const [leaderId, setLeaderId] = useState<number | null>(null);
-  const [note, setNote] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const {
+    request,
+    requester,
+    technicians,
+    images,
+    loading,
+    submitting,
+    appointmentDate, setAppointmentDate,
+    appointmentTime, setAppointmentTime,
+    selectedTechs,
+    leaderId, setLeaderId,
+    note, setNote,
+    conflictingTechs,
+    handleTechToggle,
+    executeSubmit
+  } = useTeamAssignment(id);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
-  const fetchRequestDetails = useCallback(() => {
-    if (!id) return;
-    
-    return new Promise<void>((resolve, reject) => {
-      setLoading(true);
-      fetch(`${API_BASE_URL}/repair-requests/${id}`)
-        .then(res => {
-          if (!res.ok) throw new Error("Failed to fetch request");
-          return res.json();
-        })
-        .then(data => {
-          setRequest(data);
-          resolve();
-        })
-        .catch(err => {
-          console.error(err);
-          reject(err);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    });
-  }, [id]);
+  const today = new Date().toLocaleDateString("en-CA", {timeZone: "Asia/Bangkok",});
+  const timeOptions = generateTimeOptions("07:00", "19:00", 30);
 
-  const fetchTechnicians = useCallback(() => {
-    fetch(`${API_BASE_URL}/users/technicians`)
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch technicians");
-        return res.json();
-      })
-      .then(data => setTechnicians(data))
-      .catch(err => console.error(err));
-  }, []);
-
-  const fetchImages = useCallback(() => {
-    if (!id) return;
-    fetch(`${API_BASE_URL}/repair-images/repair-request/${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch images");
-        return res.json();
-      })
-      .then(data => setImages(data))
-      .catch(err => console.error(err));
-  }, [id]);
-
-  useEffect(() => {
-    fetchRequestDetails()?.catch(() => {});
-    fetchTechnicians();
-    fetchImages();
-
-    return () => {};
-  }, [fetchRequestDetails, fetchTechnicians, fetchImages]);
-
-  const handleTechToggle = (techId: number) => {
-    setSelectedTechs(prev => {
-      const isSelected = prev.includes(techId);
-      if (isSelected) {
-        // If removing the leader, reset leaderId
-        if (leaderId === techId) setLeaderId(null);
-        return prev.filter(id => id !== techId);
-      } else {
-        // If it's the first tech selected, make them the leader automatically
-        if (prev.length === 0) setLeaderId(techId);
-        return [...prev, techId];
-      }
-    });
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     setErrorMessage('');
     if (!id || selectedTechs.length === 0 || !appointmentDate || !appointmentTime) {
       setErrorMessage("กรุณากรอกข้อมูลให้ครบถ้วน (วันเวลา และเลือกช่างอย่างน้อย 1 คน)");
       setIsModalOpen(false);
       return;
     }
-
-    // Ensure we have a leader if techs are selected
-    const finalLeaderId = leaderId || selectedTechs[0];
-
-    const isoDateTime = new Date(`${appointmentDate}T${appointmentTime}:00+07:00`).toISOString();
-
-    const payload = {
-        repair_request_id: parseInt(id, 10),
-        appointment_date: isoDateTime,
-        technicians: selectedTechs.map(techId => ({
-          technician_id: techId,
-          is_leader: techId === finalLeaderId
-        })),
-        note: note || "แอดมินกำหนดงานให้ช่าง",
-    };
-
-    setSubmitting(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/assignments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error("Failed to assign team");
-
-      setNote('');
-      navigate('/admin/requests');
-    } catch (err) {
-      console.error(err);
-      setErrorMessage("เกิดข้อผิดพลาดในการมอบหมายงาน");
-      setIsModalOpen(false);
-    } finally {
-      setSubmitting(false);
-    }
+    
+    executeSubmit(
+      () => {},
+      () => {
+        setErrorMessage("เกิดข้อผิดพลาดในการมอบหมายงาน");
+        setIsModalOpen(false);
+      }
+    );
   };
 
   if (loading) {
@@ -191,12 +98,20 @@ const TeamAssignment: React.FC = () => {
               <div className={styles.detailsList}>
                 {/* Requester Info */}
                 <div className={styles.infoBox}>
-                  <div className={styles.infoIcon}>
-                    <span className="material-symbols-outlined">person</span>
-                  </div>
+                  {requester?.profile_image_url ? (
+                    <img 
+                      src={requester.profile_image_url} 
+                      alt="Requester" 
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} 
+                    />
+                  ) : (
+                    <div className={styles.infoIcon}>
+                      <span className="material-symbols-outlined">person</span>
+                    </div>
+                  )}
                   <div>
                     <p className={styles.infoLabel}>ผู้แจ้งซ่อม</p>
-                    <p className={styles.infoValue}>User {request.requester_id}</p>
+                    <p className={styles.infoValue}>{requester?.name || `User ${request.requester_id}`}</p>
                     <p className={styles.infoSubValue}>{request.location}</p>
                   </div>
                 </div>
@@ -256,19 +171,27 @@ const TeamAssignment: React.FC = () => {
                         className={styles.input} 
                         type="date" 
                         value={appointmentDate}
+                        min={today}
                         onChange={(e) => setAppointmentDate(e.target.value)}
                         required
                       />
                     </div>
                     <div className={styles.inputWithIcon}>
                       <span className={`material-symbols-outlined ${styles.prefixIcon}`}>schedule</span>
-                      <input 
-                        className={styles.input} 
-                        type="time" 
+                      <select
+                        className={styles.input}
                         value={appointmentTime}
                         onChange={(e) => setAppointmentTime(e.target.value)}
                         required
-                      />
+                      >
+                        <option value="">เลือกเวลา</option>
+
+                        {timeOptions.map((time) => (
+                          <option key={time} value={time}>
+                            {time}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -284,10 +207,12 @@ const TeamAssignment: React.FC = () => {
                     {technicians.map((tech) => {
                       const isSelected = selectedTechs.includes(tech.id);
                       const isLeader = leaderId === tech.id;
+                      const hasConflict = conflictingTechs.includes(tech.id);
                       return (
                         <div 
                           key={tech.id} 
-                          className={`${styles.techItem} ${isSelected ? styles.techItemSelected : ''}`}
+                          className={`${styles.techItem} ${isSelected ? styles.techItemSelected : ''} ${hasConflict ? styles.techItemConflict : ''}`}
+                          style={hasConflict ? { border: '1px solid var(--color-error)' } : {}}
                         >
                           <div className={styles.techMainInfo}>
                             <input 
@@ -304,6 +229,12 @@ const TeamAssignment: React.FC = () => {
                             <div>
                               <p className={styles.techName}>{tech.name}</p>
                               {tech.phone && <p className={styles.techDesc}>{tech.phone}</p>}
+                              {hasConflict && (
+                                <p style={{ color: 'var(--color-error)', fontSize: '12px', marginTop: '4px' }}>
+                                  <span className="material-symbols-outlined" style={{ fontSize: '12px', verticalAlign: 'middle', marginRight: '2px' }}>warning</span>
+                                  มีงานอื่นในเวลาเดียวกัน
+                                </p>
+                              )}
                             </div>
                           </div>
                           {isSelected && (
@@ -362,7 +293,7 @@ const TeamAssignment: React.FC = () => {
                     className={styles.confirmButton} 
                     type="button" 
                     onClick={() => setIsModalOpen(true)}
-                    disabled={submitting || selectedTechs.length === 0 || !appointmentDate || !appointmentTime}
+                    disabled={submitting || selectedTechs.length === 0 || !appointmentDate || !appointmentTime || conflictingTechs.length > 0}
                   >
                     <span className="material-symbols-outlined">check_circle</span>
                     ยืนยันการมอบหมาย

@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime
 
 from app.model.assignments import Assignment
+from app.model.users import User
 from app.schemas.assignments import AssignmentCreate
 from app.model.logs import RepairLogs
 from app.model.repair_requests import RepairRequests
@@ -66,6 +68,19 @@ def create_assignments(
 
     return assignments
 
+
+def get_assignments_by_repair_requests(
+    db: Session,
+    repair_request_ids: list[int],
+) -> list[tuple[Assignment, User]]:
+    return (
+        db.query(Assignment, User)
+        .join(User, Assignment.technician_id == User.id)
+        .filter(Assignment.repair_request_id.in_(repair_request_ids))
+        .order_by(Assignment.assigned_at.desc())
+        .all()
+    )
+
 def get_assignments(db: Session) -> list[Assignment]:
     return db.query(Assignment).order_by(Assignment.assigned_at.desc()).all()
 
@@ -83,21 +98,24 @@ def get_assignment_by_request_and_tech(
         .first()
     )
 
-
 def get_assignments_by_repair_request(
     db: Session,
     repair_request_id: int,
-) -> list[Assignment]:
-    return db.query(Assignment).filter(
-        Assignment.repair_request_id == repair_request_id
-    ).order_by(Assignment.assigned_at.desc()).all()
+) -> list:
+    return (
+        db.query(Assignment, User)
+        .join(User, Assignment.technician_id == User.id)
+        .filter(Assignment.repair_request_id == repair_request_id)
+        .order_by(Assignment.assigned_at.desc())
+        .all()
+    )
 
 def get_assignments_by_technician(
     db: Session,
     technician_id: int,
-) -> list[tuple[Assignment, RepairStatus]]:
+) -> list[tuple[Assignment, RepairStatus, datetime]]:
     return (
-        db.query(Assignment, RepairRequests.status)
+        db.query(Assignment, RepairRequests.status, RepairRequests.appointment_date)
         .join(RepairRequests, RepairRequests.id == Assignment.repair_request_id)
         .filter(
             Assignment.technician_id == technician_id,

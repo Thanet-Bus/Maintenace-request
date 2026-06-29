@@ -1,33 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import JobCard from '../components/JobCard';
-import type { RepairRequest } from '../types/types';
 import styles from './UserDashboard.module.css';
-import { API_BASE_URL } from "../config";
+import { useTasks } from '../hooks/useTasks';
 
 const Tasks: React.FC = () => {
   const navigate = useNavigate();
-  const [requests, setRequests] = useState<RepairRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-
-
-  useEffect(() => {
-    // Fetch all requests for user 1 (mocking current user)
-    fetch(`${API_BASE_URL}/repair-requests`)
-      .then((res) => {
-        if (!res.ok) throw new Error("API failed");
-        return res.json();
-      })
-      .then((data) => {
-        setRequests(data.filter((req: RepairRequest) => req.status !== "PENDING" && req.status !== "COMPLETED"));
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch API", err);
-        setLoading(false);
-      });
-  });
+  const { requests, loading } = useTasks();
 
   return (
     <Layout title="รายการแจ้งซ่อม">

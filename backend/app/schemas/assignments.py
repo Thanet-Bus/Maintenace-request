@@ -17,6 +17,9 @@ class TechnicianAssignmentDetail(BaseModel):
     technician_id: int
     is_leader: bool
     assigned_at: datetime
+    name: str | None = None
+    phone: str | None = None
+    profile_image_url: str | None = None
 
     model_config = {
         "from_attributes": True
@@ -32,4 +35,5 @@ class AssignmentLeaderUpdate(BaseModel):
 class AssignmentStatusResponse(BaseModel):
     repair_request_id: int
     status: RepairStatus
+    appointment_date: datetime | None = None
     technicians: list[TechnicianAssignmentDetail]

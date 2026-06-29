@@ -70,3 +70,40 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-headline);
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 4mm;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body {
+    background: #ffffff !important;
+  }
+  #root {
+    max-width: none !important;
+    min-height: auto !important;
+    text-align: left !important;
+  }
+  #root > div {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  #root > div > nav {
+    display: none !important;
+  }
+  #root > div > div {
+    display: block !important;
+  }
+  #root > div > div > header {
+    display: none !important;
+  }
+  #root > div > div > main {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+}

@@ -15,6 +15,7 @@ class UserUpdate(BaseModel):
     emp_id: Optional[str] = Field(default=None, max_length=50)
     phone: Optional[str] = Field(default=None, max_length=20)
     profile_image_url: Optional[str] = Field(default=None)
+    role: Optional[UserRole] = Field(default=None)
 
 class UserResponse(BaseModel):
     id: int

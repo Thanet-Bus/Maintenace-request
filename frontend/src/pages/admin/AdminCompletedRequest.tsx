@@ -1,73 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { API_BASE_URL } from '../../config';
-import type { RepairRequest, RepairImage, RepairLog, Review } from '../../types/types';
 import styles from './AdminCompletedRequest.module.css';
 import { getStatusBadge } from '../../utils/statusUtils';
+import { useAdminCompletedRequest } from '../../hooks/admin/useAdminCompletedRequest';
 
 const AdminCompletedRequest: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [request, setRequest] = useState<RepairRequest | null>(null);
-  const [images, setImages] = useState<RepairImage[]>([]);
-  const [logs, setLogs] = useState<RepairLog[]>([]);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  const { request, requester, images, logs, reviews, loading, error } = useAdminCompletedRequest(id);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-
-  const fetchRequestData = useCallback(() => {
-    if (!id) return;
-    setLoading(true);
-    
-    Promise.all([
-      fetch(`${API_BASE_URL}/repair-requests/${id}`).then(res => {
-        if (!res.ok) throw new Error("Failed to fetch request details");
-        return res.json();
-      }),
-      fetch(`${API_BASE_URL}/repair-images/repair-request/${id}`).then(res => {
-        if (!res.ok) return []; // Ignore errors, return empty
-        return res.json();
-      }),
-      fetch(`${API_BASE_URL}/logs/request/${id}`).then(res => {
-        if (!res.ok) return []; // Ignore errors, return empty
-        return res.json();
-      }),
-      fetch(`${API_BASE_URL}/reviews/request/${id}`).then(res => {
-        if (!res.ok) return []; // Ignore errors, return empty
-        return res.json();
-      })
-    ])
-    .then(([reqData, imgsData, logsData, reviewsData]) => {
-      setRequest(reqData);
-      setImages(imgsData);
-      setLogs(logsData);
-      setReviews(reviewsData);
-    })
-    .catch(err => {
-      console.error(err);
-      setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
-    })
-    .finally(() => {
-      setLoading(false);
-    });
-  }, [id]);
-
-  useEffect(() => {
-    let isMounted = true;
-    
-    const loadData = async () => {
-        if (!isMounted) return;
-        await fetchRequestData();
-    };
-    
-    loadData();
-
-    return () => {
-        isMounted = false;
-    };
-  }, [fetchRequestData]);
 
   if (loading) {
      return (
@@ -96,7 +39,6 @@ const AdminCompletedRequest: React.FC = () => {
       );
     }
 
-
   // Group images by type
   const beforeImages = images.filter(img => img.image_type === 'REQUEST' || img.image_type === 'ON_HOLD');
   const afterImages = images.filter(img => img.image_type === 'COMPLETE');
@@ -106,6 +48,10 @@ const AdminCompletedRequest: React.FC = () => {
   const resolveImageUrl = (path: string) => {
       if (path.startsWith('http')) return path;
       return `${API_BASE_URL.replace(/\/api$/, "")}${path}`;
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
@@ -123,7 +69,13 @@ const AdminCompletedRequest: React.FC = () => {
               รายละเอียดงานซ่อม (#REQ-{request.id.toString().padStart(4, "0")})
             </h2>
           </div>
-          <span className={styles.headerBadge}>เสร็จสิ้น (COMPLETED)</span>
+          <div className={styles.headerActions}>
+            <span className={styles.headerBadge}>เสร็จสิ้น (COMPLETED)</span>
+            <button className={styles.printButton} type="button" onClick={handlePrint}>
+              <span className="material-symbols-outlined">print</span>
+              พิมพ์ PDF
+            </button>
+          </div>
         </div>
 
         <div className={styles.mainGrid}>
@@ -147,7 +99,7 @@ const AdminCompletedRequest: React.FC = () => {
                   <div>
                     <p className={styles.infoLabel}>ผู้แจ้งซ่อม</p>
                     <p className={styles.infoValue}>
-                      User {request.requester_id}
+                      {requester?.name || `User ${request.requester_id}`}
                     </p>
                   </div>
                 </div>

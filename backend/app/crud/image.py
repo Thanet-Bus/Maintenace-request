@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.model.images import RepairImages
+from app.model.users import User
 from app.schemas.images import RepairImageCreate
 
 
@@ -21,6 +22,19 @@ def get_images_by_repair_request(
     return (
         db.query(RepairImages)
         .filter(RepairImages.repair_request_id == repair_request_id)
+        .order_by(RepairImages.created_at.asc())
+        .all()
+    )
+
+
+def get_images_by_repair_requests(
+    db: Session,
+    repair_request_ids: list[int],
+) -> list[tuple[RepairImages, User | None]]:
+    return (
+        db.query(RepairImages, User)
+        .outerjoin(User, RepairImages.uploaded_by == User.id)
+        .filter(RepairImages.repair_request_id.in_(repair_request_ids))
         .order_by(RepairImages.created_at.asc())
         .all()
     )
