@@ -4,7 +4,7 @@ from fastapi.responses import StreamingResponse
 from openpyxl import Workbook
 from io import BytesIO
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from app.core.database import get_db
 from app.model.repair_requests import RepairRequests
@@ -17,6 +17,14 @@ router = APIRouter(prefix="/exports", tags=["exports"])
 
 EXCEL_MEDIA_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 MAX_EXPORT_ROWS = 10000
+THAI_TZ = timezone(timedelta(hours=7))
+UTC_TZ = timezone.utc
+
+
+def to_thai(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC_TZ)
+    return dt.astimezone(THAI_TZ).replace(tzinfo=None)
 
 
 @router.get("/excel")
@@ -28,6 +36,7 @@ async def export_repair_requests(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch data: {e}")
 
+    requests.sort(key=lambda r: r.id, reverse= False)
     request_ids = [r.id for r in requests]
 
     assignment_rows = (
@@ -51,44 +60,58 @@ async def export_repair_requests(db: Session = Depends(get_db)):
         grouped_assignments[assignment.repair_request_id].append(label)
 
     grouped_completed_at: dict[int, datetime] = {}
-    grouped_logs: dict[int, list[str]] = {}
-    for log_entry, user in log_rows:
+    log_counts: dict[int, int] = {}
+    for log_entry, _ in log_rows:
         if log_entry.status_to == RepairStatus.COMPLETED:
             grouped_completed_at[log_entry.repair_request_id] = (
-                log_entry.created_at.replace(tzinfo=None)
+                to_thai(log_entry.created_at)
             )
-        grouped_logs.setdefault(log_entry.repair_request_id, [])
-        note_text = f" - {log_entry.note}" if log_entry.note else ""
-        grouped_logs[log_entry.repair_request_id].append(
-            f"{log_entry.created_at.replace(tzinfo=None).isoformat()} "
-            f"{user.name} -> {log_entry.status_to}{note_text}"
+        log_counts[log_entry.repair_request_id] = (
+            log_counts.get(log_entry.repair_request_id, 0) + 1
         )
 
     wb = Workbook()
     ws = wb.active
-    ws.title = "Repair Requests"
+    ws.title = "requests"
     ws.append([
-        "ID",
-        "Title",
-        "Status",
-        "Requester",
-        "Created At",
-        "Assigned To",
-        "Completed At",
-        "Logs",
+        "id",
+        "title",
+        "created at",
+        "assigned to",
+        "status",
+        "completed at",
+        "logs count",
     ])
 
     for req in requests:
         ws.append([
             req.id,
             req.title,
-            req.status,
-            req.requester.name,
-            req.created_at.replace(tzinfo=None),
+            to_thai(req.created_at),
             ", ".join(grouped_assignments.get(req.id, [])) or "-",
+            str(req.status),
             grouped_completed_at.get(req.id) or "-",
-            "; ".join(grouped_logs.get(req.id, [])) or "-",
+            log_counts.get(req.id, 0),
         ])
+
+    ws2 = wb.create_sheet("logs")
+    ws2.append(["request id", "no", "datetime", "actor", "action", "note"])
+
+    logs_by_request: dict[int, list[tuple]] = {}
+    for log_entry, user in log_rows:
+        logs_by_request.setdefault(log_entry.repair_request_id, []).append((log_entry, user))
+
+    for req_id in sorted(logs_by_request.keys()):
+        for no, (log_entry, user) in enumerate(logs_by_request[req_id], start=1):
+            note_text = log_entry.note or ""
+            ws2.append([
+                log_entry.repair_request_id,
+                no,
+                to_thai(log_entry.created_at),
+                user.name,
+                str(log_entry.status_to),
+                note_text,
+            ])
 
     buffer = BytesIO()
     wb.save(buffer)
