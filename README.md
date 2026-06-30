@@ -139,15 +139,23 @@ docker compose exec backend alembic upgrade head
 docker compose exec backend alembic downgrade -1
 ```
 
-## Architecture Notes
+## Authentication & Authorization
 
-- CRUD/service: catches database/business errors, raises your own app error with message/code
-- Router/API: catches your app error, converts it to HTTPException for frontend
+- JWT access tokens (HS256, 60 min expiry, no role baked in)
+- Role checked from DB on every request — never from client-side storage
+- `require_admin` gates admin endpoints (users, exports, invites, assignments)
+- `require_tech` gates tech endpoints (status updates, task list)
+- Regular users can only access their own repair requests
+
+## Technician Task Flow
+
+- Tech logs in → `GET /repair-requests/my-tasks` returns only requests assigned to them with statuses ASSIGNED, IN_PROGRESS, or ON_HOLD
+- Tech updates status via `PATCH /repair-requests/{id}` (requires tech role)
+- Users cannot access `/tasks` page or tech-specific endpoints
 
 ## Roadmap
 
-7. Implement LINE Login
-8. Implement roles/permissions properly
+- ~~Implement roles/permissions properly~~
 
 ## Status Transitions
 
@@ -197,6 +205,8 @@ LINE Login (change to use Authentik)
 2. Add employee number completion page
 3. Add admin page to set user role = TECHNICIAN
 4. Add image upload using current_user.id as uploaded_by
+5. Implement role-based access control (admin/tech/user)
+6. Add tech task page (`/tasks`) showing only assigned requests
 
 GET  /auth/line/login
 POST /auth/line/callback

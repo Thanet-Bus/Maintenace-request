@@ -9,6 +9,7 @@ import Tasks from './pages/Tasks';
 import JobDetail from './pages/JobDetail';
 import JobCompletion from './pages/JobCompletion';
 import AdminGuard from './components/AdminGuard';
+import TechGuard from './components/TechGuard';
 import AdminRequests from './pages/admin/AdminRequests';
 import AdminEditRequest from './pages/admin/AdminEditRequest';
 import TeamAssignment from './pages/admin/TeamAssignment';
@@ -92,7 +93,14 @@ function App() {
           }
         />
         <Route path="/dashboard" element={<UserDashboard />} />
-        <Route path="/tasks" element={<Tasks />} />
+        <Route 
+          path="/tasks" 
+          element={
+            <TechGuard>
+              <Tasks />
+            </TechGuard>
+          } 
+        />
         <Route path="/history" element={<History />} />
         <Route path="/request/:id" element={<JobDetail />} />
         <Route path="/request/:id/complete" element={<JobCompletion />} />

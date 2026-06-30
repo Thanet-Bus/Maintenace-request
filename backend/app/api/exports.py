@@ -12,6 +12,7 @@ from app.model.status import RepairStatus
 from app.crud.repair_request import get_repair_requests
 from app.crud.assignment import get_assignments_by_repair_requests
 from app.crud.log import get_logs_by_repair_requests
+from app.core.dependencies import require_admin
 
 router = APIRouter(prefix="/exports", tags=["exports"])
 
@@ -27,7 +28,7 @@ def to_thai(dt: datetime) -> datetime:
     return dt.astimezone(THAI_TZ).replace(tzinfo=None)
 
 
-@router.get("/excel")
+@router.get("/excel", dependencies=[Depends(require_admin)])
 async def export_repair_requests(db: Session = Depends(get_db)):
     try:
         requests: List[RepairRequests] = (
