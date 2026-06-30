@@ -20,10 +20,10 @@ export function useTasks() {
       }
 
       try {
-        const data = await apiClient('/repair-requests');
-        
+        const data = await apiClient('/repair-requests/my-tasks');
+
         if (!cancelled) {
-          setRequests((data as RepairRequest[]).filter((req: RepairRequest) => req.status !== "PENDING" && req.status !== "COMPLETED"));
+          setRequests(data as RepairRequest[]);
         }
       } catch (err: unknown) {
         console.error("Failed to fetch API", err);

@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.model.repair_requests import RepairRequests
 from app.model.logs import RepairLogs
+from app.model.assignments import Assignment
 from app.schemas.repair_requests import RepairRequestCreate, RepairStatus, RepairRequestUpdate
 
 def create_repair_request(
@@ -45,6 +46,27 @@ def get_repair_requests_by_requester_id(
     ).order_by(
         RepairRequests.created_at.desc()
     ).all()
+
+def get_repair_requests_by_assigned_technician(
+    db: Session,
+    technician_id: int,
+) -> list[RepairRequests]:
+    return (
+        db.query(RepairRequests)
+        .join(Assignment, RepairRequests.id == Assignment.repair_request_id)
+        .filter(
+            Assignment.technician_id == technician_id,
+            RepairRequests.status.in_(
+                [
+                    RepairStatus.ASSIGNED,
+                    RepairStatus.IN_PROGRESS,
+                    RepairStatus.ON_HOLD,
+                ]
+            ),
+        )
+        .order_by(RepairRequests.appointment_date.desc())
+        .all()
+    )
 
 def update_repair_request(
     db: Session,

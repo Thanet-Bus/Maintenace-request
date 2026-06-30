@@ -12,10 +12,11 @@ from app.crud.assignment import (
     update_assignment_is_leader,
 )
 from app.schemas.assignments import AssignmentCreate, AssignmentResponse, TechnicianAssignmentDetail, AssignmentLeaderUpdate, AssignmentStatusResponse
+from app.core.dependencies import require_admin, require_tech
 
 router = APIRouter(prefix="/assignments", tags=["assignments"])
 
-@router.post("", response_model=AssignmentResponse)
+@router.post("", response_model=AssignmentResponse, dependencies=[Depends(require_admin)])
 def assign_multiple_technicians(
     data: AssignmentCreate,
     db: Session = Depends(get_db),
@@ -77,7 +78,7 @@ def list_assignments_by_repair_request(
 
 @router.get(
     "/technician/{technician_id}",
-    response_model=list[AssignmentStatusResponse],
+    response_model=list[AssignmentStatusResponse], dependencies=[Depends(require_tech)]
 )
 def list_assignments_by_technician(
     technician_id: int,
@@ -108,7 +109,7 @@ def list_assignments_by_technician(
 
 @router.patch(
     "/repair-request/{repair_request_id}/leader/{technician_id}",
-    response_model=TechnicianAssignmentDetail,
+    response_model=TechnicianAssignmentDetail, dependencies=[Depends(require_admin)] 
 )
 def set_team_leader(
     repair_request_id: int,

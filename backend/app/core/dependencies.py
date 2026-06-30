@@ -45,3 +45,14 @@ def require_admin(
         )
 
     return current_user
+
+def require_tech(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if current_user.role != UserRole.TECH and current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tech permission required",
+        )
+
+    return current_user

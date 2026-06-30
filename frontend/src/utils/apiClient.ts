@@ -47,8 +47,15 @@ export async function apiClient(endpoint: string, options: FetchOptions = {}) {
     } else if (!currentPath.startsWith('/admin') && currentPath !== '/login') {
       window.location.href = '/login';
     }
-    
     throw new Error('401 Unauthorized');
+  }
+
+  if (response.status === 403) {
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith('/admin') || currentPath === '/tasks') {
+      window.location.href = '/dashboard';
+    }
+    throw new Error('403 Forbidden');
   }
 
   // Some endpoints might return empty body (e.g. 204 No Content), so handle JSON parsing carefully
